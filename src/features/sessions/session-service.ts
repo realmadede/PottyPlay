@@ -8,8 +8,10 @@ import { smsService } from "@/features/messaging/sms-service";
 import { RightsService } from "@/features/rights/rights-service";
 
 export interface ActivateSessionInput {
-  ticketNumber: string;
-  challengeId: string;
+  ticketNumber?: string;
+  claimToken?: string;
+  challengeId?: string;
+  phoneNumber?: string;
   deviceInfo?: string;
 }
 
@@ -21,6 +23,7 @@ export interface ActivateSessionResult {
   expiresAt?: Date;
   durationSeconds?: number;
   ticketNumber?: string;
+  claimToken?: string | null;
   seatNumber?: string;
   customerName?: string;
   screeningId?: string;
@@ -38,7 +41,7 @@ export interface SessionVerificationResult {
   remainingSeconds: number;
   session?: {
     id: string;
-    phoneNumber: string;
+    phoneNumber?: string | null;
     startedAt: Date;
     expiresAt: Date;
     ticketNumber: string;
@@ -62,36 +65,55 @@ export interface SessionVerificationResult {
 export class SessionService {
   /**
    * Activates a new break companion session atomically using a transaction.
-   * Enforces:
-   * 1. Verified OTP challenge
-   * 2. Valid and unactivated ticket
-   * 3. Valid content rights authorization
-   * 4. Atomic ticket status update
-   * 5. Idempotent billing event creation
+   * Supports:
+   * 1. Direct claim token or ticket entitlement activation for one-time patrons
+   * 2. Challenge-verified activation (Africa's Talking SMS OTP) for phone registration
+   * 3. Atomic ticket status update
+   * 4. Idempotent billing event creation
+   * 5. Server-authoritative synchronization initialization
    */
   static async activateSession(
     input: ActivateSessionInput
   ): Promise<ActivateSessionResult> {
-    const cleanedTicketNumber = input.ticketNumber.trim().toUpperCase();
+    const rawIdentifier = (input.claimToken || input.ticketNumber || "").trim().toUpperCase();
 
-    // 1. Verify challenge exists and was verified
-    const challenge = await prisma.otpChallenge.findUnique({
-      where: { id: input.challengeId },
-    });
-
-    if (!challenge || !challenge.isUsed || !challenge.verifiedAt) {
+    if (!rawIdentifier) {
       return {
         success: false,
-        error: "Phone verification is required before session activation.",
+        error: "Ticket number or claim token is required.",
       };
+    }
+
+    let verifiedPhoneNumber: string | null = null;
+
+    // 1. If challengeId is provided, verify it
+    if (input.challengeId) {
+      const challenge = await prisma.otpChallenge.findUnique({
+        where: { id: input.challengeId },
+      });
+
+      if (!challenge || !challenge.isUsed || !challenge.verifiedAt) {
+        return {
+          success: false,
+          error: "Phone verification is required before session activation.",
+        };
+      }
+      verifiedPhoneNumber = challenge.phoneNumber;
+    } else if (input.phoneNumber) {
+      verifiedPhoneNumber = input.phoneNumber.trim();
     }
 
     // 2. Perform atomic activation inside a transaction
     try {
       const transactionResult = await prisma.$transaction(async (tx) => {
         // Fetch ticket with locks
-        const ticket = await tx.demonstrationTicket.findUnique({
-          where: { ticketNumber: cleanedTicketNumber },
+        const ticket = await tx.demonstrationTicket.findFirst({
+          where: {
+            OR: [
+              { ticketNumber: rawIdentifier },
+              { claimToken: rawIdentifier },
+            ],
+          },
           include: {
             screening: {
               include: {
@@ -167,7 +189,7 @@ export class SessionService {
             sessionToken,
             ticketId: ticket.id,
             screeningId: ticket.screeningId,
-            phoneNumber: challenge.phoneNumber,
+            phoneNumber: verifiedPhoneNumber,
             startedAt: now,
             expiresAt,
             status: SessionStatus.ACTIVE,
@@ -195,8 +217,9 @@ export class SessionService {
             actor: "CUSTOMER",
             details: JSON.stringify({
               ticketNumber: ticket.ticketNumber,
+              claimToken: ticket.claimToken,
               seatNumber: ticket.seatNumber,
-              phoneNumber: challenge.phoneNumber,
+              phoneNumber: verifiedPhoneNumber,
               startedAt: now.toISOString(),
               expiresAt: expiresAt.toISOString(),
               initialPosition: currentPosition,
@@ -212,16 +235,18 @@ export class SessionService {
         };
       });
 
-      // Send confirmation SMS asynchronously after successful commit
-      smsService
-        .sendSessionConfirmation(
-          challenge.phoneNumber,
-          transactionResult.ticket.seatNumber,
-          transactionResult.session.expiresAt
-        )
-        .catch((err) => {
-          console.error("Failed to send session confirmation SMS:", err);
-        });
+      // Send confirmation SMS asynchronously if phone number is available
+      if (verifiedPhoneNumber) {
+        smsService
+          .sendSessionConfirmation(
+            verifiedPhoneNumber,
+            transactionResult.ticket.seatNumber,
+            transactionResult.session.expiresAt
+          )
+          .catch((err) => {
+            console.error("Failed to send session confirmation SMS:", err);
+          });
+      }
 
       return {
         success: true,
@@ -231,6 +256,7 @@ export class SessionService {
         expiresAt: transactionResult.session.expiresAt,
         durationSeconds: transactionResult.durationSeconds,
         ticketNumber: transactionResult.ticket.ticketNumber,
+        claimToken: transactionResult.ticket.claimToken,
         seatNumber: transactionResult.ticket.seatNumber,
         customerName: transactionResult.ticket.customerName,
         screeningId: transactionResult.ticket.screening.id,

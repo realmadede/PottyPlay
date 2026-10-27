@@ -14,6 +14,35 @@ describe("PottyPlay Comprehensive MVP Test Suite", () => {
   let mainScreeningId = "screening_prime_01";
   let cinemaId = "cinema_mlimani_01";
 
+  const cleanupTestRecords = async () => {
+    await prisma.usageBillingEvent.deleteMany({
+      where: { sessionId: { startsWith: "session_billing_test" } },
+    });
+    await prisma.breakSession.deleteMany({
+      where: {
+        sessionToken: {
+          in: [
+            "pstk_test_expired_token_123",
+            "pstk_test_revoke_token_456",
+            "pstk_billing_dup_test",
+          ],
+        },
+      },
+    });
+    await prisma.demonstrationTicket.deleteMany({
+      where: {
+        ticketNumber: {
+          in: [
+            "EXP-TEST-900-T1",
+            "REV-TEST-888-T2",
+            "BILL-DUP-TEST",
+            "CLAIM-DIR-TEST-01",
+          ],
+        },
+      },
+    });
+  };
+
   beforeAll(async () => {
     // Verify database connection and seeded data
     const screening = await prisma.screening.findFirst({
@@ -22,9 +51,11 @@ describe("PottyPlay Comprehensive MVP Test Suite", () => {
     if (!screening) {
       throw new Error("Seeded demonstration screening not found. Please run seed script.");
     }
+    await cleanupTestRecords();
   });
 
   afterAll(async () => {
+    await cleanupTestRecords();
     await prisma.$disconnect();
   });
 
@@ -329,5 +360,62 @@ describe("PottyPlay Comprehensive MVP Test Suite", () => {
 
     expect(crossTenantCheck.isAuthorized).toBe(false);
     expect(crossTenantCheck.reason).toContain("Cross-tenant");
+  });
+
+  let activeClaimSessionToken: string;
+
+  // 16. Direct ticket claim activation without SMS OTP challenge
+  it("16. should activate break session directly via claim token without requiring SMS OTP", async () => {
+    const claimTicket = await prisma.demonstrationTicket.create({
+      data: {
+        ticketNumber: "CLAIM-DIR-TEST-01",
+        claimToken: "CLM-TEST-TOKEN-999",
+        screeningId: mainScreeningId,
+        seatNumber: "G14",
+        customerName: "Direct Patron",
+        status: TicketStatus.VALID_ADMITTED,
+      },
+    });
+
+    // One-time patron activates directly with claim token
+    const result = await SessionService.activateSession({
+      claimToken: claimTicket.claimToken!,
+      deviceInfo: "Mobile Safari (iOS 18)",
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.sessionToken).toBeDefined();
+    expect(result.seatNumber).toBe("G14");
+    expect(result.durationSeconds).toBe(900);
+
+    activeClaimSessionToken = result.sessionToken!;
+
+    // Verify session in DB
+    const sessionInDb = await prisma.breakSession.findUnique({
+      where: { sessionToken: result.sessionToken! },
+    });
+    expect(sessionInDb?.status).toBe(SessionStatus.ACTIVE);
+    expect(sessionInDb?.phoneNumber).toBeNull();
+  });
+
+  // 17. Claim token verification via TicketService
+  it("17. should successfully verify entitlement using a claim token", async () => {
+    const result = await TicketService.verifyTicket("CLM-TEST-TOKEN-999");
+
+    // The ticket was activated in test 16
+    expect(result.status).toBe("ALREADY_ACTIVATED");
+    expect(result.ticket?.ticketNumber).toBe("CLAIM-DIR-TEST-01");
+  });
+
+  // 18. Returning customer session synchronization
+  it("18. should allow returning patron to synchronize active session without re-authenticating", async () => {
+    // Returning customer uses their saved active session token
+    const state = await SessionService.getSessionState(activeClaimSessionToken);
+
+    expect(state.isValid).toBe(true);
+    expect(state.status).toBe(SessionStatus.ACTIVE);
+    expect(state.session?.seatNumber).toBe("G14");
+    expect(state.remainingSeconds).toBeGreaterThan(800);
+    expect(state.screening?.title).toContain("Serengeti Shadows");
   });
 });

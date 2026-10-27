@@ -49,7 +49,7 @@ export class BillingService {
         qualifying: true,
         isSimulated: true,
         disclaimer:
-          "Simulated hackathon business assumption, not an agreed Century Cinemax rate",
+          "Simulated commercial pricing model for cinema partner evaluation, not an agreed commercial rate",
       },
     });
   }
@@ -78,7 +78,7 @@ export class BillingService {
       totalEstimatedRevenueTzs: totalRevenue,
       pricePerSessionTzs: config.demoPricePerSessionTzs,
       disclaimer:
-        "Simulated hackathon business assumption, not an agreed Century Cinemax rate",
+        "Simulated commercial pricing model for cinema partner evaluation, not an agreed commercial rate",
       recentBillingEvents: events.map((e) => ({
         id: e.id,
         sessionId: e.sessionId,

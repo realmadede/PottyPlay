@@ -4,9 +4,8 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "PottyPlay | Cinema Companion Viewing Platform",
   description:
-    "Follow your ongoing cinema screening on your personal device during a quick break. Strict 15-minute companion streaming for authenticated cinema attendees.",
+    "Authoritative cinema companion viewing platform. Continue following your ongoing theatrical screening during a temporary break.",
   applicationName: "PottyPlay",
-  authors: [{ name: "PottyPlay Team" }],
 };
 
 export const viewport: Viewport = {
@@ -15,8 +14,8 @@ export const viewport: Viewport = {
   viewportFit: "cover",
   interactiveWidget: "resizes-content",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#07090e" },
-    { media: "(prefers-color-scheme: dark)", color: "#07090e" },
+    { media: "(prefers-color-scheme: light)", color: "#FFFDF7" },
+    { media: "(prefers-color-scheme: dark)", color: "#171717" },
   ],
 };
 
@@ -26,10 +25,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
-      <body className="bg-cinema-950 text-cinema-100 min-h-[100dvh] flex flex-col selection:bg-gold-500/30 selection:text-white">
+    <html lang="en">
+      <body className="bg-brand-bg text-brand-text-primary min-h-[100dvh] flex flex-col selection:bg-brand-primary/30 selection:text-brand-text-primary font-sans antialiased">
         {children}
       </body>
     </html>
   );
 }
+

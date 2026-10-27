@@ -121,6 +121,7 @@ model Screening {
 model DemonstrationTicket {
   id           String       @id @default(cuid())
   ticketNumber String       @unique
+  claimToken   String?      @unique
   screeningId  String
   seatNumber   String
   customerName String
@@ -133,7 +134,9 @@ model DemonstrationTicket {
   breakSession BreakSession?
 
   @@index([screeningId])
+  @@index([claimToken])
 }
+
 
 model OtpChallenge {
   id          String    @id @default(cuid())
@@ -157,7 +160,7 @@ model BreakSession {
   sessionToken        String        @unique
   ticketId            String        @unique
   screeningId         String
-  phoneNumber         String
+  phoneNumber         String?
   startedAt           DateTime      @default(now())
   expiresAt           DateTime
   endedAt             DateTime?
@@ -206,7 +209,7 @@ model UsageBillingEvent {
   priceTzs     Int      @default(500)
   qualifying   Boolean  @default(true)
   isSimulated  Boolean  @default(true)
-  disclaimer   String   @default("Simulated hackathon business assumption, not an agreed Century Cinemax rate")
+  disclaimer   String   @default("Simulated standard billing assumption per qualifying session")
   createdAt    DateTime @default(now())
 
   session BreakSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
@@ -215,6 +218,7 @@ model UsageBillingEvent {
   @@index([cinemaId])
   @@index([ticketNumber])
 }
+
 
 model AuditEvent {
   id         String   @id @default(cuid())

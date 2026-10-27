@@ -95,7 +95,7 @@ async function main() {
       validFrom,
       validUntil,
       maxSessionDurationSeconds: 900,
-      notes: "Authorized demonstration asset for Africa's Talking Hackathon 2026",
+      notes: "Authorized demonstration asset for cinema partner trials 2026",
     },
   });
 
@@ -158,6 +158,7 @@ async function main() {
     data: {
       id: "ticket_val_01",
       ticketNumber: "CC-MLM-7821-A12",
+      claimToken: "CLM-MLM-A12-8821",
       screeningId: screening.id,
       seatNumber: "A12",
       customerName: "Juma Mwanamvua",
@@ -169,6 +170,7 @@ async function main() {
     data: {
       id: "ticket_val_02",
       ticketNumber: "CC-MLM-7822-B04",
+      claimToken: "CLM-MLM-B04-8822",
       screeningId: screening.id,
       seatNumber: "B04",
       customerName: "Neema Kimaro",
@@ -181,6 +183,7 @@ async function main() {
     data: {
       id: "ticket_act_03",
       ticketNumber: "CC-MLM-7823-C08",
+      claimToken: "CLM-MLM-C08-8823",
       screeningId: screening.id,
       seatNumber: "C08",
       customerName: "David Tarimo",
@@ -214,7 +217,7 @@ async function main() {
       priceTzs: 500,
       qualifying: true,
       isSimulated: true,
-      disclaimer: "Simulated hackathon business assumption, not an agreed Century Cinemax rate",
+      disclaimer: "Simulated commercial pricing model for cinema partner evaluation, not an agreed commercial rate",
     },
   });
 
@@ -223,6 +226,7 @@ async function main() {
     data: {
       id: "ticket_can_04",
       ticketNumber: "CC-MLM-7824-D15",
+      claimToken: "CLM-MLM-D15-8824",
       screeningId: screening.id,
       seatNumber: "D15",
       customerName: "Zainab Rashid",
@@ -235,6 +239,7 @@ async function main() {
     data: {
       id: "ticket_ine_05",
       ticketNumber: "CC-MLM-7825-E02",
+      claimToken: "CLM-MLM-E02-8825",
       screeningId: screening.id,
       seatNumber: "E02",
       customerName: "Bakari Salum",
@@ -247,6 +252,7 @@ async function main() {
     data: {
       id: "ticket_wrg_06",
       ticketNumber: "CC-MLM-9999-Z99",
+      claimToken: "CLM-MLM-Z99-9999",
       screeningId: wrongScreening.id,
       seatNumber: "Z99",
       customerName: "Fatma Kassim",
@@ -259,6 +265,7 @@ async function main() {
     data: {
       id: "ticket_norights_07",
       ticketNumber: "OAS-MSC-1100-F01",
+      claimToken: "CLM-OAS-F01-1100",
       screeningId: screeningNoRights.id,
       seatNumber: "F01",
       customerName: "Baraka Mwangi",

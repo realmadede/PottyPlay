@@ -1,49 +1,77 @@
 # PottyPlay: Cinema Companion Viewing Platform
 
-Built for the Africa's Talking Open Hackathon: Build Anything (Dar es Salaam, Tanzania, 31 October 2026).
+PottyPlay is an independent cinema companion-viewing technology platform designed for theatrical partnerships.
 
-PottyPlay enables an authenticated cinema patron to follow an ongoing cinema screening on their personal mobile device during a temporary break (restroom, concessions, urgent call). It features a strict maximum session limit of 15 minutes (900 seconds), server-authoritative playback synchronization, Africa's Talking SMS verification, and idempotent usage billing.
+The platform enables authenticated cinema patrons to temporarily follow an ongoing theatrical screening on their personal mobile devices during a short break (restroom, concessions, urgent call) without losing their place in the film. It enforces a strict maximum session limit of 15 minutes (900 seconds), server-authoritative playback synchronization, Africa's Talking SMS verification, and idempotent usage billing.
 
-## 1. Problem and Impact
+## 1. Product Capabilities
 
-Cinema patrons often postpone or dread taking a restroom break during a movie because missing even three minutes can ruin a film's narrative arc. Simultaneously, theater chains struggle with patron distraction and safety when guests rush through dark auditoriums.
+### 1.1 Patron Viewing Experience (`/watch`)
+- **Direct Entitlement & Claim Codes:** Patrons scan their seat QR code or enter their ticket code to activate viewing breaks directly.
+- **Session Continuity (Zero OTP Repetition):** Returning patrons with active sessions automatically resume playback upon scanning without repeating phone verification.
+- **Auditorium Synchronization:** Video frames remain locked to the cinema auditorium projector in real time.
+- **15-Minute Hard Boundary:** Real-time countdown timer backed by server-side session expiration.
 
-PottyPlay solves this by providing a companion viewing window bounded to 15 minutes. It keeps cinema patrons connected to the ongoing screening while preventing unauthorized long-term streaming or piracy through strict server-side access controls, time-bounded tokens, and rights validation.
+### 1.2 Public Business Presentation (`/`)
+- Editorial presentation showcasing product benefits, security architecture, and operational workflows for cinema exhibitors and studio partners.
+- Clean separation from internal venue controls; no operator links or administrative tooling exposed to the general public.
 
-## 2. Meaningful Use of Africa's Talking APIs
+### 1.3 Theater Projection Console (`/cinema`)
+- Master timeline control (Play, Pause, Seek ±30s, Position Calibration) feeding the companion viewing stream.
+- Live active break viewer telemetry by auditorium screen and seat number.
+- Direct projection pause triggering synchronized auditorium hold states across patron devices.
 
-Africa's Talking SMS infrastructure forms the verification backbone of the customer lifecycle:
+### 1.4 Cinema Operations Dashboard (`/operator`)
+- Real-time operational monitoring of active, expired, and revoked companion sessions.
+- Instant operator revocation capability with required audit rationale.
+- Africa's Talking SMS delivery logs, transmission statuses, and message costs.
+- Idempotent qualifying usage billing ledger.
+- Tamper-evident security audit trail.
 
-1. **Two-Factor Authentication Challenge:** When a patron enters their phone number (+255 Tanzanian or international format), PottyPlay creates an expiring challenge and sends a 6-digit numeric OTP via Africa's Talking SMS API (`/version1/messaging`).
-2. **Cryptographic Protection:** OTP codes are hashed with SHA-256 and salt; raw OTPs are never stored in the database or exposed in production logs.
-3. **Session Activation Confirmation:** Upon successful ticket and OTP validation, an SMS confirmation is dispatched to the customer detailing their seat and exact session expiration time.
-4. **Graceful Degradation with Development Simulator:** If Africa's Talking production credentials are not configured (`AT_SIMULATOR_MODE="true"`), PottyPlay uses a clearly labelled development SMS simulator that records and displays delivery attempts without network dependencies.
+## 2. Africa's Talking SMS Integration
+
+Africa's Talking SMS infrastructure powers patron communication and security fallback:
+
+1. **Two-Factor Authentication:** Generates 6-digit numeric OTPs dispatched via Africa's Talking Messaging API (`/version1/messaging`).
+2. **Cryptographic Protection:** OTP codes are hashed with SHA-256 and server-side salts; plaintext codes are never stored in the database.
+3. **Session Confirmations:** Dispatches seat confirmation and expiration reminders to customer devices upon activation.
+4. **Resilient Dual-Mode Adapter:** Configured via `AT_SIMULATOR_MODE`. In production, connects directly to Africa's Talking telecom gateway; in development, utilizes a local SMS adapter for offline testing.
 
 ## 3. Technology Stack
 
 - **Framework:** Next.js 15 (App Router, Server Actions, Route Handlers)
 - **Language:** TypeScript 5 (Strict Mode enabled)
-- **UI & Styling:** React 19, Tailwind CSS, Lucide SVG Icons (Zero emojis used)
+- **Design System:** Plus Jakarta Sans typography, custom design token palette, Lucide SVG icons (Zero emojis)
+- **Mobile Container:** Capacitor 8 (`@capacitor/core`, `@capacitor/android`, `@capacitor/ios`)
 - **Database & Transactions:** PostgreSQL 16 with Prisma ORM
 - **Validation:** Zod
-- **SMS Integration:** Africa's Talking SMS API + Development Simulator Adapter
-- **Testing:** Vitest automated test suite (15 automated unit & integration tests)
-- **Containerization:** Docker multi-stage build and Docker Compose
+- **Messaging:** Africa's Talking SMS API + Local Development Simulator Adapter
+- **Testing:** Vitest automated test suite (18 automated integration tests)
+- **Containerization:** Multi-stage Docker build and Docker Compose
 
-## 4. Key Architecture Principles
+## 4. Brand Design Tokens
 
-- **Authoritative Backend Clock:** The cinema simulator provides the single source of truth for playback position. The client player synchronizes with the server every 4 seconds.
-- **Server-Side Expiration Enforcement:** The 15-minute countdown is enforced on the server. If `expires_at` is reached, backend APIs reject access, immediately ending the stream.
-- **Idempotent Billing:** Successful session activations generate exactly one qualifying billing event (500 TZS demo rate). Page reloads or duplicate requests never trigger duplicate charges.
-- **Single-Device Ticket Lock:** One ticket allows only one active session. Duplicate activation attempts are rejected atomically inside database transactions.
-- **Content Rights Boundary:** Demonstration assets require explicit database rights authorization matching the venue and time window before playback can be initiated.
+The application strictly implements the following design system:
+
+| Token | Hex Value | Semantic Usage |
+| --- | --- | --- |
+| Primary Brand | `#FFB800` | Primary buttons, active highlights |
+| Secondary Brand | `#F59E0B` | Interactive hover states, secondary accents |
+| Accent | `#171717` | Contrast badges, prominent cards |
+| Neutral Background | `#FFFDF7` | Page background |
+| Surface | `#FFFFFF` | Cards, modals, dialog surfaces |
+| Border | `#E5E7EB` | Structural dividers, card borders |
+| Primary Text | `#111111` | Headings, primary content |
+| Secondary Text | `#6B7280` | Metadata, subtitles, captions |
+| Success | `#16A34A` | Active streams, verified tickets |
+| Error | `#DC2626` | Revoked sessions, expired breaks |
+| Warning | `#D97706` | Approaching session expirations |
 
 ## 5. Local Setup and Installation
 
 ### Prerequisites
-
 - Node.js v20+ or v24+
-- Docker & Docker Compose (or local PostgreSQL)
+- Docker & Docker Compose
 - npm or yarn
 
 ### Step-by-Step Instructions
@@ -64,15 +92,15 @@ Africa's Talking SMS infrastructure forms the verification backbone of the custo
    npm install
    ```
 
-4. Start PostgreSQL database (using Docker):
+4. Start PostgreSQL database container:
    ```bash
    docker run -d --name pottyplay-db -p 5433:5432 -e POSTGRES_USER=pottyplay -e POSTGRES_PASSWORD=pottyplay_secret -e POSTGRES_DB=pottyplay postgres:16-alpine
    ```
 
-5. Apply database migrations and seed demonstration data:
+5. Deploy migrations and seed demonstration data:
    ```bash
-   npx prisma migrate dev --name init
-   npx tsx prisma/seed.ts
+   npm run db:deploy
+   npm run db:seed
    ```
 
 6. Start local development server:
@@ -87,7 +115,7 @@ Africa's Talking SMS infrastructure forms the verification backbone of the custo
 | --- | --- | --- |
 | `DATABASE_URL` | PostgreSQL connection string | `postgresql://pottyplay:pottyplay_secret@localhost:5433/pottyplay?schema=public` |
 | `NEXT_PUBLIC_APP_URL` | Base application URL | `http://localhost:3000` |
-| `AT_SIMULATOR_MODE` | Set `false` to use live Africa's Talking API | `true` |
+| `AT_SIMULATOR_MODE` | Set `false` for live Africa's Talking API | `true` |
 | `AT_API_KEY` | Africa's Talking API key | (empty in simulator) |
 | `AT_USERNAME` | Africa's Talking username | `sandbox` |
 | `AT_SENDER_ID` | Approved SMS shortcode / sender ID | (optional) |
@@ -98,8 +126,7 @@ Africa's Talking SMS infrastructure forms the verification backbone of the custo
 
 ## 7. Testing and Verification
 
-Run the comprehensive automated test suite covering all 15 required verification criteria:
-
+Run the automated test suite (18 unit, integration, and security invariant tests):
 ```bash
 npm test
 ```
@@ -109,33 +136,42 @@ Run TypeScript strict type checking:
 npm run typecheck
 ```
 
-Run production build:
+Run ESLint verification:
+```bash
+npm run lint
+```
+
+Run production application build:
 ```bash
 npm run build
 ```
 
-## 8. Docker Deployment
+## 8. Mobile Architecture & Capacitor
 
-To build and run the complete multi-container setup via Docker Compose:
+PottyPlay is configured for native mobile deployment via Capacitor:
+- **Configuration:** `capacitor.config.ts` (`appId: com.pottyplay.companion`)
+- **Android App Links:** `public/.well-known/assetlinks.json`
+- **Apple Universal Links:** `public/.well-known/apple-app-site-association`
 
+To synchronize native platforms:
+```bash
+npx cap sync
+```
+
+## 9. Docker Deployment
+
+To build and run the complete multi-container stack:
 ```bash
 docker compose up --build -d
 ```
 
-Check application health endpoint:
+Verify service health:
 ```bash
 curl http://localhost:3000/api/health
 ```
 
-## 9. Content Rights and Demonstration Assets
+## 10. Content Rights and Disclaimers
 
-For this hackathon demonstration:
-- All movie titles, screening schedules, and ticketing references are simulated.
-- Playback uses an authorized synthetic demonstration asset with an interactive SMPTE timecode canvas renderer, ensuring zero copyright infringement and zero dependency on unauthorized commercial movie DCPs.
-- Clear disclaimers appear throughout the interface indicating that Century Cinemax integrations and financial records are simulated for the demonstration.
-
-## 10. Current Limitations and Roadmap
-
-- **Ticketing Integration:** Uses a simulated ticketing database. Production roadmap plans direct integration with Vista Cinema API or POS ticketing adapters.
-- **DRM Protection:** The MVP enforces server-side time-bounded tokens and video access gating. Production deployments will integrate Widevine / FairPlay DRM via AWS Elemental MediaPackage or Azure Media Services.
-- **Payment Processing:** Uses simulated billing events. Production roadmap will introduce Africa's Talking Mobile Money / USSD checkout for cinema patrons.
+- All cinema venue references, movie titles, and screening schedules are simulated for demonstration and architectural evaluation.
+- Video playback utilizes an original authorized visual demonstration asset with dynamic HTML5 canvas watermarking and SMPTE timecode display.
+- PottyPlay does not access, decode, or redistribute encrypted Digital Cinema Packages (DCPs) or commercial movie files without explicit studio licensing.

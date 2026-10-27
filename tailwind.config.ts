@@ -10,53 +10,48 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
-        cinema: {
-          950: "#07090e",
-          900: "#0d1117",
-          850: "#131822",
-          800: "#1b2230",
-          700: "#273248",
-          600: "#3d4b68",
-          500: "#5d6e8c",
-          400: "#8798b5",
-          300: "#b5c2d8",
-          200: "#d9e1ee",
-          100: "#f0f4f9",
-          50: "#f8fafc",
-        },
-        gold: {
-          400: "#fbbf24",
-          500: "#f59e0b",
-          600: "#d97706",
-        },
-        accent: {
-          blue: "#38bdf8",
-          emerald: "#10b981",
-          rose: "#f43f5e",
-          amber: "#f59e0b",
+        brand: {
+          primary: "#FFB800",
+          secondary: "#F59E0B",
+          accent: "#171717",
+          bg: "#FFFDF7",
+          surface: "#FFFFFF",
+          border: "#E5E7EB",
+          text: {
+            primary: "#111111",
+            secondary: "#6B7280",
+          },
+          status: {
+            success: "#16A34A",
+            error: "#DC2626",
+            warning: "#D97706",
+          },
         },
       },
       fontFamily: {
         sans: [
+          '"Plus Jakarta Sans"',
           "-apple-system",
           "BlinkMacSystemFont",
-          "SF Pro Text",
-          "Segoe UI",
+          '"Segoe UI"',
           "Roboto",
           "Helvetica Neue",
           "Arial",
           "sans-serif",
         ],
         mono: [
-          "SF Mono",
+          '"SF Mono"',
           "ui-monospace",
           "Menlo",
           "Monaco",
           "Consolas",
           "monospace",
         ],
+      },
+      boxShadow: {
+        subtle: "0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02)",
+        card: "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)",
+        elevated: "0 10px 15px -3px rgba(0, 0, 0, 0.06), 0 4px 6px -2px rgba(0, 0, 0, 0.03)",
       },
       transitionTimingFunction: {
         "apple-ease": "cubic-bezier(0.23, 1, 0.32, 1)",
@@ -67,3 +62,4 @@ const config: Config = {
 };
 
 export default config;
+

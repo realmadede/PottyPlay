@@ -2,13 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { TicketService } from "@/features/tickets/ticket-service";
 
-const verifySchema = z.object({
-  ticketNumber: z
-    .string()
-    .min(3, "Ticket number must be at least 3 characters")
-    .max(50, "Ticket number too long"),
-  screeningId: z.string().optional(),
-});
+const verifySchema = z
+  .object({
+    ticketNumber: z.string().min(3).max(50).optional(),
+    claimToken: z.string().min(3).max(50).optional(),
+    identifier: z.string().min(3).max(50).optional(),
+    screeningId: z.string().optional(),
+  })
+  .refine((data) => data.ticketNumber || data.claimToken || data.identifier, {
+    message: "Ticket number or claim token is required",
+  });
 
 export async function POST(req: NextRequest) {
   try {
@@ -26,8 +29,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const code =
+      parsed.data.identifier ||
+      parsed.data.claimToken ||
+      parsed.data.ticketNumber!;
+
     const result = await TicketService.verifyTicket(
-      parsed.data.ticketNumber,
+      code,
       parsed.data.screeningId
     );
 

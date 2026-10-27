@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.pottyplay.companion",
+      "sha256_cert_fingerprints": [
+        "14:6D:E9:7D:0F:52:AB:E0:16:1D:64:9C:2A:8C:38:F4:7E:63:F1:C8:6D:73:C6:67:8B:2B:6F:E7:5F:2A:44:B2"
+      ]
+    }
+  }
+]

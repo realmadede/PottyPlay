@@ -19,6 +19,7 @@ export interface TicketVerificationResult {
   ticket?: {
     id: string;
     ticketNumber: string;
+    claimToken?: string | null;
     seatNumber: string;
     customerName: string;
     status: TicketStatus;
@@ -41,15 +42,21 @@ export interface TicketVerificationResult {
 export class TicketService {
   /**
    * Verifies ticket validity, screening association, status, and content rights.
+   * Accepts either a ticket number or a claim token.
    */
   static async verifyTicket(
-    ticketNumber: string,
+    identifier: string,
     targetScreeningId?: string
   ): Promise<TicketVerificationResult> {
-    const cleanedNumber = ticketNumber.trim().toUpperCase();
+    const cleaned = identifier.trim().toUpperCase();
 
-    const ticket = await prisma.demonstrationTicket.findUnique({
-      where: { ticketNumber: cleanedNumber },
+    const ticket = await prisma.demonstrationTicket.findFirst({
+      where: {
+        OR: [
+          { ticketNumber: cleaned },
+          { claimToken: cleaned },
+        ],
+      },
       include: {
         screening: {
           include: {
@@ -79,6 +86,7 @@ export class TicketService {
         ticket: {
           id: ticket.id,
           ticketNumber: ticket.ticketNumber,
+          claimToken: ticket.claimToken,
           seatNumber: ticket.seatNumber,
           customerName: ticket.customerName,
           status: ticket.status,
@@ -107,6 +115,7 @@ export class TicketService {
         ticket: {
           id: ticket.id,
           ticketNumber: ticket.ticketNumber,
+          claimToken: ticket.claimToken,
           seatNumber: ticket.seatNumber,
           customerName: ticket.customerName,
           status: ticket.status,
@@ -159,6 +168,7 @@ export class TicketService {
       ticket: {
         id: ticket.id,
         ticketNumber: ticket.ticketNumber,
+        claimToken: ticket.claimToken,
         seatNumber: ticket.seatNumber,
         customerName: ticket.customerName,
         status: ticket.status,
