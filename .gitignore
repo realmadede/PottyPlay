@@ -13,11 +13,17 @@ build/
 dist/
 *.tsbuildinfo
 
-# Environment files
-.env
-.env*.local
-.env.production
-.env.staging
+# Environment and Secret files (strictly untracked)
+.env*
+!.env.example
+*.pem
+*.key
+*.cert
+*.crt
+*.pfx
+*.p12
+secrets/
+credentials/
 
 # Private agent instructions (Mandatory rule)
 AGENT.md

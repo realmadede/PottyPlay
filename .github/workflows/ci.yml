@@ -1,0 +1,107 @@
+name: CI and Code Assurance
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  code-assurance:
+    name: Code Analysis and Assurance (CA)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify no secret or private files committed
+        run: |
+          if git ls-files | grep -E '(\.env$|\.env\.local$|\.pem$|\.key$|AGENT\.md)'; then
+            echo "Error: Forbidden secret or private file detected in git index."
+            exit 1
+          fi
+
+      - name: Verify zero emojis in project files
+        run: |
+          if grep -rnP '[\x{1F300}-\x{1F9FF}\x{2600}-\x{26FF}\x{2700}-\x{27BF}]' src/ docs/ tests/ prisma/ README.md package.json; then
+            echo "Error: Emoji character detected in project files. Emojis are disallowed."
+            exit 1
+          fi
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Run TypeScript typecheck
+        run: npm run typecheck
+
+      - name: Run ESLint
+        run: npm run lint
+
+  continuous-integration:
+    name: Continuous Integration (CI)
+    runs-on: ubuntu-latest
+    needs: code-assurance
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: pottyplay
+          POSTGRES_PASSWORD: pottyplay_secret
+          POSTGRES_DB: pottyplay
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U pottyplay -d pottyplay"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: "postgresql://pottyplay:pottyplay_secret@localhost:5433/pottyplay?schema=public"
+      NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+      AT_SIMULATOR_MODE: "true"
+      AT_API_KEY: ""
+      AT_USERNAME: "sandbox"
+      AT_SENDER_ID: ""
+      DEMO_PRICE_PER_SESSION_TZS: "500"
+      MAX_SESSION_DURATION_SECONDS: "900"
+      OTP_EXPIRY_SECONDS: "300"
+      OTP_MAX_ATTEMPTS: "3"
+      NODE_ENV: "test"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Deploy database migrations
+        run: npx prisma migrate deploy
+
+      - name: Seed database with demonstration records
+        run: npx tsx prisma/seed.ts
+
+      - name: Run automated test suite
+        run: npm test
+
+      - name: Run Next.js production build
+        run: npm run build
+
+      - name: Verify Docker build
+        run: docker build -t pottyplay:ci .
