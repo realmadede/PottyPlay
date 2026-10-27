@@ -1,0 +1,233 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum ScreeningStatus {
+  SCHEDULED
+  PLAYING
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+enum TicketStatus {
+  VALID_ADMITTED
+  CANCELLED_REFUNDED
+  INVALID
+  ALREADY_ACTIVATED
+  INELIGIBLE
+}
+
+enum SessionStatus {
+  ELIGIBLE
+  VERIFIED
+  ACTIVE
+  EXPIRED
+  REVOKED
+  FAILED
+}
+
+model Cinema {
+  id        String   @id @default(cuid())
+  name      String
+  location  String
+  timezone  String   @default("Africa/Dar_es_Salaam")
+  createdAt DateTime @default(now())
+
+  screens              Screen[]
+  screenings           Screening[]
+  rightsAuthorizations RightsAuthorization[]
+  usageBillingEvents   UsageBillingEvent[]
+}
+
+model Screen {
+  id         String   @id @default(cuid())
+  cinemaId   String
+  name       String
+  totalSeats Int      @default(120)
+  createdAt  DateTime @default(now())
+
+  cinema     Cinema      @relation(fields: [cinemaId], references: [id], onDelete: Cascade)
+  screenings Screening[]
+
+  @@index([cinemaId])
+}
+
+model ContentAsset {
+  id              String   @id @default(cuid())
+  title           String
+  durationSeconds Int
+  videoUrl        String
+  thumbnailUrl    String?
+  licenseType     String
+  licenseSource   String
+  createdAt       DateTime @default(now())
+
+  screenings     Screening[]
+  authorizations RightsAuthorization[]
+}
+
+model RightsAuthorization {
+  id                         String   @id @default(cuid())
+  contentAssetId             String
+  cinemaId                   String
+  isAuthorized               Boolean  @default(true)
+  validFrom                  DateTime
+  validUntil                 DateTime
+  maxSessionDurationSeconds  Int      @default(900)
+  notes                      String?
+  createdAt                  DateTime @default(now())
+
+  contentAsset ContentAsset @relation(fields: [contentAssetId], references: [id], onDelete: Cascade)
+  cinema       Cinema       @relation(fields: [cinemaId], references: [id], onDelete: Cascade)
+
+  @@index([contentAssetId, cinemaId])
+}
+
+model Screening {
+  id                         String          @id @default(cuid())
+  cinemaId                   String
+  screenId                   String
+  contentAssetId             String
+  title                      String
+  scheduledStart             DateTime
+  actualStart                DateTime?
+  status                     ScreeningStatus @default(SCHEDULED)
+  playbackPositionSeconds    Float           @default(0.0)
+  lastPositionUpdatedAt      DateTime?
+  totalPausedDurationSeconds Float           @default(0.0)
+  isPaused                   Boolean         @default(false)
+  pausedAt                   DateTime?
+  createdAt                  DateTime        @default(now())
+  updatedAt                  DateTime        @updatedAt
+
+  cinema       Cinema                @relation(fields: [cinemaId], references: [id], onDelete: Cascade)
+  screen       Screen                @relation(fields: [screenId], references: [id], onDelete: Cascade)
+  contentAsset ContentAsset          @relation(fields: [contentAssetId], references: [id], onDelete: Cascade)
+  tickets      DemonstrationTicket[]
+  sessions     BreakSession[]
+
+  @@index([cinemaId])
+  @@index([screenId])
+  @@index([contentAssetId])
+}
+
+model DemonstrationTicket {
+  id           String       @id @default(cuid())
+  ticketNumber String       @unique
+  screeningId  String
+  seatNumber   String
+  customerName String
+  status       TicketStatus @default(VALID_ADMITTED)
+  activatedAt  DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  screening    Screening     @relation(fields: [screeningId], references: [id], onDelete: Cascade)
+  breakSession BreakSession?
+
+  @@index([screeningId])
+}
+
+model OtpChallenge {
+  id          String    @id @default(cuid())
+  phoneNumber String
+  codeHash    String
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(3)
+  expiresAt   DateTime
+  verifiedAt  DateTime?
+  isUsed      Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  ipAddress   String?
+
+  smsDeliveries SmsDeliveryAttempt[]
+
+  @@index([phoneNumber])
+}
+
+model BreakSession {
+  id                  String        @id @default(cuid())
+  sessionToken        String        @unique
+  ticketId            String        @unique
+  screeningId         String
+  phoneNumber         String
+  startedAt           DateTime      @default(now())
+  expiresAt           DateTime
+  endedAt             DateTime?
+  status              SessionStatus @default(ACTIVE)
+  revokedReason       String?
+  deviceInfo          String?
+  lastHeartbeatAt     DateTime      @default(now())
+  lastPositionSeconds Float         @default(0.0)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  ticket        DemonstrationTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  screening     Screening           @relation(fields: [screeningId], references: [id], onDelete: Cascade)
+  billingEvents UsageBillingEvent[]
+  auditEvents   AuditEvent[]
+
+  @@index([screeningId])
+  @@index([sessionToken])
+  @@index([phoneNumber])
+}
+
+model SmsDeliveryAttempt {
+  id                String   @id @default(cuid())
+  otpChallengeId    String?
+  phoneNumber       String
+  messageType       String
+  messageBody       String
+  provider          String
+  status            String
+  providerMessageId String?
+  cost              String?
+  errorDetails      String?
+  createdAt         DateTime @default(now())
+
+  otpChallenge OtpChallenge? @relation(fields: [otpChallengeId], references: [id], onDelete: SetNull)
+
+  @@index([phoneNumber])
+  @@index([otpChallengeId])
+}
+
+model UsageBillingEvent {
+  id           String   @id @default(cuid())
+  sessionId    String   @unique
+  cinemaId     String
+  ticketNumber String
+  priceTzs     Int      @default(500)
+  qualifying   Boolean  @default(true)
+  isSimulated  Boolean  @default(true)
+  disclaimer   String   @default("Simulated hackathon business assumption, not an agreed Century Cinemax rate")
+  createdAt    DateTime @default(now())
+
+  session BreakSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  cinema  Cinema       @relation(fields: [cinemaId], references: [id], onDelete: Cascade)
+
+  @@index([cinemaId])
+  @@index([ticketNumber])
+}
+
+model AuditEvent {
+  id         String   @id @default(cuid())
+  sessionId  String?
+  eventType  String
+  entityType String
+  entityId   String?
+  actor      String
+  details    String
+  createdAt  DateTime @default(now())
+
+  session BreakSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@index([sessionId])
+  @@index([eventType])
+  @@index([createdAt])
+}

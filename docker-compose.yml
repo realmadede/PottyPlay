@@ -1,0 +1,45 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: pottyplay-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-pottyplay}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pottyplay_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-pottyplay}
+    ports:
+      - "5433:5432"
+    volumes:
+      - pottyplay-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pottyplay -d pottyplay"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pottyplay-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://pottyplay:pottyplay_secret@db:5432/pottyplay?schema=public
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      AT_SIMULATOR_MODE: ${AT_SIMULATOR_MODE:-true}
+      AT_API_KEY: ${AT_API_KEY:-}
+      AT_USERNAME: ${AT_USERNAME:-sandbox}
+      AT_SENDER_ID: ${AT_SENDER_ID:-}
+      DEMO_PRICE_PER_SESSION_TZS: ${DEMO_PRICE_PER_SESSION_TZS:-500}
+      MAX_SESSION_DURATION_SECONDS: ${MAX_SESSION_DURATION_SECONDS:-900}
+      OTP_EXPIRY_SECONDS: ${OTP_EXPIRY_SECONDS:-300}
+      OTP_MAX_ATTEMPTS: ${OTP_MAX_ATTEMPTS:-3}
+      NODE_ENV: production
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pottyplay-db-data:

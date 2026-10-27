@@ -1,0 +1,13 @@
+node_modules
+.next
+.git
+.gitignore
+.env
+.env*.local
+AGENT.md
+agents.md
+*.agent.md
+*.log
+coverage
+README.md
+docs

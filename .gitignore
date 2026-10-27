@@ -1,0 +1,47 @@
+# Node dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing and coverage
+coverage/
+
+# Next.js build output
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+
+# Environment files
+.env
+.env*.local
+.env.production
+.env.staging
+
+# Private agent instructions (Mandatory rule)
+AGENT.md
+agents.md
+*.agent.md
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+*.log
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# IDE and editor settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Database & local runtime files
+*.sqlite
+*.sqlite3
+*.db
