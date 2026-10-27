@@ -1,4 +1,4 @@
-import { createHash, randomBytes, randomInt } from "crypto";
+import { createHash, randomBytes, randomInt, pbkdf2Sync, timingSafeEqual } from "crypto";
 
 /**
  * Generates a cryptographically secure 6-digit numeric OTP code.
@@ -39,6 +39,33 @@ export function verifyOtpHash(
 /**
  * Generates a cryptographically secure session token.
  */
-export function generateSessionToken(): string {
-  return "pstk_" + randomBytes(32).toString("hex");
+export function generateSessionToken(prefix: string = "pstk_"): string {
+  return prefix + randomBytes(32).toString("hex");
+}
+
+/**
+ * Securely hashes a password using PBKDF2 with SHA-512 and a random salt.
+ */
+export function hashPassword(password: string): string {
+  const salt = randomBytes(16).toString("hex");
+  const hash = pbkdf2Sync(password, salt, 100000, 64, "sha512").toString("hex");
+  return `${salt}:${hash}`;
+}
+
+/**
+ * Verifies a candidate password against a stored PBKDF2 hash using timing-safe comparison.
+ */
+export function verifyPassword(password: string, storedHash: string): boolean {
+  try {
+    const parts = storedHash.split(":");
+    if (parts.length !== 2) return false;
+    const [salt, key] = parts;
+    const derived = pbkdf2Sync(password, salt, 100000, 64, "sha512").toString("hex");
+    const keyBuf = Buffer.from(key, "hex");
+    const derivedBuf = Buffer.from(derived, "hex");
+    if (keyBuf.length !== derivedBuf.length) return false;
+    return timingSafeEqual(keyBuf, derivedBuf);
+  } catch {
+    return false;
+  }
 }

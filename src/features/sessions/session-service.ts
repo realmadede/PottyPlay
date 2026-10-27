@@ -122,7 +122,7 @@ export class SessionService {
                 contentAsset: true,
               },
             },
-            breakSession: true,
+            breakSessions: true,
           },
         });
 
@@ -130,7 +130,21 @@ export class SessionService {
           throw new Error("Ticket not found.");
         }
 
-        if (ticket.status === TicketStatus.ALREADY_ACTIVATED || ticket.breakSession) {
+        const activeSession = ticket.breakSessions?.find(
+          (s) =>
+            s.status === SessionStatus.ACTIVE &&
+            new Date(s.expiresAt).getTime() > Date.now()
+        );
+
+        if (activeSession) {
+          throw new Error(
+            "This ticket has already been activated for an ongoing companion viewing break."
+          );
+        }
+
+        const completedBreaksCount = ticket.breakSessions?.length || ticket.breakCount;
+
+        if (ticket.status === TicketStatus.ALREADY_ACTIVATED || completedBreaksCount >= (ticket.maxBreaks || 2)) {
           throw new Error(
             "This ticket has already been activated for a companion viewing break."
           );
@@ -144,7 +158,7 @@ export class SessionService {
           throw new Error("This ticket is ineligible for companion viewing.");
         }
 
-        if (ticket.status !== TicketStatus.VALID_ADMITTED) {
+        if (ticket.status !== TicketStatus.VALID_ADMITTED && completedBreaksCount === 0) {
           throw new Error("Ticket status does not allow admission.");
         }
 
@@ -169,11 +183,15 @@ export class SessionService {
         const expiresAt = new Date(now.getTime() + durationSeconds * 1000);
         const sessionToken = generateSessionToken();
 
-        // Update ticket status
+        const nextBreakCount = completedBreaksCount + 1;
+        const willExhaustBreaks = nextBreakCount >= (ticket.maxBreaks || 2);
+
+        // Update ticket break count and status if max reached
         await tx.demonstrationTicket.update({
           where: { id: ticket.id },
           data: {
-            status: TicketStatus.ALREADY_ACTIVATED,
+            breakCount: nextBreakCount,
+            status: willExhaustBreaks ? TicketStatus.ALREADY_ACTIVATED : ticket.status,
             activatedAt: now,
           },
         });
@@ -190,6 +208,7 @@ export class SessionService {
             ticketId: ticket.id,
             screeningId: ticket.screeningId,
             phoneNumber: verifiedPhoneNumber,
+            breakNumber: nextBreakCount,
             startedAt: now,
             expiresAt,
             status: SessionStatus.ACTIVE,

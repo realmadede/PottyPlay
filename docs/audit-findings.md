@@ -10,7 +10,7 @@ PottyPlay has strong foundational business logic:
 - A 15-test automated Vitest suite verifying the critical security invariants.
 
 However, the platform currently exhibits several architectural and design shortcomings that must be corrected:
-1. **Temporary-Event Positioning**: Multiple UI strings, comments, migrations, and documents refer to hackathons, judges, and competition submissions.
+1. **Legacy Temporary Positioning**: Multiple legacy strings, comments, and defaults required cleansing into long-term enterprise technology company standards.
 2. **Coupled Routing**: The public root URL (`/`) currently doubles as both a basic marketing splash and the mobile customer flow. It also publicly exposes direct links to internal operator and cinema simulator consoles.
 3. **Visual Inconsistency**: The current theme uses a dark cinema palette with high contrast yellow/black rather than the mandatory brand system (`#FFFDF7` neutral warm background, `#FFB800` primary yellow accents, `#171717` charcoal, and `#111111` typography).
 4. **Authentication Redundancy**: Customers must execute an SMS OTP flow on every single session initiation, creating unacceptable friction for patrons already inside a theater with verified entitlements.

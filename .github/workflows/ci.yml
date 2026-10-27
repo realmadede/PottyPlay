@@ -16,7 +16,7 @@ jobs:
 
       - name: Verify no secret or private files committed
         run: |
-          if git ls-files | grep -E '(\.env$|\.env\.local$|\.pem$|\.key$|AGENT\.md)'; then
+          if git ls-files | grep -E '(\.env$|\.env\.local$|\.pem$|\.key$|AGENT\.md|AGENTS\.md)'; then
             echo "Error: Forbidden secret or private file detected in git index."
             exit 1
           fi

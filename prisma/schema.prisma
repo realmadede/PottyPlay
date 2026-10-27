@@ -30,20 +30,184 @@ enum SessionStatus {
   ACTIVE
   EXPIRED
   REVOKED
+  COMPLETED
   FAILED
 }
 
+enum CinemaStatus {
+  PENDING_REVIEW
+  APPROVED
+  SUSPENDED
+  ARCHIVED
+}
+
+enum PartnerStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum PricingStatus {
+  ACTIVE
+  PENDING_AGREEMENT
+  DEPRECATED
+}
+
+enum OperatorRole {
+  ADMIN
+  MANAGER
+  PROJECTIONIST
+}
+
+enum AdminRole {
+  SUPERADMIN
+  AUDITOR
+}
+
+enum AuthProvider {
+  PHONE
+  EMAIL
+  GOOGLE
+  APPLE
+}
+
 model Cinema {
-  id        String   @id @default(cuid())
-  name      String
-  location  String
-  timezone  String   @default("Africa/Dar_es_Salaam")
-  createdAt DateTime @default(now())
+  id               String       @id @default(cuid())
+  name             String
+  location         String
+  timezone         String       @default("Africa/Dar_es_Salaam")
+  status           CinemaStatus @default(APPROVED)
+  organizationName String?
+  contactEmail     String?
+  contactPhone     String?
+  ticketingSystem  String?      @default("Vista")
+  screeningSystem  String?      @default("Dolby TMS")
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @default(now()) @updatedAt
 
   screens              Screen[]
   screenings           Screening[]
   rightsAuthorizations RightsAuthorization[]
   usageBillingEvents   UsageBillingEvent[]
+  pricingRules         CinemaPricingRule[]
+  operatorUsers        OperatorUser[]
+  auditEvents          AuditEvent[]
+}
+
+model CinemaPricingRule {
+  id              String        @id @default(cuid())
+  cinemaId        String
+  currency        String        @default("TZS")
+  pricePerSession Int           @default(500)
+  effectiveFrom   DateTime      @default(now())
+  effectiveUntil  DateTime?
+  status          PricingStatus @default(ACTIVE)
+  notes           String?
+  createdAt       DateTime      @default(now())
+
+  cinema Cinema @relation(fields: [cinemaId], references: [id], onDelete: Cascade)
+
+  @@index([cinemaId])
+  @@index([status])
+}
+
+model OperatorUser {
+  id           String       @id @default(cuid())
+  cinemaId     String
+  email        String       @unique
+  name         String
+  passwordHash String
+  role         OperatorRole @default(MANAGER)
+  isActive     Boolean      @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  cinema Cinema @relation(fields: [cinemaId], references: [id], onDelete: Cascade)
+
+  @@index([cinemaId])
+  @@index([email])
+}
+
+model AdminUser {
+  id           String    @id @default(cuid())
+  username     String    @unique
+  email        String    @unique
+  passwordHash String
+  role         AdminRole @default(SUPERADMIN)
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([username])
+}
+
+model PartnerApplication {
+  id                    String        @id @default(cuid())
+  organizationName      String
+  contactName           String
+  contactEmail          String
+  contactPhone          String
+  city                  String
+  country               String        @default("Tanzania")
+  venueCount            Int           @default(1)
+  screensCount          Int           @default(1)
+  ticketingSystem       String        @default("Vista")
+  screeningServer       String        @default("Dolby TMS")
+  technicalContactEmail String?
+  notes                 String?
+  status                PartnerStatus @default(PENDING)
+  reviewNotes           String?
+  reviewedAt            DateTime?
+  reviewedBy            String?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  @@index([contactEmail])
+  @@index([status])
+}
+
+model CustomerAccount {
+  id             String       @id @default(cuid())
+  phoneNumber    String?      @unique
+  email          String?      @unique
+  passwordHash   String?
+  name           String?
+  phoneVerified  Boolean      @default(false)
+  emailVerified  Boolean      @default(false)
+  authProvider   AuthProvider @default(PHONE)
+  sessionToken   String?      @unique
+  tokenExpiresAt DateTime?
+  onboardingDone Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  reminders     ScreeningReminder[]
+  breakSessions BreakSession[]
+
+  @@index([phoneNumber])
+  @@index([email])
+}
+
+model ScreeningReminder {
+  id            String   @id @default(cuid())
+  customerId    String
+  screeningId   String
+  ticketNumber  String?
+  offsetMinutes Int // 1440 (24h), 60 (1h), 30 (30m)
+  isEnabled     Boolean  @default(true)
+  sentAt        DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  customer  CustomerAccount @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  screening Screening       @relation(fields: [screeningId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, screeningId, offsetMinutes])
+  @@index([customerId])
+  @@index([screeningId])
 }
 
 model Screen {
@@ -74,15 +238,15 @@ model ContentAsset {
 }
 
 model RightsAuthorization {
-  id                         String   @id @default(cuid())
-  contentAssetId             String
-  cinemaId                   String
-  isAuthorized               Boolean  @default(true)
-  validFrom                  DateTime
-  validUntil                 DateTime
-  maxSessionDurationSeconds  Int      @default(900)
-  notes                      String?
-  createdAt                  DateTime @default(now())
+  id                        String   @id @default(cuid())
+  contentAssetId            String
+  cinemaId                  String
+  isAuthorized              Boolean  @default(true)
+  validFrom                 DateTime
+  validUntil                DateTime
+  maxSessionDurationSeconds Int      @default(900)
+  notes                     String?
+  createdAt                 DateTime @default(now())
 
   contentAsset ContentAsset @relation(fields: [contentAssetId], references: [id], onDelete: Cascade)
   cinema       Cinema       @relation(fields: [cinemaId], references: [id], onDelete: Cascade)
@@ -112,6 +276,7 @@ model Screening {
   contentAsset ContentAsset          @relation(fields: [contentAssetId], references: [id], onDelete: Cascade)
   tickets      DemonstrationTicket[]
   sessions     BreakSession[]
+  reminders    ScreeningReminder[]
 
   @@index([cinemaId])
   @@index([screenId])
@@ -126,17 +291,18 @@ model DemonstrationTicket {
   seatNumber   String
   customerName String
   status       TicketStatus @default(VALID_ADMITTED)
+  breakCount   Int          @default(0)
+  maxBreaks    Int          @default(2)
   activatedAt  DateTime?
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 
-  screening    Screening     @relation(fields: [screeningId], references: [id], onDelete: Cascade)
-  breakSession BreakSession?
+  screening     Screening      @relation(fields: [screeningId], references: [id], onDelete: Cascade)
+  breakSessions BreakSession[]
 
   @@index([screeningId])
   @@index([claimToken])
 }
-
 
 model OtpChallenge {
   id          String    @id @default(cuid())
@@ -158,12 +324,15 @@ model OtpChallenge {
 model BreakSession {
   id                  String        @id @default(cuid())
   sessionToken        String        @unique
-  ticketId            String        @unique
+  ticketId            String
   screeningId         String
+  customerId          String?
+  breakNumber         Int           @default(1)
   phoneNumber         String?
   startedAt           DateTime      @default(now())
   expiresAt           DateTime
   endedAt             DateTime?
+  durationSeconds     Int?
   status              SessionStatus @default(ACTIVE)
   revokedReason       String?
   deviceInfo          String?
@@ -174,12 +343,15 @@ model BreakSession {
 
   ticket        DemonstrationTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   screening     Screening           @relation(fields: [screeningId], references: [id], onDelete: Cascade)
+  customer      CustomerAccount?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
   billingEvents UsageBillingEvent[]
   auditEvents   AuditEvent[]
 
   @@index([screeningId])
+  @@index([ticketId])
   @@index([sessionToken])
   @@index([phoneNumber])
+  @@index([customerId])
 }
 
 model SmsDeliveryAttempt {
@@ -207,9 +379,10 @@ model UsageBillingEvent {
   cinemaId     String
   ticketNumber String
   priceTzs     Int      @default(500)
+  currency     String   @default("TZS")
   qualifying   Boolean  @default(true)
-  isSimulated  Boolean  @default(true)
-  disclaimer   String   @default("Simulated standard billing assumption per qualifying session")
+  isSimulated  Boolean  @default(false)
+  disclaimer   String   @default("Standard billing event recorded for verified session")
   createdAt    DateTime @default(now())
 
   session BreakSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
@@ -219,10 +392,10 @@ model UsageBillingEvent {
   @@index([ticketNumber])
 }
 
-
 model AuditEvent {
   id         String   @id @default(cuid())
   sessionId  String?
+  cinemaId   String?
   eventType  String
   entityType String
   entityId   String?
@@ -231,8 +404,10 @@ model AuditEvent {
   createdAt  DateTime @default(now())
 
   session BreakSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  cinema  Cinema?       @relation(fields: [cinemaId], references: [id], onDelete: SetNull)
 
   @@index([sessionId])
+  @@index([cinemaId])
   @@index([eventType])
   @@index([createdAt])
 }

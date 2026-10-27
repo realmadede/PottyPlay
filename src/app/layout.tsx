@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   description:
     "Authoritative cinema companion viewing platform. Continue following your ongoing theatrical screening during a temporary break.",
   applicationName: "PottyPlay",
+  icons: {
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+    apple: "/brand-mark.svg",
+  },
 };
 
 export const viewport: Viewport = {

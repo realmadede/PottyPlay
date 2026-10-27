@@ -1,57 +1,167 @@
 "use client";
 
+import React, { useState } from "react";
 import Link from "next/link";
-import { Film, ArrowUpRight } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
+import { Menu, X, ArrowRight, ShieldCheck, ExternalLink } from "lucide-react";
 
 export function LandingHeader() {
-  return (
-    <header className="sticky top-0 z-50 w-full bg-brand-bg/90 backdrop-blur-md border-b border-brand-border">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Brand */}
-        <Link href="/" className="flex items-center space-x-3 group">
-          <div className="w-8 h-8 rounded-lg bg-brand-primary flex items-center justify-center text-brand-accent shadow-sm group-hover:scale-105 transition-transform duration-200">
-            <Film className="w-4 h-4" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-bold text-base text-brand-text-primary tracking-tight">
-              PottyPlay
-            </span>
-            <span className="text-[10px] text-brand-text-secondary leading-none">
-              Cinema Companion Viewing
-            </span>
-          </div>
-        </Link>
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-        {/* Public Navigation */}
-        <nav className="hidden md:flex items-center space-x-6 text-xs font-medium text-brand-text-secondary">
-          <a href="#how-it-works" className="hover:text-brand-text-primary transition-colors">
+  return (
+    <header className="sticky top-0 z-50 w-full bg-brand-bg/95 backdrop-blur-md border-b border-brand-border">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 py-3 flex items-center justify-between">
+        {/* Brand Logo */}
+        <BrandLogo size="md" variant="full" href="/" />
+
+        {/* Public B2B Navigation */}
+        <nav className="hidden lg:flex items-center space-x-7 text-xs font-semibold text-brand-text-secondary">
+          <a
+            href="#proposition"
+            className="hover:text-brand-text-primary transition-colors duration-150"
+          >
+            Proposition
+          </a>
+          <a
+            href="#how-it-works"
+            className="hover:text-brand-text-primary transition-colors duration-150"
+          >
             How It Works
           </a>
-          <a href="#patron-benefits" className="hover:text-brand-text-primary transition-colors">
-            For Patrons
+          <a
+            href="#patron-experience"
+            className="hover:text-brand-text-primary transition-colors duration-150"
+          >
+            Patron Experience
           </a>
-          <a href="#operator-benefits" className="hover:text-brand-text-primary transition-colors">
-            For Theaters
+          <a
+            href="#operator-benefits"
+            className="hover:text-brand-text-primary transition-colors duration-150"
+          >
+            Theater Benefits
           </a>
-          <a href="#security" className="hover:text-brand-text-primary transition-colors">
+          <a
+            href="#synchronization"
+            className="hover:text-brand-text-primary transition-colors duration-150"
+          >
+            Synchronization
+          </a>
+          <a
+            href="#security"
+            className="hover:text-brand-text-primary transition-colors duration-150"
+          >
             Security & Rights
           </a>
-          <a href="#contact" className="hover:text-brand-text-primary transition-colors">
-            Partnership
-          </a>
+          <Link
+            href="/developers"
+            className="hover:text-brand-text-primary transition-colors duration-150"
+          >
+            Developers
+          </Link>
         </nav>
 
-        {/* CTA */}
-        <div className="flex items-center space-x-3">
+        {/* Action CTAs */}
+        <div className="hidden sm:flex items-center space-x-3">
           <Link
-            href="/watch"
-            className="inline-flex items-center space-x-1.5 py-2 px-3.5 rounded-lg text-xs font-semibold bg-brand-accent text-white hover:bg-black transition-colors"
+            href="/operator"
+            className="py-2.5 px-4 rounded-xl text-xs font-semibold text-brand-text-primary hover:bg-neutral-100 transition-colors duration-150 border border-brand-border flex items-center space-x-1.5"
           >
-            <span>Open Player</span>
-            <ArrowUpRight className="w-3.5 h-3.5" />
+            <span>Operator Workspace</span>
           </Link>
+          <a
+            href="#register"
+            className="py-2.5 px-4 rounded-xl text-xs font-bold bg-brand-primary text-brand-accent hover:bg-brand-secondary transition-colors duration-150 shadow-subtle flex items-center space-x-1.5"
+          >
+            <span>Register Cinema</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </a>
         </div>
+
+        {/* Mobile menu button */}
+        <button
+          type="button"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="lg:hidden p-2.5 rounded-xl border border-brand-border text-brand-text-primary hover:bg-white"
+          aria-label="Toggle navigation menu"
+        >
+          {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
       </div>
+
+      {/* Mobile drawer */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden border-b border-brand-border bg-brand-bg px-4 py-5 space-y-3">
+          <nav className="flex flex-col space-y-2.5 text-sm font-semibold text-brand-text-secondary">
+            <a
+              href="#proposition"
+              onClick={() => setMobileMenuOpen(false)}
+              className="px-3 py-2 rounded-lg hover:bg-white hover:text-brand-text-primary"
+            >
+              Product Proposition
+            </a>
+            <a
+              href="#how-it-works"
+              onClick={() => setMobileMenuOpen(false)}
+              className="px-3 py-2 rounded-lg hover:bg-white hover:text-brand-text-primary"
+            >
+              How It Works
+            </a>
+            <a
+              href="#patron-experience"
+              onClick={() => setMobileMenuOpen(false)}
+              className="px-3 py-2 rounded-lg hover:bg-white hover:text-brand-text-primary"
+            >
+              Patron Experience
+            </a>
+            <a
+              href="#operator-benefits"
+              onClick={() => setMobileMenuOpen(false)}
+              className="px-3 py-2 rounded-lg hover:bg-white hover:text-brand-text-primary"
+            >
+              Cinema Operator Benefits
+            </a>
+            <a
+              href="#synchronization"
+              onClick={() => setMobileMenuOpen(false)}
+              className="px-3 py-2 rounded-lg hover:bg-white hover:text-brand-text-primary"
+            >
+              Screening Synchronization
+            </a>
+            <a
+              href="#security"
+              onClick={() => setMobileMenuOpen(false)}
+              className="px-3 py-2 rounded-lg hover:bg-white hover:text-brand-text-primary"
+            >
+              Security & Entitlement Controls
+            </a>
+            <Link
+              href="/developers"
+              onClick={() => setMobileMenuOpen(false)}
+              className="px-3 py-2 rounded-lg hover:bg-white hover:text-brand-text-primary flex items-center justify-between"
+            >
+              <span>Developer Documentation</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </Link>
+          </nav>
+
+          <div className="pt-3 border-t border-brand-border flex flex-col space-y-2">
+            <Link
+              href="/operator"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full text-center py-2.5 px-4 rounded-xl text-xs font-semibold bg-white border border-brand-border text-brand-text-primary"
+            >
+              Cinema Operator Workspace
+            </Link>
+            <a
+              href="#register"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full text-center py-2.5 px-4 rounded-xl text-xs font-bold bg-brand-primary text-brand-accent hover:bg-brand-secondary shadow-subtle"
+            >
+              Register Cinema Partner
+            </a>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

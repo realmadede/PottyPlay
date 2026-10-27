@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { TicketStatus, ScreeningStatus } from "@prisma/client";
+import { TicketStatus, ScreeningStatus, SessionStatus } from "@prisma/client";
 import { RightsService } from "@/features/rights/rights-service";
 
 export type TicketVerificationStatus =
@@ -65,7 +65,7 @@ export class TicketService {
             contentAsset: true,
           },
         },
-        breakSession: true,
+        breakSessions: true,
       },
     });
 
@@ -106,8 +106,13 @@ export class TicketService {
       };
     }
 
-    // Check ticket status
-    if (ticket.status === TicketStatus.ALREADY_ACTIVATED || ticket.breakSession) {
+    const hasActiveSession = ticket.breakSessions?.some(
+      (s) => s.status === SessionStatus.ACTIVE && new Date(s.expiresAt).getTime() > Date.now()
+    );
+    const breakCount = ticket.breakSessions?.length || ticket.breakCount;
+
+    // Check ticket status (Strict 2-break allowance and active session lock)
+    if (ticket.status === TicketStatus.ALREADY_ACTIVATED || hasActiveSession || breakCount >= 2) {
       return {
         status: "ALREADY_ACTIVATED",
         isEligible: false,

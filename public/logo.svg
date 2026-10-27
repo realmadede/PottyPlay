@@ -1,44 +1,38 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
   <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0d1117" />
-      <stop offset="100%" stop-color="#07090e" />
+    <linearGradient id="ppPrimaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFB800" />
+      <stop offset="100%" stop-color="#F59E0B" />
     </linearGradient>
-    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fbbf24" />
-      <stop offset="100%" stop-color="#d97706" />
+    <linearGradient id="ppDarkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#232323" />
+      <stop offset="100%" stop-color="#171717" />
     </linearGradient>
-    <radialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.3" />
-      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0" />
-    </radialGradient>
   </defs>
 
-  <!-- Background Base -->
-  <rect width="512" height="512" rx="104" fill="url(#bgGrad)" />
-  <rect width="504" height="504" x="4" y="4" rx="100" fill="none" stroke="#273248" stroke-width="4" />
+  <rect width="512" height="512" rx="128" fill="url(#ppDarkGrad)" />
+  <rect width="504" height="504" x="4" y="4" rx="124" fill="none" stroke="#2D2D2D" stroke-width="4" />
 
-  <!-- Radial Glow Behind Reel -->
-  <circle cx="256" cy="256" r="180" fill="url(#glowGrad)" />
+  <path d="M 112 188 C 196 140 316 140 400 188" 
+        fill="none" 
+        stroke="#FFFFFF" 
+        stroke-opacity="0.12" 
+        stroke-width="24" 
+        stroke-linecap="round" />
 
-  <!-- Cinema Projector / Film Reel Housing -->
-  <circle cx="256" cy="256" r="130" fill="#131822" stroke="url(#goldGrad)" stroke-width="12" />
+  <path d="M 148 308 C 112 252 136 180 204 164 C 272 148 344 196 364 256 C 376 292 360 336 324 352 C 284 370 236 354 212 320" 
+        fill="none" 
+        stroke="url(#ppPrimaryGrad)" 
+        stroke-width="32" 
+        stroke-linecap="round" 
+        stroke-linejoin="round" />
 
-  <!-- Reel Perforations -->
-  <circle cx="256" cy="180" r="26" fill="#07090e" stroke="#273248" stroke-width="4" />
-  <circle cx="322" cy="218" r="26" fill="#07090e" stroke="#273248" stroke-width="4" />
-  <circle cx="322" cy="294" r="26" fill="#07090e" stroke="#273248" stroke-width="4" />
-  <circle cx="256" cy="332" r="26" fill="#07090e" stroke="#273248" stroke-width="4" />
-  <circle cx="190" cy="294" r="26" fill="#07090e" stroke="#273248" stroke-width="4" />
-  <circle cx="190" cy="218" r="26" fill="#07090e" stroke="#273248" stroke-width="4" />
+  <path d="M 236 216 L 300 256 L 236 296 Z" 
+        fill="#171717" 
+        stroke="url(#ppPrimaryGrad)" 
+        stroke-width="10" 
+        stroke-linejoin="round" />
 
-  <!-- Center Hub with Companion Break Clock Element -->
-  <circle cx="256" cy="256" r="46" fill="url(#goldGrad)" />
-  
-  <!-- Play Triangle within Hub -->
-  <polygon points="246,238 274,256 246,274" fill="#07090e" />
-
-  <!-- Synchronized Signal Waves (Africa's Talking connectivity indicator) -->
-  <path d="M 120 180 A 180 180 0 0 1 392 180" fill="none" stroke="#38bdf8" stroke-width="8" stroke-linecap="round" opacity="0.4" />
-  <path d="M 145 200 A 150 150 0 0 1 367 200" fill="none" stroke="#38bdf8" stroke-width="6" stroke-linecap="round" opacity="0.7" />
+  <circle cx="396" cy="188" r="14" fill="#FFB800" />
+  <circle cx="396" cy="188" r="24" fill="none" stroke="#FFB800" stroke-width="4" opacity="0.5" />
 </svg>

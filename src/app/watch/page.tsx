@@ -732,6 +732,23 @@ function WatchExperience() {
             </p>
           </div>
         </div>
+        {/* App Store / Native App Promotion Banner */}
+        <div className="bg-brand-surface p-4 rounded-2xl border border-brand-border text-left shadow-subtle flex items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <p className="text-xs font-bold text-brand-text-primary">
+              Frequent Cinema Patron?
+            </p>
+            <p className="text-[11px] text-brand-text-secondary">
+              Open the PottyPlay Customer App for one-tap breaks without re-scanning.
+            </p>
+          </div>
+          <Link
+            href="/app"
+            className="py-2 px-3.5 rounded-xl font-bold text-xs bg-brand-primary text-brand-accent hover:bg-brand-secondary transition-all shadow-subtle flex-shrink-0"
+          >
+            Launch App
+          </Link>
+        </div>
       </section>
 
       {/* Footer */}
