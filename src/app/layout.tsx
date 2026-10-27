@@ -25,8 +25,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className="bg-brand-bg text-brand-text-primary min-h-[100dvh] flex flex-col selection:bg-brand-primary/30 selection:text-brand-text-primary font-sans antialiased">
+    <html lang="en" suppressHydrationWarning>
+      <body
+        suppressHydrationWarning
+        className="bg-brand-bg text-brand-text-primary min-h-[100dvh] flex flex-col selection:bg-brand-primary/30 selection:text-brand-text-primary font-sans antialiased"
+      >
         {children}
       </body>
     </html>
