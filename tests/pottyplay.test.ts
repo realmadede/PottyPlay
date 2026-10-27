@@ -16,17 +16,27 @@ describe("PottyPlay Comprehensive MVP Test Suite", () => {
 
   const cleanupTestRecords = async () => {
     await prisma.usageBillingEvent.deleteMany({
-      where: { sessionId: { startsWith: "session_billing_test" } },
+      where: {
+        OR: [
+          { sessionId: { startsWith: "session_billing_test" } },
+          { ticketNumber: "TEST-DUP-ACT-77" },
+        ],
+      },
     });
     await prisma.breakSession.deleteMany({
       where: {
-        sessionToken: {
-          in: [
-            "pstk_test_expired_token_123",
-            "pstk_test_revoke_token_456",
-            "pstk_billing_dup_test",
-          ],
-        },
+        OR: [
+          {
+            sessionToken: {
+              in: [
+                "pstk_test_expired_token_123",
+                "pstk_test_revoke_token_456",
+                "pstk_billing_dup_test",
+              ],
+            },
+          },
+          { ticket: { ticketNumber: "TEST-DUP-ACT-77" } },
+        ],
       },
     });
     await prisma.demonstrationTicket.deleteMany({
@@ -37,6 +47,7 @@ describe("PottyPlay Comprehensive MVP Test Suite", () => {
             "REV-TEST-888-T2",
             "BILL-DUP-TEST",
             "CLAIM-DIR-TEST-01",
+            "TEST-DUP-ACT-77",
           ],
         },
       },
@@ -157,17 +168,34 @@ describe("PottyPlay Comprehensive MVP Test Suite", () => {
 
   // 7. Duplicate activation prevention
   it("7. should prevent activating the same ticket twice concurrently or sequentially", async () => {
-    // Ticket CC-MLM-7823-C08 was already activated in seed
+    const testTicket = await prisma.demonstrationTicket.create({
+      data: {
+        ticketNumber: "TEST-DUP-ACT-77",
+        screeningId: mainScreeningId,
+        seatNumber: "D77",
+        customerName: "Duplicate Test Patron",
+        status: TicketStatus.VALID_ADMITTED,
+      },
+    });
+
     const otp = await OtpService.requestOtp("+255714000444");
     await OtpService.verifyOtp(otp.challengeId!, otp.simulatedCode!);
 
-    const result = await SessionService.activateSession({
-      ticketNumber: "CC-MLM-7823-C08",
+    // First activation succeeds
+    const firstActivation = await SessionService.activateSession({
+      ticketNumber: testTicket.ticketNumber,
+      challengeId: otp.challengeId!,
+    });
+    expect(firstActivation.success).toBe(true);
+
+    // Second activation attempt while an active session exists must fail
+    const secondActivation = await SessionService.activateSession({
+      ticketNumber: testTicket.ticketNumber,
       challengeId: otp.challengeId!,
     });
 
-    expect(result.success).toBe(false);
-    expect(result.error).toContain("already been activated");
+    expect(secondActivation.success).toBe(false);
+    expect(secondActivation.error).toContain("already been activated");
   });
 
   // 8. Session expiration after 900 seconds

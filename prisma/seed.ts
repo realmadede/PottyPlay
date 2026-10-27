@@ -178,49 +178,6 @@ async function main() {
     },
   });
 
-  // Pre-activated ticket for duplicate activation check
-  const activatedTicket = await prisma.demonstrationTicket.create({
-    data: {
-      id: "ticket_act_03",
-      ticketNumber: "CC-MLM-7823-C08",
-      claimToken: "CLM-MLM-C08-8823",
-      screeningId: screening.id,
-      seatNumber: "C08",
-      customerName: "David Tarimo",
-      status: TicketStatus.ALREADY_ACTIVATED,
-      activatedAt: new Date(now.getTime() - 5 * 60 * 1000),
-    },
-  });
-
-  // Create an active session and billing event for the pre-activated ticket
-  const preSession = await prisma.breakSession.create({
-    data: {
-      id: "session_pre_01",
-      sessionToken: "pstk_demo_preactive_c08_xyz",
-      ticketId: activatedTicket.id,
-      screeningId: screening.id,
-      phoneNumber: "+255712000003",
-      startedAt: new Date(now.getTime() - 5 * 60 * 1000),
-      expiresAt: new Date(now.getTime() + 10 * 60 * 1000),
-      status: "ACTIVE",
-      lastPositionSeconds: 420.0,
-      deviceInfo: "Safari on iOS 18 (Mobile)",
-    },
-  });
-
-  await prisma.usageBillingEvent.create({
-    data: {
-      id: "bill_pre_01",
-      sessionId: preSession.id,
-      cinemaId: cinema.id,
-      ticketNumber: activatedTicket.ticketNumber,
-      priceTzs: 500,
-      qualifying: true,
-      isSimulated: true,
-      disclaimer: "Simulated commercial pricing model for cinema partner evaluation, not an agreed commercial rate",
-    },
-  });
-
   // Cancelled/Refunded ticket
   await prisma.demonstrationTicket.create({
     data: {
@@ -270,23 +227,6 @@ async function main() {
       seatNumber: "F01",
       customerName: "Baraka Mwangi",
       status: TicketStatus.VALID_ADMITTED,
-    },
-  });
-
-  // 7. Audit event record
-  await prisma.auditEvent.create({
-    data: {
-      id: "audit_seed_01",
-      sessionId: preSession.id,
-      eventType: "SESSION_ACTIVATED",
-      entityType: "SESSION",
-      entityId: preSession.id,
-      actor: "CUSTOMER",
-      details: JSON.stringify({
-        ticketNumber: activatedTicket.ticketNumber,
-        phoneNumber: "+255712000003",
-        seat: "C08",
-      }),
     },
   });
 
