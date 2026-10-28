@@ -19,6 +19,26 @@ describe("PottyPlay Comprehensive Test Suite", () => {
   const noRightsScreeningId = "test_screening_no_rights_03";
 
   const setupFixtures = async () => {
+    // 0. Clean up any previous test customer records for idempotency
+    await prisma.screeningReminder.deleteMany({
+      where: {
+        customer: {
+          OR: [
+            { email: { contains: "patron" } },
+            { phoneNumber: { in: ["+255714888111", "+255714999333"] } },
+          ],
+        },
+      },
+    });
+    await prisma.customerAccount.deleteMany({
+      where: {
+        OR: [
+          { email: { contains: "patron" } },
+          { phoneNumber: { in: ["+255714888111", "+255714999333"] } },
+        ],
+      },
+    });
+
     // 1. Create test cinemas
     await prisma.cinema.upsert({
       where: { id: cinemaId },

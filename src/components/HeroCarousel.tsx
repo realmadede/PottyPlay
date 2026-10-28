@@ -33,9 +33,7 @@ interface SlideData {
 export function HeroCarousel() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [progress, setProgress] = useState(0);
   const slideDurationMs = 6500;
-  const intervalStepMs = 50;
 
   const slides: SlideData[] = [
     {
@@ -347,36 +345,27 @@ export function HeroCarousel() {
     },
   ];
 
-  // Auto transition ticker
+  // Auto transition timer
   useEffect(() => {
     if (!isPlaying) return;
 
     const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          setCurrentSlide((curr) => (curr + 1) % slides.length);
-          return 0;
-        }
-        return prev + (intervalStepMs / slideDurationMs) * 100;
-      });
-    }, intervalStepMs);
+      setCurrentSlide((curr) => (curr + 1) % slides.length);
+    }, slideDurationMs);
 
     return () => clearInterval(interval);
-  }, [isPlaying, slides.length]);
+  }, [isPlaying, slides.length, slideDurationMs]);
 
   const handleNext = useCallback(() => {
     setCurrentSlide((curr) => (curr + 1) % slides.length);
-    setProgress(0);
   }, [slides.length]);
 
   const handlePrev = useCallback(() => {
     setCurrentSlide((curr) => (curr - 1 + slides.length) % slides.length);
-    setProgress(0);
   }, [slides.length]);
 
   const goToSlide = (index: number) => {
     setCurrentSlide(index);
-    setProgress(0);
   };
 
   return (
@@ -459,97 +448,63 @@ export function HeroCarousel() {
             })}
           </div>
 
-          {/* Gen Z Neo-Story Segmented Progress Scrubber & Controls */}
-          <div className="mt-8 pt-5 border-t border-line/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            {/* Story Track Segments */}
-            <div className="flex-1 max-w-md w-full">
-              <div className="grid grid-cols-4 gap-2">
-                {slides.map((s, idx) => {
-                  const isActive = currentSlide === idx;
-                  const isPast = idx < currentSlide;
-                  const slideLabels = ["01 SYNC", "02 GUEST", "03 RIGHTS", "04 VENUE"];
-                  return (
-                    <button
-                      key={s.id}
-                      type="button"
-                      onClick={() => goToSlide(idx)}
-                      className="group flex flex-col space-y-1.5 text-left focus:outline-none transition-all"
-                      aria-label={`Jump to slide ${idx + 1}: ${slideLabels[idx]}`}
-                    >
-                      {/* Segment Progress Bar */}
-                      <div className="w-full h-1.5 sm:h-2 rounded-full bg-neutral-900 border border-neutral-800/80 overflow-hidden relative backdrop-blur-sm group-hover:border-amber-500/40 transition-colors">
-                        <div
-                          className={`h-full rounded-full transition-all ${
-                            isPast
-                              ? "w-full bg-amber-500/80"
-                              : isActive
-                              ? "bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-300 shadow-[0_0_10px_rgba(245,158,11,0.9)] duration-75"
-                              : "w-0 bg-transparent"
-                          }`}
-                          style={{
-                            width: isActive ? `${progress}%` : isPast ? "100%" : "0%",
-                          }}
-                        />
-                      </div>
-
-                      {/* Monospace Micro Label */}
-                      <div className="flex items-center justify-between text-[10px] font-mono tracking-wider">
-                        <span
-                          className={`transition-colors font-bold ${
-                            isActive
-                              ? "text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]"
-                              : "text-muted/60 group-hover:text-muted"
-                          }`}
-                        >
-                          {slideLabels[idx]}
-                        </span>
-                        {isActive && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping inline-block" />
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
+          {/* Modern Minimalist Carousel Controls: Pause, Prev, Next */}
+          <div className="mt-8 pt-5 border-t border-line/60 flex items-center justify-between gap-4">
+            {/* Slide Index & Context Capsule */}
+            <div className="inline-flex items-center space-x-2.5 px-3.5 py-1.5 rounded-full bg-field/90 border border-line text-xs shadow-sm backdrop-blur-md">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse flex-shrink-0" />
+              <div className="flex items-center space-x-1.5 font-mono text-[11px]">
+                <span className="text-ink font-bold">0{currentSlide + 1}</span>
+                <span className="text-muted/40 font-light">/</span>
+                <span className="text-muted font-medium">0{slides.length}</span>
               </div>
+              <span className="w-px h-3.5 bg-line hidden xs:inline-block" aria-hidden="true" />
+              <span className="text-[11px] text-muted font-semibold tracking-wide hidden xs:inline-block">
+                {currentSlide === 0
+                  ? "Real-Time Sync"
+                  : currentSlide === 1
+                  ? "Instant Claim"
+                  : currentSlide === 2
+                  ? "Studio Rights"
+                  : "TMS Integration"}
+              </span>
             </div>
 
-            {/* Tactile Control Capsule */}
-            <div className="flex items-center space-x-2 self-end sm:self-auto flex-shrink-0">
-              {/* Digital Step Counter Pill */}
-              <div className="px-3 py-1 rounded-full bg-neutral-900/90 border border-line text-[11px] font-mono flex items-center space-x-1.5 shadow-sm">
-                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-                <span className="text-amber-400 font-bold">0{currentSlide + 1}</span>
-                <span className="text-muted/40">/</span>
-                <span className="text-muted font-semibold">04</span>
-              </div>
+            {/* Tactical Control Trio */}
+            <div className="inline-flex items-center space-x-1.5 p-1 rounded-full bg-field/90 border border-line shadow-sm backdrop-blur-md">
+              <button
+                type="button"
+                onClick={() => setIsPlaying(!isPlaying)}
+                className={`w-8 h-8 flex items-center justify-center rounded-full transition-all duration-150 active:scale-95 ${
+                  isPlaying
+                    ? "text-muted hover:text-ink hover:bg-field-raised"
+                    : "text-amber-400 bg-amber-500/15 hover:bg-amber-500/25"
+                }`}
+                aria-label={isPlaying ? "Pause automatic slide rotation" : "Resume automatic slide rotation"}
+                title={isPlaying ? "Pause rotation" : "Resume rotation"}
+              >
+                {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+              </button>
 
-              {/* Minimal Glass Buttons */}
-              <div className="flex items-center space-x-1 bg-neutral-900/80 border border-line rounded-full p-1 shadow-sm">
-                <button
-                  type="button"
-                  onClick={() => setIsPlaying(!isPlaying)}
-                  className="w-7 h-7 flex items-center justify-center rounded-full text-muted hover:text-neutral-950 hover:bg-amber-400 transition-all active:scale-90"
-                  aria-label={isPlaying ? "Pause carousel" : "Play carousel"}
-                >
-                  {isPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
-                </button>
-                <button
-                  type="button"
-                  onClick={handlePrev}
-                  className="w-7 h-7 flex items-center justify-center rounded-full text-muted hover:text-neutral-950 hover:bg-amber-400 transition-all active:scale-90"
-                  aria-label="Previous slide"
-                >
-                  <ChevronLeft className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  className="w-7 h-7 flex items-center justify-center rounded-full text-muted hover:text-neutral-950 hover:bg-amber-400 transition-all active:scale-90"
-                  aria-label="Next slide"
-                >
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={handlePrev}
+                className="w-8 h-8 flex items-center justify-center rounded-full text-muted hover:text-ink hover:bg-field-raised transition-all duration-150 active:scale-95"
+                aria-label="Previous slide"
+                title="Previous slide"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+
+              <button
+                type="button"
+                onClick={handleNext}
+                className="w-8 h-8 flex items-center justify-center rounded-full text-muted hover:text-ink hover:bg-field-raised transition-all duration-150 active:scale-95"
+                aria-label="Next slide"
+                title="Next slide"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </div>
