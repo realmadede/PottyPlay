@@ -484,6 +484,181 @@ export class CustomerAuthService {
   }
 
   /**
+   * Updates customer full name with validation.
+   */
+  static async updateName(
+    customerId: string,
+    newName: string
+  ): Promise<{ success: boolean; customer?: CustomerAuthSession; error?: string }> {
+    if (!newName || newName.trim().length < 2) {
+      return { success: false, error: "Please enter a valid full name (minimum 2 characters)." };
+    }
+    const updated = await prisma.customerAccount.update({
+      where: { id: customerId },
+      data: { name: newName.trim() },
+    });
+    return { success: true, customer: this.toSession(updated) };
+  }
+
+  /**
+   * Initiates an email change challenge with verification code.
+   */
+  static async requestEmailChange(
+    customerId: string,
+    newEmail: string
+  ): Promise<{ success: boolean; simulatedCode?: string; error?: string }> {
+    const email = newEmail.trim().toLowerCase();
+    if (!email.includes("@") || !email.includes(".")) {
+      return { success: false, error: "Please enter a valid email address." };
+    }
+    const existing = await prisma.customerAccount.findUnique({ where: { email } });
+    if (existing && existing.id !== customerId && existing.status === "ACTIVE") {
+      return { success: false, error: "This email address is already associated with another account." };
+    }
+
+    const emailVerificationCode = generateOtpCode();
+    const emailVerificationExpiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+    await prisma.customerAccount.update({
+      where: { id: customerId },
+      data: {
+        emailVerificationCode,
+        emailVerificationExpiresAt,
+      },
+    });
+
+    console.log(`[EMAIL-CHANGE-VERIFICATION] Code for ${email}: ${emailVerificationCode} (expires in 15m)`);
+
+    return { success: true, simulatedCode: emailVerificationCode };
+  }
+
+  /**
+   * Confirms email change using the dispatched verification code.
+   */
+  static async confirmEmailChange(
+    customerId: string,
+    newEmail: string,
+    code: string
+  ): Promise<{ success: boolean; customer?: CustomerAuthSession; error?: string }> {
+    const customer = await prisma.customerAccount.findUnique({ where: { id: customerId } });
+    if (!customer) {
+      return { success: false, error: "Customer account not found." };
+    }
+    if (!customer.emailVerificationCode || !customer.emailVerificationExpiresAt) {
+      return { success: false, error: "No email verification challenge active." };
+    }
+    if (new Date() > new Date(customer.emailVerificationExpiresAt)) {
+      return { success: false, error: "Email verification code has expired. Please request a new one." };
+    }
+    if (customer.emailVerificationCode.trim() !== code.trim()) {
+      return { success: false, error: "Invalid verification code." };
+    }
+
+    const email = newEmail.trim().toLowerCase();
+    const updated = await prisma.customerAccount.update({
+      where: { id: customerId },
+      data: {
+        email,
+        emailVerified: true,
+        emailVerificationCode: null,
+        emailVerificationExpiresAt: null,
+      },
+    });
+
+    return { success: true, customer: this.toSession(updated) };
+  }
+
+  /**
+   * Initiates a phone number update with Africa's Talking SMS OTP verification.
+   */
+  static async requestPhoneChange(
+    customerId: string,
+    newPhone: string
+  ): Promise<{ success: boolean; challengeId?: string; simulatedCode?: string; error?: string }> {
+    if (!isValidPhoneNumber(newPhone)) {
+      return { success: false, error: "Please enter a valid phone number (e.g., +255 7XX XXX XXX)." };
+    }
+    const phone = normalizePhoneNumber(newPhone);
+    const existing = await prisma.customerAccount.findUnique({ where: { phoneNumber: phone } });
+    if (existing && existing.id !== customerId && existing.status === "ACTIVE") {
+      return { success: false, error: "This phone number is already associated with another account." };
+    }
+
+    const otpResult = await OtpService.requestOtp(phone);
+    if (!otpResult.success) {
+      return { success: false, error: otpResult.error || "Failed to dispatch verification SMS." };
+    }
+
+    return {
+      success: true,
+      challengeId: otpResult.challengeId,
+      simulatedCode: otpResult.simulatedCode,
+    };
+  }
+
+  /**
+   * Confirms phone number update with OTP verification.
+   */
+  static async confirmPhoneChange(
+    customerId: string,
+    newPhone: string,
+    challengeId: string,
+    code: string
+  ): Promise<{ success: boolean; customer?: CustomerAuthSession; error?: string }> {
+    const customer = await prisma.customerAccount.findUnique({ where: { id: customerId } });
+    if (!customer) {
+      return { success: false, error: "Customer account not found." };
+    }
+
+    const verifyResult = await OtpService.verifyOtp(challengeId, code);
+    if (!verifyResult.success) {
+      return { success: false, error: verifyResult.error || "Invalid SMS verification code." };
+    }
+
+    const phone = normalizePhoneNumber(newPhone);
+    const updated = await prisma.customerAccount.update({
+      where: { id: customerId },
+      data: {
+        phoneNumber: phone,
+        phoneVerified: true,
+      },
+    });
+
+    return { success: true, customer: this.toSession(updated) };
+  }
+
+  /**
+   * Changes customer password with strict verification of existing password.
+   */
+  static async changePassword(
+    customerId: string,
+    currentPassword: string,
+    newPassword: string
+  ): Promise<{ success: boolean; error?: string }> {
+    const customer = await prisma.customerAccount.findUnique({ where: { id: customerId } });
+    if (!customer || !customer.passwordHash) {
+      return { success: false, error: "Customer account not found or has no password set." };
+    }
+
+    const isCurrentValid = verifyPassword(currentPassword, customer.passwordHash);
+    if (!isCurrentValid) {
+      return { success: false, error: "Current password is incorrect." };
+    }
+
+    if (!newPassword || newPassword.length < 8) {
+      return { success: false, error: "New password must be at least 8 characters long." };
+    }
+
+    const passwordHash = hashPassword(newPassword);
+    await prisma.customerAccount.update({
+      where: { id: customerId },
+      data: { passwordHash },
+    });
+
+    return { success: true };
+  }
+
+  /**
    * Marks onboarding sequence complete for customer.
    */
   static async markOnboardingDone(customerId: string): Promise<boolean> {

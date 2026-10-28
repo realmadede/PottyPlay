@@ -744,4 +744,108 @@ describe("PottyPlay Comprehensive Test Suite", () => {
     });
     expect(successfulLogin.success).toBe(true);
   });
+
+  // 24. Customer profile name update
+  it("24. should allow verified customer to update their full name", async () => {
+    const updateResult = await CustomerAuthService.updateName(testCustomerId, "Juma Updated Patron");
+    expect(updateResult.success).toBe(true);
+    expect(updateResult.customer?.name).toBe("Juma Updated Patron");
+
+    const fetched = await prisma.customerAccount.findUnique({
+      where: { id: testCustomerId },
+    });
+    expect(fetched?.name).toBe("Juma Updated Patron");
+  });
+
+  // 25. Customer email update with strict verification challenge
+  it("25. should enforce strict two-step verification code challenge for email change", async () => {
+    const newEmail = "updated_patron@example.com";
+    const requestResult = await CustomerAuthService.requestEmailChange(testCustomerId, newEmail);
+    expect(requestResult.success).toBe(true);
+    expect(requestResult.simulatedCode).toBeDefined();
+
+    // Invalid code should be rejected
+    const invalidConfirm = await CustomerAuthService.confirmEmailChange(testCustomerId, newEmail, "000000");
+    expect(invalidConfirm.success).toBe(false);
+
+    // Valid code should update email
+    const validConfirm = await CustomerAuthService.confirmEmailChange(
+      testCustomerId,
+      newEmail,
+      requestResult.simulatedCode!
+    );
+    expect(validConfirm.success).toBe(true);
+    expect(validConfirm.customer?.email).toBe(newEmail);
+
+    const fetched = await prisma.customerAccount.findUnique({
+      where: { id: testCustomerId },
+    });
+    expect(fetched?.email).toBe(newEmail);
+  });
+
+  // 26. Customer phone update with strict SMS OTP verification
+  it("26. should enforce strict SMS OTP verification for telephone change", async () => {
+    const newPhone = "+255714999333";
+    const requestResult = await CustomerAuthService.requestPhoneChange(testCustomerId, newPhone);
+    expect(requestResult.success).toBe(true);
+    expect(requestResult.challengeId).toBeDefined();
+    expect(requestResult.simulatedCode).toBeDefined();
+
+    // Invalid OTP should fail
+    const invalidConfirm = await CustomerAuthService.confirmPhoneChange(
+      testCustomerId,
+      newPhone,
+      requestResult.challengeId!,
+      "000000"
+    );
+    expect(invalidConfirm.success).toBe(false);
+
+    // Valid OTP should succeed
+    const validConfirm = await CustomerAuthService.confirmPhoneChange(
+      testCustomerId,
+      newPhone,
+      requestResult.challengeId!,
+      requestResult.simulatedCode!
+    );
+    expect(validConfirm.success).toBe(true);
+    expect(validConfirm.customer?.phoneNumber).toBe(newPhone);
+
+    const fetched = await prisma.customerAccount.findUnique({
+      where: { id: testCustomerId },
+    });
+    expect(fetched?.phoneNumber).toBe(newPhone);
+  });
+
+  // 27. Customer password change with strict current password verification
+  it("27. should strictly verify current password before permitting password change", async () => {
+    // Incorrect current password must fail
+    const wrongCurrent = await CustomerAuthService.changePassword(
+      testCustomerId,
+      "wrongCurrentPassword123!",
+      "superBrandNewPass789!"
+    );
+    expect(wrongCurrent.success).toBe(false);
+    expect(wrongCurrent.error).toContain("Current password is incorrect");
+
+    // Correct current password must succeed
+    const validChange = await CustomerAuthService.changePassword(
+      testCustomerId,
+      "newSecurePassword456!",
+      "superBrandNewPass789!"
+    );
+    expect(validChange.success).toBe(true);
+
+    // Verify login with new password succeeds and old password fails
+    const oldLogin = await CustomerAuthService.login({
+      identifier: "updated_patron@example.com",
+      password: "newSecurePassword456!",
+    });
+    expect(oldLogin.success).toBe(false);
+
+    const newLogin = await CustomerAuthService.login({
+      identifier: "updated_patron@example.com",
+      password: "superBrandNewPass789!",
+    });
+    expect(newLogin.success).toBe(true);
+  });
 });

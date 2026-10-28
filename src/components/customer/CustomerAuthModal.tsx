@@ -14,6 +14,8 @@ import {
   User,
   KeyRound,
   ShieldCheck,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 
@@ -39,6 +41,7 @@ export function CustomerAuthModal({
   const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showRegPassword, setShowRegPassword] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   // Verification state
@@ -54,11 +57,13 @@ export function CustomerAuthModal({
   // Sign in state
   const [loginIdentifier, setLoginIdentifier] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
 
   // Forgot password state
   const [forgotIdentifier, setForgotIdentifier] = useState("");
   const [resetToken, setResetToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [showResetPassword, setShowResetPassword] = useState(false);
   const [forgotStep, setForgotStep] = useState<"request" | "reset">("request");
   const [forgotSuccessMessage, setForgotSuccessMessage] = useState<string | null>(null);
 
@@ -384,14 +389,22 @@ export function CustomerAuthModal({
               <div className="relative">
                 <Lock className="absolute left-3.5 top-3 w-4 h-4 text-muted" />
                 <input
-                  type="password"
+                  type={showRegPassword ? "text" : "password"}
                   required
                   minLength={8}
                   placeholder="Minimum 8 characters"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-line bg-bg text-sm text-ink placeholder-muted focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
+                  className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-line bg-bg text-sm text-ink placeholder-muted focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowRegPassword(!showRegPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink p-1 transition-colors focus:outline-none"
+                  aria-label={showRegPassword ? "Hide password" : "Show password"}
+                >
+                  {showRegPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
@@ -608,13 +621,21 @@ export function CustomerAuthModal({
               <div className="relative">
                 <Lock className="absolute left-3.5 top-3 w-4 h-4 text-muted" />
                 <input
-                  type="password"
+                  type={showLoginPassword ? "text" : "password"}
                   required
                   placeholder="Enter your account password"
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
-                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-line bg-bg text-sm text-ink placeholder-muted focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
+                  className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-line bg-bg text-sm text-ink placeholder-muted focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowLoginPassword(!showLoginPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink p-1 transition-colors focus:outline-none"
+                  aria-label={showLoginPassword ? "Hide password" : "Show password"}
+                >
+                  {showLoginPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
@@ -708,15 +729,25 @@ export function CustomerAuthModal({
                   <label className="block text-xs font-bold text-ink uppercase tracking-wider mb-1">
                     New Password *
                   </label>
-                  <input
-                    type="password"
-                    required
-                    minLength={8}
-                    placeholder="Minimum 8 characters"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-line bg-bg text-sm text-ink placeholder-muted focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showResetPassword ? "text" : "password"}
+                      required
+                      minLength={8}
+                      placeholder="Minimum 8 characters"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-line bg-bg text-sm text-ink placeholder-muted focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowResetPassword(!showResetPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink p-1 transition-colors focus:outline-none"
+                      aria-label={showResetPassword ? "Hide password" : "Show password"}
+                    >
+                      {showResetPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
 
                 <button

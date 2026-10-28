@@ -33,6 +33,7 @@ interface SettingsViewProps {
   onLogout: () => void;
   onUpdateTheme: (theme: "LIGHT" | "DARK" | "SYSTEM") => void;
   currentTheme: "LIGHT" | "DARK" | "SYSTEM";
+  onNavigateToProfile?: () => void;
 }
 
 export function SettingsView({
@@ -40,6 +41,7 @@ export function SettingsView({
   onLogout,
   onUpdateTheme,
   currentTheme,
+  onNavigateToProfile,
 }: SettingsViewProps) {
   const [theme, setTheme] = useState<"LIGHT" | "DARK" | "SYSTEM">(currentTheme);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -119,6 +121,17 @@ export function SettingsView({
                 )}
               </div>
             </div>
+
+            {onNavigateToProfile && (
+              <button
+                type="button"
+                onClick={onNavigateToProfile}
+                className="mt-3 py-1.5 px-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500/20 text-xs font-bold inline-flex items-center space-x-1.5 transition-colors"
+              >
+                <span>Edit Profile & Security</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
         </div>
       </div>

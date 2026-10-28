@@ -69,18 +69,11 @@ export function BrandLogo({
 
       {variant === "full" && (
         <div className="flex flex-col text-left">
-          <div className="flex items-center space-x-2">
-            <span
-              className={`font-black tracking-tight text-ink ${dimensions.text}`}
-            >
-              Potty<span className="text-amber-400">Play</span>
-            </span>
-            <span
-              className={`font-bold tracking-wider uppercase px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/25 ${dimensions.badge}`}
-            >
-              Cinema
-            </span>
-          </div>
+          <span
+            className={`font-black tracking-tight text-ink ${dimensions.text}`}
+          >
+            Potty<span className="text-amber-400">Play</span>
+          </span>
           {showTagline && (
             <span className="text-[11px] text-muted tracking-normal">
               Cinema Companion Viewing

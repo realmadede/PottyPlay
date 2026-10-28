@@ -10,6 +10,7 @@ import { RemindersView } from "@/components/customer/RemindersView";
 import { BathroomView } from "@/components/customer/BathroomView";
 import { HistoryView } from "@/components/customer/HistoryView";
 import { SettingsView } from "@/components/customer/SettingsView";
+import { ProfileView } from "@/components/customer/ProfileView";
 import {
   Building2,
   Bell,
@@ -19,9 +20,10 @@ import {
   ShieldAlert,
   Loader2,
   Lock,
+  User,
 } from "lucide-react";
 
-type ActiveTab = "discovery" | "reminders" | "bathroom" | "history" | "settings";
+type ActiveTab = "discovery" | "reminders" | "bathroom" | "history" | "profile" | "settings";
 
 interface CustomerProfile {
   customerId: string;
@@ -200,20 +202,28 @@ export default function CustomerApplication() {
 
         <div className="flex items-center space-x-3">
           {customer && (
-            <div className="flex items-center space-x-2">
+            <button
+              type="button"
+              onClick={() => setActiveTab("profile")}
+              className="flex items-center space-x-2 p-1.5 rounded-xl hover:bg-field border border-transparent hover:border-line transition-all text-left"
+              title="View Account Profile"
+            >
+              <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xs flex-shrink-0">
+                {customer.name ? customer.name.charAt(0).toUpperCase() : "U"}
+              </div>
               <div className="text-right hidden sm:block">
-                <div className="text-xs font-bold text-ink">
+                <div className="text-xs font-bold text-ink truncate max-w-[140px]">
                   {customer.name || customer.phoneNumber || customer.email}
                 </div>
                 <div className="text-[10px] text-muted flex items-center justify-end space-x-1">
                   {customer.phoneVerified && customer.emailVerified ? (
-                    <span className="text-emerald-400 font-semibold">Account Verified</span>
+                    <span className="text-emerald-400 font-semibold">Verified</span>
                   ) : (
-                    <span className="text-amber-400 font-semibold">Pending Verification</span>
+                    <span className="text-amber-400 font-semibold">Pending</span>
                   )}
                 </div>
               </div>
-            </div>
+            </button>
           )}
         </div>
       </header>
@@ -225,12 +235,19 @@ export default function CustomerApplication() {
           {activeTab === "reminders" && <RemindersView />}
           {activeTab === "bathroom" && <BathroomView />}
           {activeTab === "history" && <HistoryView />}
+          {activeTab === "profile" && (
+            <ProfileView
+              customer={customer as any}
+              onUpdateCustomer={(updated) => setCustomer(updated as any)}
+            />
+          )}
           {activeTab === "settings" && (
             <SettingsView
               customer={customer}
               onLogout={handleLogout}
               onUpdateTheme={applyTheme}
               currentTheme={currentTheme}
+              onNavigateToProfile={() => setActiveTab("profile")}
             />
           )}
         </main>
@@ -256,80 +273,94 @@ export default function CustomerApplication() {
         </main>
       )}
 
-      {/* Fixed Bottom Mobile Navigation Bar with 5 Tabs */}
+      {/* Fixed Bottom Mobile Navigation Bar with 6 Tabs */}
       {customer && (
         <nav
           aria-label="Main customer navigation"
-          className="fixed bottom-0 left-0 right-0 z-40 bg-bg/90 backdrop-blur-md border-t border-line px-1.5 py-1.5 flex items-center justify-around pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+          className="fixed bottom-0 left-0 right-0 z-40 bg-bg/90 backdrop-blur-md border-t border-line px-1 py-1.5 flex items-center justify-around pb-[max(0.5rem,env(safe-area-inset-bottom))]"
         >
           {/* Tab 1: Cinemas */}
           <button
             type="button"
             onClick={() => setActiveTab("discovery")}
-            className={`flex flex-col items-center py-1 px-2.5 rounded-xl transition-all ${
+            className={`flex flex-col items-center py-1 px-1.5 sm:px-2 rounded-xl transition-all ${
               activeTab === "discovery"
                 ? "text-ink font-bold"
                 : "text-muted hover:text-ink"
             }`}
           >
-            <Building2 className={`w-5 h-5 ${activeTab === "discovery" ? "text-amber-400" : ""}`} />
-            <span className="text-[10px] mt-0.5">Cinemas</span>
+            <Building2 className={`w-4 h-4 sm:w-5 sm:h-5 ${activeTab === "discovery" ? "text-amber-400" : ""}`} />
+            <span className="text-[9px] sm:text-[10px] mt-0.5">Cinemas</span>
           </button>
 
           {/* Tab 2: Reminders */}
           <button
             type="button"
             onClick={() => setActiveTab("reminders")}
-            className={`flex flex-col items-center py-1 px-2.5 rounded-xl transition-all ${
+            className={`flex flex-col items-center py-1 px-1.5 sm:px-2 rounded-xl transition-all ${
               activeTab === "reminders"
                 ? "text-ink font-bold"
                 : "text-muted hover:text-ink"
             }`}
           >
-            <Bell className={`w-5 h-5 ${activeTab === "reminders" ? "text-amber-400" : ""}`} />
-            <span className="text-[10px] mt-0.5">Reminders</span>
+            <Bell className={`w-4 h-4 sm:w-5 sm:h-5 ${activeTab === "reminders" ? "text-amber-400" : ""}`} />
+            <span className="text-[9px] sm:text-[10px] mt-0.5">Reminders</span>
           </button>
 
           {/* Tab 3: Center Golden Button for Bathroom Mode */}
           <button
             type="button"
             onClick={() => setActiveTab("bathroom")}
-            className={`flex flex-col items-center py-1.5 px-3.5 rounded-2xl transition-all ${
+            className={`flex flex-col items-center py-1.5 px-3 sm:px-4 rounded-2xl transition-all ${
               activeTab === "bathroom"
                 ? "bg-amber-500 text-neutral-950 shadow-sm font-black"
                 : "text-muted hover:text-ink"
             }`}
           >
-            <Film className="w-5 h-5" />
-            <span className="text-[10px] mt-0.5 font-bold">Bathroom</span>
+            <Film className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="text-[9px] sm:text-[10px] mt-0.5 font-bold">Bathroom</span>
           </button>
 
           {/* Tab 4: History */}
           <button
             type="button"
             onClick={() => setActiveTab("history")}
-            className={`flex flex-col items-center py-1 px-2.5 rounded-xl transition-all ${
+            className={`flex flex-col items-center py-1 px-1.5 sm:px-2 rounded-xl transition-all ${
               activeTab === "history"
                 ? "text-ink font-bold"
                 : "text-muted hover:text-ink"
             }`}
           >
-            <History className={`w-5 h-5 ${activeTab === "history" ? "text-amber-400" : ""}`} />
-            <span className="text-[10px] mt-0.5">History</span>
+            <History className={`w-4 h-4 sm:w-5 sm:h-5 ${activeTab === "history" ? "text-amber-400" : ""}`} />
+            <span className="text-[9px] sm:text-[10px] mt-0.5">History</span>
           </button>
 
-          {/* Tab 5: Settings */}
+          {/* Tab 5: Account Profile */}
+          <button
+            type="button"
+            onClick={() => setActiveTab("profile")}
+            className={`flex flex-col items-center py-1 px-1.5 sm:px-2 rounded-xl transition-all ${
+              activeTab === "profile"
+                ? "text-ink font-bold"
+                : "text-muted hover:text-ink"
+            }`}
+          >
+            <User className={`w-4 h-4 sm:w-5 sm:h-5 ${activeTab === "profile" ? "text-amber-400" : ""}`} />
+            <span className="text-[9px] sm:text-[10px] mt-0.5">Account</span>
+          </button>
+
+          {/* Tab 6: Settings */}
           <button
             type="button"
             onClick={() => setActiveTab("settings")}
-            className={`flex flex-col items-center py-1 px-2.5 rounded-xl transition-all ${
+            className={`flex flex-col items-center py-1 px-1.5 sm:px-2 rounded-xl transition-all ${
               activeTab === "settings"
                 ? "text-ink font-bold"
                 : "text-muted hover:text-ink"
             }`}
           >
-            <Settings className={`w-5 h-5 ${activeTab === "settings" ? "text-amber-400" : ""}`} />
-            <span className="text-[10px] mt-0.5">Settings</span>
+            <Settings className={`w-4 h-4 sm:w-5 sm:h-5 ${activeTab === "settings" ? "text-amber-400" : ""}`} />
+            <span className="text-[9px] sm:text-[10px] mt-0.5">Settings</span>
           </button>
         </nav>
       )}
