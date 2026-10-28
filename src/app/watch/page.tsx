@@ -353,7 +353,7 @@ function WatchExperience() {
     return (
       <main className="min-h-screen bg-bg text-ink flex flex-col justify-between selection:bg-amber-500 selection:text-neutral-950">
         {/* Top Session Bar */}
-        <header className="sticky top-0 z-30 bg-field/90 backdrop-blur-md border-b border-line px-4 py-3">
+        <header className="sticky top-0 z-30 glass-ios26 glass-ios26-rim glass-ios26-glint border-b border-white/10 px-4 py-3">
           <div className="max-w-2xl mx-auto flex items-center justify-between">
             <div className="flex items-center space-x-2.5">
               <Image
@@ -375,7 +375,7 @@ function WatchExperience() {
 
             {/* Countdown Badge */}
             <div
-              className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
+              className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-colors glass-ios26 glass-ios26-rim ${
                 isUrgent
                   ? "bg-red-500/10 text-red-400 border border-red-500/30 animate-pulse"
                   : isWarning
@@ -463,7 +463,7 @@ function WatchExperience() {
   if (sessionExpiredReason) {
     return (
       <main className="min-h-screen bg-bg text-ink flex flex-col justify-center items-center p-4 selection:bg-amber-500 selection:text-neutral-950">
-        <div className="max-w-md w-full bg-field rounded-3xl border border-line p-6 shadow-card text-center space-y-4">
+        <div className="max-w-md w-full glass-ios26 glass-ios26-rim glass-ios26-glint rounded-3xl border border-white/10 p-6 shadow-card text-center space-y-4">
           <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mx-auto">
             <Clock className="w-6 h-6" />
           </div>
@@ -505,7 +505,7 @@ function WatchExperience() {
   return (
     <main className="min-h-screen bg-bg text-ink flex flex-col justify-between selection:bg-amber-500 selection:text-neutral-950">
       {/* Header */}
-      <header className="border-b border-line bg-field/90 backdrop-blur-md px-4 py-3 sticky top-0 z-20">
+      <header className="border-b border-white/10 glass-ios26 glass-ios26-rim glass-ios26-glint px-4 py-3 sticky top-0 z-20">
         <div className="max-w-md mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center space-x-2">
             <Image
@@ -546,7 +546,7 @@ function WatchExperience() {
 
         {/* STEP 1: Enter Ticket or Claim Code (if not verified yet) */}
         {!verifiedTicket && (
-          <div className="bg-field rounded-2xl border border-line p-5 shadow-card space-y-4">
+          <div className="glass-ios26 glass-ios26-rim glass-ios26-glint rounded-2xl border border-white/10 p-5 shadow-card space-y-4">
             <div className="space-y-2">
               <label
                 htmlFor="ticketCode"
@@ -589,7 +589,7 @@ function WatchExperience() {
 
         {/* STEP 2: Entitlement Confirmed & Ready to Activate */}
         {verifiedTicket && (
-          <div className="bg-field rounded-2xl border border-line p-5 shadow-card space-y-4">
+          <div className="glass-ios26 glass-ios26-rim glass-ios26-glint rounded-2xl border border-white/10 p-5 shadow-card space-y-4">
             {/* Ticket Summary Card */}
             <div className="bg-bg border border-amber-500/30 rounded-xl p-3.5 space-y-2">
               <div className="flex items-center justify-between">

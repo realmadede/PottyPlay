@@ -56,7 +56,7 @@ export function HeroCarousel() {
           />
 
           {/* Handheld Device Container */}
-          <div className="relative rounded-[28px] bg-neutral-950 text-white p-5 sm:p-6 shadow-elevated border border-neutral-800/90 backdrop-blur-xl">
+          <div className="relative rounded-[32px] glass-ios26 glass-ios26-rim glass-ios26-glint text-white p-5 sm:p-6 shadow-elevated">
             {/* Device Top Bar */}
             <div className="flex items-center justify-between pb-3.5 border-b border-neutral-800 text-xs">
               <div className="flex items-center space-x-2">
@@ -140,7 +140,7 @@ export function HeroCarousel() {
             aria-hidden="true"
           />
 
-          <div className="relative rounded-[28px] bg-field border border-line p-5 sm:p-6 shadow-elevated text-ink">
+          <div className="relative rounded-[32px] glass-ios26 glass-ios26-rim glass-ios26-glint p-5 sm:p-6 shadow-elevated text-ink">
             {/* Theatrical Hospitality Badge */}
             <div className="flex items-center justify-between pb-3.5 border-b border-line text-xs">
               <div className="flex items-center space-x-2">
@@ -211,7 +211,7 @@ export function HeroCarousel() {
             aria-hidden="true"
           />
 
-          <div className="relative rounded-[28px] bg-neutral-950 text-white p-5 sm:p-6 shadow-elevated border border-neutral-800/90">
+          <div className="relative rounded-[32px] glass-ios26 glass-ios26-rim glass-ios26-glint text-white p-5 sm:p-6 shadow-elevated">
             {/* Security Header */}
             <div className="flex items-center justify-between pb-3.5 border-b border-neutral-800 text-xs">
               <div className="flex items-center space-x-2">
@@ -278,7 +278,7 @@ export function HeroCarousel() {
             aria-hidden="true"
           />
 
-          <div className="relative rounded-[28px] bg-field p-5 sm:p-6 shadow-elevated border border-line text-ink">
+          <div className="relative rounded-[32px] glass-ios26 glass-ios26-rim glass-ios26-glint p-5 sm:p-6 shadow-elevated text-ink">
             {/* Operator Telemetry Header */}
             <div className="flex items-center justify-between pb-3.5 border-b border-line text-xs">
               <div className="flex items-center space-x-2">
@@ -451,7 +451,7 @@ export function HeroCarousel() {
           {/* Modern Minimalist Carousel Controls: Pause, Prev, Next */}
           <div className="mt-8 pt-5 border-t border-line/60 flex items-center justify-between gap-4">
             {/* Slide Index & Context Capsule */}
-            <div className="inline-flex items-center space-x-2.5 px-3.5 py-1.5 rounded-full bg-field/90 border border-line text-xs shadow-sm backdrop-blur-md">
+            <div className="inline-flex items-center space-x-2.5 px-3.5 py-1.5 rounded-full glass-ios26 glass-ios26-rim glass-ios26-glint text-xs shadow-sm">
               <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse flex-shrink-0" />
               <div className="flex items-center space-x-1.5 font-mono text-[11px]">
                 <span className="text-ink font-bold">0{currentSlide + 1}</span>
@@ -471,7 +471,7 @@ export function HeroCarousel() {
             </div>
 
             {/* Tactical Control Trio */}
-            <div className="inline-flex items-center space-x-1.5 p-1 rounded-full bg-field/90 border border-line shadow-sm backdrop-blur-md">
+            <div className="inline-flex items-center space-x-1.5 p-1 rounded-full glass-ios26 glass-ios26-rim glass-ios26-glint shadow-sm">
               <button
                 type="button"
                 onClick={() => setIsPlaying(!isPlaying)}

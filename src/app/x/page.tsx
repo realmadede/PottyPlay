@@ -243,7 +243,7 @@ export default function AdminPortalPage() {
   if (!token) {
     return (
       <div className="min-h-screen bg-bg text-ink flex flex-col justify-center items-center p-4 selection:bg-amber-500 selection:text-neutral-950">
-        <div className="w-full max-w-md bg-field border border-line rounded-3xl p-6 sm:p-8 shadow-card text-left">
+        <div className="w-full max-w-md glass-ios26 glass-ios26-rim glass-ios26-glint border border-white/20 rounded-3xl p-6 sm:p-8 shadow-card text-left">
           <div className="text-center pb-6 border-b border-line">
             <div className="w-12 h-12 rounded-2xl bg-bg border border-line flex items-center justify-center mx-auto mb-3 text-amber-400">
               <Lock className="w-6 h-6" />
@@ -384,7 +384,7 @@ export default function AdminPortalPage() {
 
         {/* Global Financial & Accounting KPI Ledger */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          <div className="bg-field p-3.5 rounded-2xl border border-line shadow-card">
+          <div className="glass-ios26 glass-ios26-rim glass-ios26-glint p-3.5 rounded-2xl border border-white/10 shadow-card">
             <span className="text-[10px] font-bold text-muted uppercase">
               Total Usage
             </span>
@@ -394,7 +394,7 @@ export default function AdminPortalPage() {
             <span className="text-[10px] text-muted">Break activations</span>
           </div>
 
-          <div className="bg-field p-3.5 rounded-2xl border border-line shadow-card">
+          <div className="glass-ios26 glass-ios26-rim glass-ios26-glint p-3.5 rounded-2xl border border-white/10 shadow-card">
             <span className="text-[10px] font-bold text-muted uppercase">
               Billable Breaks
             </span>
@@ -404,7 +404,7 @@ export default function AdminPortalPage() {
             <span className="text-[10px] text-muted">Qualifying sessions</span>
           </div>
 
-          <div className="bg-field p-3.5 rounded-2xl border border-line shadow-card">
+          <div className="glass-ios26 glass-ios26-rim glass-ios26-glint p-3.5 rounded-2xl border border-white/10 shadow-card">
             <span className="text-[10px] font-bold text-muted uppercase">
               Accrued Charges
             </span>
@@ -415,7 +415,7 @@ export default function AdminPortalPage() {
             <span className="text-[10px] text-emerald-400 font-semibold">Ledger recorded</span>
           </div>
 
-          <div className="bg-field p-3.5 rounded-2xl border border-line shadow-card">
+          <div className="glass-ios26 glass-ios26-rim glass-ios26-glint p-3.5 rounded-2xl border border-white/10 shadow-card">
             <span className="text-[10px] font-bold text-muted uppercase">
               Invoiced Amount
             </span>
@@ -425,7 +425,7 @@ export default function AdminPortalPage() {
             <span className="text-[10px] text-muted">Cycle settlement</span>
           </div>
 
-          <div className="bg-field p-3.5 rounded-2xl border border-line shadow-card">
+          <div className="glass-ios26 glass-ios26-rim glass-ios26-glint p-3.5 rounded-2xl border border-white/10 shadow-card">
             <span className="text-[10px] font-bold text-muted uppercase">
               Payments Received
             </span>
@@ -435,7 +435,7 @@ export default function AdminPortalPage() {
             <span className="text-[10px] text-muted">Separated ledger</span>
           </div>
 
-          <div className="bg-field p-3.5 rounded-2xl border border-line shadow-card">
+          <div className="glass-ios26 glass-ios26-rim glass-ios26-glint p-3.5 rounded-2xl border border-white/10 shadow-card">
             <span className="text-[10px] font-bold text-muted uppercase">
               Outstanding
             </span>

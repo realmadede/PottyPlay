@@ -8,8 +8,17 @@ import { Menu, X, ArrowRight } from "lucide-react";
 export function LandingHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const handlePointerMove = (e: React.PointerEvent<HTMLElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    e.currentTarget.style.setProperty("--glint-x", `${e.clientX - rect.left}px`);
+    e.currentTarget.style.setProperty("--glint-y", `${e.clientY - rect.top}px`);
+  };
+
   return (
-    <header className="sticky top-0 z-50 w-full bg-bg/90 backdrop-blur-md border-b border-line">
+    <header
+      onPointerMove={handlePointerMove}
+      className="sticky top-0 z-50 w-full glass-ios26 glass-ios26-rim glass-ios26-glint border-b border-white/15 transition-all"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         {/* Brand Logo */}
         <div className="flex-shrink-0">
@@ -92,7 +101,7 @@ export function LandingHeader() {
 
       {/* Mobile drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-b border-line bg-bg px-4 py-5 space-y-3 shadow-elevated">
+        <div className="lg:hidden border-b border-white/10 glass-ios26 glass-ios26-rim px-4 py-5 space-y-3 shadow-elevated">
           <nav className="flex flex-col space-y-2 text-sm font-semibold text-muted">
             <a
               href="#proposition"

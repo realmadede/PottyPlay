@@ -283,7 +283,7 @@ export function CustomerAuthModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
-      <div className="relative w-full max-w-md my-8 rounded-3xl bg-field border border-line shadow-elevated p-6 sm:p-8 text-left text-ink">
+      <div className="relative w-full max-w-md my-8 rounded-3xl glass-ios26 glass-ios26-rim glass-ios26-glint border border-white/20 shadow-elevated p-6 sm:p-8 text-left text-ink">
         {/* Close Button (if non-mandatory) */}
         {!mandatory && onClose && (
           <button

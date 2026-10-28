@@ -288,7 +288,7 @@ export default function BusinessLandingPage() {
             </div>
 
             {/* Right Theatrical Preview Frame */}
-            <div className="lg:col-span-6 bg-field text-ink p-6 sm:p-8 rounded-3xl shadow-elevated border border-line text-left">
+            <div className="lg:col-span-6 glass-ios26 glass-ios26-rim glass-ios26-glint text-ink p-6 sm:p-8 rounded-3xl shadow-elevated text-left">
               <div className="flex items-center justify-between pb-4 border-b border-line text-xs">
                 <div className="flex items-center space-x-2">
                   <Smartphone className="w-4 h-4 text-amber-400" />

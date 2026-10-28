@@ -128,6 +128,112 @@ button:active:not(:disabled) {
   font-variant-numeric: tabular-nums;
 }
 
+/* ==========================================================================
+   iOS 26 Optical Refractive Glass Engine
+   ========================================================================== */
+
+.glass-ios26 {
+  position: relative;
+  isolation: isolate;
+  background: radial-gradient(
+    130% 120% at 50% 10%,
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(255, 255, 255, 0.04) 45%,
+    rgba(14, 18, 24, 0.76) 100%
+  );
+  backdrop-filter: blur(28px) saturate(210%) contrast(108%);
+  -webkit-backdrop-filter: blur(28px) saturate(210%) contrast(108%);
+  box-shadow:
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.6),
+    inset 1px 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset -1px 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.55),
+    0 20px 45px -12px rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  overflow: hidden;
+}
+
+/* Optical edge compression & center magnification simulation */
+.glass-ios26::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 1;
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 65%),
+    radial-gradient(ellipse at 50% 50%, transparent 68%, rgba(255, 255, 255, 0.08) 94%, rgba(255, 255, 255, 0.24) 100%);
+  mix-blend-mode: overlay;
+}
+
+/* Thin Luminous Specular Caustic Rim */
+.glass-ios26-rim {
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow:
+    inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.7),
+    inset 1px 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset -1px 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.65),
+    0 24px 50px -12px rgba(0, 0, 0, 0.75);
+}
+
+/* Moving Specular Glint */
+.glass-ios26-glint::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 2;
+  background: radial-gradient(
+    circle 260px at var(--glint-x, 40%) var(--glint-y, 25%),
+    rgba(255, 255, 255, 0.42) 0%,
+    rgba(255, 255, 255, 0.14) 35%,
+    rgba(255, 255, 255, 0) 70%
+  );
+  mix-blend-mode: color-dodge;
+  transition: opacity 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  opacity: 0.88;
+}
+
+.glass-ios26-glint:hover::after {
+  opacity: 1;
+}
+
+/* Subtle continuous ambient glint sweep */
+.glass-ios26-ambient::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 2;
+  background: radial-gradient(
+    circle 280px at var(--glint-x, 35%) var(--glint-y, 20%),
+    rgba(255, 255, 255, 0.35) 0%,
+    rgba(255, 255, 255, 0.1) 40%,
+    rgba(255, 255, 255, 0) 70%
+  );
+  mix-blend-mode: color-dodge;
+  animation: ios26-glint-drift 14s ease-in-out infinite;
+}
+
+@keyframes ios26-glint-drift {
+  0% {
+    transform: translate(-15%, -15%);
+    opacity: 0.75;
+  }
+  50% {
+    transform: translate(15%, 15%);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-15%, -15%);
+    opacity: 0.75;
+  }
+}
+
 /* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {

@@ -461,7 +461,7 @@ export default function OperatorPage() {
   if (!token || !operator) {
     return (
       <div className="min-h-screen bg-bg text-ink flex flex-col justify-center items-center p-4 selection:bg-amber-500 selection:text-neutral-950">
-        <div className="w-full max-w-md bg-field border border-line rounded-3xl p-6 sm:p-8 shadow-card text-left">
+        <div className="w-full max-w-md glass-ios26 glass-ios26-rim glass-ios26-glint border border-white/20 rounded-3xl p-6 sm:p-8 shadow-card text-left">
           {/* Header */}
           <div className="text-center pb-6 border-b border-line">
             <div className="w-12 h-12 rounded-2xl bg-bg border border-line flex items-center justify-center mx-auto mb-3 text-amber-400">
@@ -856,7 +856,7 @@ export default function OperatorPage() {
           <>
             {/* Operator Stats Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-              <div className="bg-field p-4 rounded-2xl border border-line shadow-card">
+              <div className="glass-ios26 glass-ios26-rim glass-ios26-glint p-4 rounded-2xl border border-white/10 shadow-card">
                 <span className="text-[11px] font-semibold text-muted uppercase">
                   Active Breaks
                 </span>
@@ -866,7 +866,7 @@ export default function OperatorPage() {
                 <span className="text-[11px] text-muted">Currently in restroom</span>
               </div>
 
-              <div className="bg-field p-4 rounded-2xl border border-line shadow-card">
+              <div className="glass-ios26 glass-ios26-rim glass-ios26-glint p-4 rounded-2xl border border-white/10 shadow-card">
                 <span className="text-[11px] font-semibold text-muted uppercase">
                   Total Completed
                 </span>
@@ -876,7 +876,7 @@ export default function OperatorPage() {
                 <span className="text-[11px] text-muted">Ended or expired</span>
               </div>
 
-              <div className="bg-field p-4 rounded-2xl border border-line shadow-card">
+              <div className="glass-ios26 glass-ios26-rim glass-ios26-glint p-4 rounded-2xl border border-white/10 shadow-card">
                 <span className="text-[11px] font-semibold text-muted uppercase">
                   Manual Revocations
                 </span>
@@ -886,7 +886,7 @@ export default function OperatorPage() {
                 <span className="text-[11px] text-muted">Floor usher interventions</span>
               </div>
 
-              <div className="bg-field p-4 rounded-2xl border border-line shadow-card">
+              <div className="glass-ios26 glass-ios26-rim glass-ios26-glint p-4 rounded-2xl border border-white/10 shadow-card">
                 <span className="text-[11px] font-semibold text-muted uppercase">
                   Total Tracked
                 </span>

@@ -166,7 +166,7 @@ export function BathroomView() {
       {/* 1. Active Session State: Display Synchronized Canvas Player */}
       {!loading && activeSession && (
         <div className="space-y-4">
-          <div className="p-4 rounded-2xl bg-field-raised text-ink border border-line flex items-center justify-between">
+          <div className="p-4 rounded-3xl glass-ios26 glass-ios26-rim glass-ios26-glint text-ink flex items-center justify-between shadow-xl">
             <div className="flex items-center space-x-3">
               <span className="w-3 h-3 rounded-full bg-amber-400 animate-pulse" />
               <div>

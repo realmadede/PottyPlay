@@ -204,7 +204,7 @@ export default function CustomerApplication() {
       />
 
       {/* Top Application Bar */}
-      <header className="sticky top-0 z-40 bg-bg/90 backdrop-blur-md border-b border-line px-4 sm:px-6 h-16 flex items-center justify-between">
+      <header className="sticky top-0 z-40 glass-ios26 glass-ios26-rim glass-ios26-glint border-b border-white/10 px-4 sm:px-6 h-16 flex items-center justify-between">
         <BrandLogo size="sm" variant="full" href="/app" />
 
         <div className="flex items-center space-x-3">
@@ -280,12 +280,18 @@ export default function CustomerApplication() {
         </main>
       )}
 
-      {/* Fixed Bottom Mobile Navigation Bar with 6 Tabs */}
+      {/* Fixed Floating Bottom Mobile Navigation Dock with 6 Tabs */}
       {customer && (
-        <nav
-          aria-label="Main customer navigation"
-          className="fixed bottom-0 left-0 right-0 z-40 bg-bg/90 backdrop-blur-md border-t border-line px-1 py-1.5 flex items-center justify-around pb-[max(0.5rem,env(safe-area-inset-bottom))]"
-        >
+        <div className="fixed bottom-2.5 sm:bottom-4 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:max-w-md w-auto z-40">
+          <nav
+            aria-label="Main customer navigation"
+            onPointerMove={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              e.currentTarget.style.setProperty("--glint-x", `${e.clientX - rect.left}px`);
+              e.currentTarget.style.setProperty("--glint-y", `${e.clientY - rect.top}px`);
+            }}
+            className="glass-ios26 glass-ios26-rim glass-ios26-glint rounded-2xl sm:rounded-3xl p-1.5 flex items-center justify-around shadow-2xl"
+          >
           {/* Tab 1: Cinemas */}
           <button
             type="button"
@@ -370,6 +376,7 @@ export default function CustomerApplication() {
             <span className="text-[9px] sm:text-[10px] mt-0.5">Settings</span>
           </button>
         </nav>
+      </div>
       )}
     </div>
   );
