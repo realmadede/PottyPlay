@@ -1169,4 +1169,84 @@ describe("PottyPlay Comprehensive Test Suite", () => {
       where: { token: { in: ["cin_inv_valid_test_token_123", "cin_inv_expired_test_token_456"] } },
     });
   });
+
+  // 32. Partner Application Honeypot & Geographic Telemetry (IP / User-Agent)
+  it("32. should store IP address and user agent on partner applications and block spam submissions via honeypot", async () => {
+    const { POST: partnerRegisterPost } = await import("../src/app/api/partner/register/route");
+    const { NextRequest } = await import("next/server");
+
+    // Clean up any existing records
+    await prisma.partnerApplication.deleteMany({
+      where: { contactEmail: { in: ["juma@dodomacineplex.com", "spambot@spamcorp.com"] } },
+    });
+
+    // 1. Submit normal request from human user (honeypot empty)
+    const req = new NextRequest("http://localhost:3000/api/partner/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-forwarded-for": "102.214.45.12",
+        "user-agent": "Mozilla/5.0 TestBrowser",
+      },
+      body: JSON.stringify({
+        organizationName: "Dodoma Cineplex",
+        contactName: "Juma Ali",
+        contactEmail: "juma@dodomacineplex.com",
+        contactPhone: "+255711223344",
+        city: "Dodoma",
+        country: "Tanzania",
+        website: "", // Honeypot left empty
+      }),
+    });
+
+    const res = await partnerRegisterPost(req);
+    const data = await res.json();
+    expect(res.status).toBe(200);
+    expect(data.success).toBe(true);
+
+    const app = await prisma.partnerApplication.findFirst({
+      where: { contactEmail: "juma@dodomacineplex.com" },
+    });
+    expect(app).not.toBeNull();
+    expect(app?.ipAddress).toBe("102.214.45.12");
+    expect(app?.userAgent).toBe("Mozilla/5.0 TestBrowser");
+
+    // 2. Submit bot spam with populated honeypot
+    const botReq = new NextRequest("http://localhost:3000/api/partner/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-forwarded-for": "198.51.100.99",
+        "user-agent": "SpamBot/2.0",
+      },
+      body: JSON.stringify({
+        organizationName: "Spam Cinema Corp",
+        contactName: "Spam Bot",
+        contactEmail: "spambot@spamcorp.com",
+        contactPhone: "+10000000000",
+        city: "Spamville",
+        country: "Tanzania",
+        website: "http://buy-cheap-watches-now.spam", // Honeypot populated!
+      }),
+    });
+
+    const botRes = await partnerRegisterPost(botReq);
+    const botData = await botRes.json();
+    expect(botRes.status).toBe(200);
+    expect(botData.success).toBe(true);
+
+    // Verify spam was NOT saved to the database
+    const spamApp = await prisma.partnerApplication.findFirst({
+      where: { contactEmail: "spambot@spamcorp.com" },
+    });
+    expect(spamApp).toBeNull();
+
+    // Clean up
+    if (app) {
+      await prisma.auditEvent.deleteMany({
+        where: { entityId: app.id, entityType: "PARTNER_APPLICATION" },
+      });
+      await prisma.partnerApplication.delete({ where: { id: app.id } });
+    }
+  });
 });

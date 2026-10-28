@@ -15,12 +15,31 @@ const partnerSchema = z.object({
   screeningServer: z.string().default("Dolby TMS"),
   technicalContactEmail: z.string().email().optional().or(z.literal("")),
   notes: z.string().optional().or(z.literal("")),
+  website: z.string().optional().or(z.literal("")),
 });
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const validated = partnerSchema.parse(body);
+
+    const forwarded = req.headers.get("x-forwarded-for");
+    const ipAddress = forwarded
+      ? forwarded.split(",")[0].trim()
+      : req.headers.get("x-real-ip") || "127.0.0.1";
+    const userAgent = req.headers.get("user-agent") || null;
+
+    // Honeypot spam defense: bots populate invisible fields
+    if (validated.website && validated.website.trim().length > 0) {
+      console.warn(
+        `[SPAM-DEFENSE] Blocked automated bot submission via honeypot from IP ${ipAddress}. Field content: ${validated.website}`
+      );
+      // Return synthetic success to mislead bot scrapers without storing or dispatching
+      return NextResponse.json({
+        success: true,
+        message: "Partnership inquiry received.",
+      });
+    }
 
     const application = await prisma.partnerApplication.create({
       data: {
@@ -36,6 +55,8 @@ export async function POST(req: NextRequest) {
         screeningServer: validated.screeningServer,
         technicalContactEmail: validated.technicalContactEmail?.trim() || null,
         notes: validated.notes?.trim() || null,
+        ipAddress,
+        userAgent,
         status: "PENDING",
       },
     });
@@ -63,6 +84,8 @@ export async function POST(req: NextRequest) {
           city: application.city,
           screens: application.screensCount,
           channel: "DIRECT_EMAIL_DISPATCH",
+          ipAddress,
+          userAgent,
         }),
       },
     });

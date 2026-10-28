@@ -508,7 +508,17 @@ export default function AdminPortalPage() {
                     <tr key={app.id} className="hover:bg-field-raised/50 transition-colors">
                       <td className="p-3">
                         <div className="font-bold text-ink">{app.organizationName}</div>
-                        <div className="text-[11px] text-muted">{app.city}</div>
+                        <div className="text-[11px] text-muted flex items-center space-x-1.5">
+                          <span>{app.city}</span>
+                          {app.ipAddress && (
+                            <span
+                              className="font-mono text-[10px] text-muted/80 bg-bg px-1.5 py-0.5 rounded border border-line"
+                              title={app.userAgent || undefined}
+                            >
+                              IP: {app.ipAddress}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="p-3">
                         <div className="font-semibold text-ink">{app.contactName}</div>

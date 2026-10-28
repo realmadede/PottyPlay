@@ -164,6 +164,8 @@ model PartnerApplication {
   screeningServer       String        @default("Dolby TMS")
   technicalContactEmail String?
   notes                 String?
+  ipAddress             String?
+  userAgent             String?
   status                PartnerStatus @default(PENDING)
   reviewNotes           String?
   reviewedAt            DateTime?

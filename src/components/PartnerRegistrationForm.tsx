@@ -17,6 +17,7 @@ export function PartnerRegistrationForm() {
     screeningServer: "Dolby TMS",
     technicalContactEmail: "",
     notes: "",
+    website: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -84,6 +85,7 @@ export function PartnerRegistrationForm() {
               screeningServer: "Dolby TMS",
               technicalContactEmail: "",
               notes: "",
+              website: "",
             });
           }}
           className="mt-6 py-2.5 px-5 rounded-xl text-xs font-semibold bg-field border border-line text-ink hover:bg-field-raised"
@@ -113,6 +115,20 @@ export function PartnerRegistrationForm() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Anti-spam honeypot - invisible to human users, traps bot automated submissions */}
+        <div className="absolute left-[-9999px] top-[-9999px] opacity-0 pointer-events-none" aria-hidden="true">
+          <label htmlFor="company_website_url">Company Website URL</label>
+          <input
+            id="company_website_url"
+            type="text"
+            name="website"
+            tabIndex={-1}
+            autoComplete="off"
+            value={formData.website}
+            onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+          />
+        </div>
+
         {/* Organization & Contact */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
