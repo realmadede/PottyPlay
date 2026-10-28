@@ -638,7 +638,7 @@ export default function BusinessLandingPage() {
         {/* 10. Developer Integration Overview */}
         <section
           id="developer-overview"
-          className="py-16 md:py-24 bg-field/50 border-t border-b border-line w-full"
+          className="py-16 md:py-24 bg-[#07090D] border-t border-b border-neutral-800/80 w-full relative"
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-left">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
@@ -673,9 +673,19 @@ export default function BusinessLandingPage() {
                 </div>
               </div>
 
-              <div className="lg:col-span-6 rounded-2xl bg-bg border border-line p-5 font-mono text-xs overflow-x-auto text-ink">
-                <div className="text-muted mb-2">{"// Webhook payload received on patron admission"}</div>
-                <pre className="text-emerald-400">{`POST /api/webhooks/pottyplay/tickets
+              <div className="lg:col-span-6 rounded-3xl bg-[#040507] border border-neutral-800 overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
+                <div className="bg-neutral-900/90 border-b border-neutral-800 px-4 py-2.5 flex items-center justify-between text-[11px] font-mono text-neutral-400">
+                  <div className="flex items-center space-x-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-red-500/80 inline-block" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block" />
+                    <span className="ml-2 font-bold text-neutral-300">webhook-listener.sh</span>
+                  </div>
+                  <span className="text-emerald-400 font-bold">200 OK</span>
+                </div>
+                <div className="p-5 font-mono text-xs overflow-x-auto text-ink">
+                  <div className="text-neutral-500 mb-2">{"// Webhook payload received on patron admission"}</div>
+                  <pre className="text-emerald-400 leading-relaxed">{`POST /api/webhooks/pottyplay/tickets
 Content-Type: application/json
 X-PottyPlay-Signature: sha256=...
 
@@ -688,6 +698,7 @@ X-PottyPlay-Signature: sha256=...
   "maxBreaks": 2,
   "maxSessionSeconds": 900
 }`}</pre>
+                </div>
               </div>
             </div>
           </div>

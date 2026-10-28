@@ -58,7 +58,7 @@ export function HeroCarousel() {
           />
 
           {/* Handheld Device Container */}
-          <div className="relative rounded-[28px] bg-brand-accent text-white p-5 sm:p-6 shadow-elevated border border-neutral-800 backdrop-blur-xl">
+          <div className="relative rounded-[28px] bg-neutral-950 text-white p-5 sm:p-6 shadow-elevated border border-neutral-800/90 backdrop-blur-xl">
             {/* Device Top Bar */}
             <div className="flex items-center justify-between pb-3.5 border-b border-neutral-800 text-xs">
               <div className="flex items-center space-x-2">
@@ -67,13 +67,13 @@ export function HeroCarousel() {
                   AUDITORIUM 01: ATMOS
                 </span>
               </div>
-              <span className="px-2 py-0.5 rounded bg-neutral-800/90 text-brand-primary font-mono text-[10px] sm:text-[11px] font-bold border border-neutral-700">
+              <span className="px-2 py-0.5 rounded bg-neutral-900 text-amber-400 font-mono text-[10px] sm:text-[11px] font-bold border border-amber-500/30">
                 SEAT A12
               </span>
             </div>
 
             {/* Authoritative Screen Canvas Frame */}
-            <div className="mt-4 relative rounded-2xl bg-neutral-900 border border-neutral-800 overflow-hidden p-4 flex flex-col justify-between aspect-video">
+            <div className="mt-4 relative rounded-2xl bg-neutral-900/90 border border-neutral-800 overflow-hidden p-4 flex flex-col justify-between aspect-video">
               <div className="flex items-center justify-between text-[10px] sm:text-[11px]">
                 <span className="font-bold tracking-wider text-neutral-300">
                   FEATURE SCREENING
@@ -85,7 +85,7 @@ export function HeroCarousel() {
 
               {/* Center Playback Dial / Waveform */}
               <div className="my-auto text-center py-1">
-                <div className="inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-brand-primary/10 border border-brand-primary/30 text-brand-primary mb-1.5 shadow-sm">
+                <div className="inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 mb-1.5 shadow-sm">
                   <Film className="w-5 h-5" />
                 </div>
                 <div className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">
@@ -101,9 +101,9 @@ export function HeroCarousel() {
                 <span>PCM Stereo &bull; Low-Latency HLS</span>
                 <div className="flex items-center space-x-1">
                   <span className="w-1 h-2 bg-emerald-400 rounded-full animate-pulse" />
-                  <span className="w-1 h-3.5 bg-brand-primary rounded-full animate-pulse" style={{ animationDelay: "75ms" }} />
+                  <span className="w-1 h-3.5 bg-amber-400 rounded-full animate-pulse" style={{ animationDelay: "75ms" }} />
                   <span className="w-1 h-2 bg-emerald-400 rounded-full animate-pulse" style={{ animationDelay: "150ms" }} />
-                  <span className="w-1 h-3 bg-brand-secondary rounded-full animate-pulse" style={{ animationDelay: "225ms" }} />
+                  <span className="w-1 h-3 bg-amber-500 rounded-full animate-pulse" style={{ animationDelay: "225ms" }} />
                 </div>
               </div>
             </div>
@@ -111,12 +111,12 @@ export function HeroCarousel() {
             {/* Countdown & Allowance Footer */}
             <div className="mt-3.5 pt-3.5 border-t border-neutral-800 flex items-center justify-between text-xs">
               <div className="flex items-center space-x-2">
-                <Clock className="w-4 h-4 text-brand-primary flex-shrink-0" />
+                <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
                 <span className="text-neutral-300 text-[11px] sm:text-xs">
                   Break 1 of 2 Allowed
                 </span>
               </div>
-              <span className="font-mono font-bold text-brand-primary text-[11px] sm:text-xs bg-brand-primary/10 px-2 py-0.5 rounded border border-brand-primary/20 tabular-nums">
+              <span className="font-mono font-bold text-amber-400 text-[11px] sm:text-xs bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 tabular-nums">
                 13:45 REMAINING
               </span>
             </div>
@@ -213,11 +213,11 @@ export function HeroCarousel() {
             aria-hidden="true"
           />
 
-          <div className="relative rounded-[28px] bg-brand-accent text-white p-5 sm:p-6 shadow-elevated border border-neutral-800">
+          <div className="relative rounded-[28px] bg-neutral-950 text-white p-5 sm:p-6 shadow-elevated border border-neutral-800/90">
             {/* Security Header */}
             <div className="flex items-center justify-between pb-3.5 border-b border-neutral-800 text-xs">
               <div className="flex items-center space-x-2">
-                <Lock className="w-4 h-4 text-brand-primary" />
+                <Lock className="w-4 h-4 text-amber-400" />
                 <span className="font-bold text-neutral-200 text-[11px] sm:text-xs">
                   Studio Rights Vault
                 </span>
@@ -234,7 +234,7 @@ export function HeroCarousel() {
                   <div className="text-xs font-bold text-white">900-Second Hard Limit</div>
                   <div className="text-[11px] text-neutral-400">Server auto-revocation at limit</div>
                 </div>
-                <Clock className="w-4 h-4 text-brand-primary flex-shrink-0" />
+                <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
               </div>
 
               <div className="p-3 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-between">
@@ -242,7 +242,7 @@ export function HeroCarousel() {
                   <div className="text-xs font-bold text-white">2 Breaks Per Ticket</div>
                   <div className="text-[11px] text-neutral-400">Strict atomic database constraints</div>
                 </div>
-                <Ticket className="w-4 h-4 text-brand-primary flex-shrink-0" />
+                <Ticket className="w-4 h-4 text-amber-400 flex-shrink-0" />
               </div>
 
               <div className="p-3 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-between">
@@ -256,7 +256,7 @@ export function HeroCarousel() {
 
             <div className="mt-3.5 pt-3.5 border-t border-neutral-800 flex items-center justify-between text-[11px] text-neutral-400">
               <span>Tokenized Ticket Claim:</span>
-              <span className="font-mono text-neutral-300 font-bold">CLM-7821-SECURE</span>
+              <span className="font-mono text-amber-400 font-bold">CLM-7821-SECURE</span>
             </div>
           </div>
         </div>
@@ -414,21 +414,7 @@ export function HeroCarousel() {
                     {s.headlinePrefix}{" "}
                     <span className="relative inline-block text-amber-400 whitespace-nowrap">
                       <span>{s.headlineHighlight}</span>
-                      <svg
-                        className="absolute left-0 -bottom-1 w-full h-2.5 text-amber-500/40 -z-10"
-                        viewBox="0 0 100 12"
-                        preserveAspectRatio="none"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                        aria-hidden="true"
-                      >
-                        <path
-                          d="M2 9C25 3 75 3 98 9"
-                          stroke="currentColor"
-                          strokeWidth="5"
-                          strokeLinecap="round"
-                        />
-                      </svg>
+                      <span className="absolute left-0 -bottom-1 w-full h-[3px] rounded-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.9)]" />
                     </span>
                   </h1>
 
@@ -473,56 +459,97 @@ export function HeroCarousel() {
             })}
           </div>
 
-          {/* Carousel Interactive Controls & Slide Progress */}
-          <div className="mt-7 pt-4 border-t border-line flex items-center justify-between">
-            {/* Slide Navigation Dots with Progress */}
-            <div className="flex items-center space-x-2">
-              {slides.map((s, idx) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => goToSlide(idx)}
-                  className="group relative h-2 rounded-full transition-all duration-300 overflow-hidden focus:outline-none min-w-[20px] touch-manipulation"
-                  style={{ width: currentSlide === idx ? "40px" : "14px" }}
-                  aria-label={`Go to slide ${idx + 1}`}
-                >
-                  <div className="w-full h-full bg-neutral-800 group-hover:bg-neutral-700 rounded-full" />
-                  {currentSlide === idx && (
-                    <div
-                      className="absolute top-0 left-0 h-full bg-amber-500 rounded-full transition-all duration-75"
-                      style={{ width: `${progress}%` }}
-                    />
-                  )}
-                </button>
-              ))}
+          {/* Gen Z Neo-Story Segmented Progress Scrubber & Controls */}
+          <div className="mt-8 pt-5 border-t border-line/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            {/* Story Track Segments */}
+            <div className="flex-1 max-w-md w-full">
+              <div className="grid grid-cols-4 gap-2">
+                {slides.map((s, idx) => {
+                  const isActive = currentSlide === idx;
+                  const isPast = idx < currentSlide;
+                  const slideLabels = ["01 SYNC", "02 GUEST", "03 RIGHTS", "04 VENUE"];
+                  return (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => goToSlide(idx)}
+                      className="group flex flex-col space-y-1.5 text-left focus:outline-none transition-all"
+                      aria-label={`Jump to slide ${idx + 1}: ${slideLabels[idx]}`}
+                    >
+                      {/* Segment Progress Bar */}
+                      <div className="w-full h-1.5 sm:h-2 rounded-full bg-neutral-900 border border-neutral-800/80 overflow-hidden relative backdrop-blur-sm group-hover:border-amber-500/40 transition-colors">
+                        <div
+                          className={`h-full rounded-full transition-all ${
+                            isPast
+                              ? "w-full bg-amber-500/80"
+                              : isActive
+                              ? "bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-300 shadow-[0_0_10px_rgba(245,158,11,0.9)] duration-75"
+                              : "w-0 bg-transparent"
+                          }`}
+                          style={{
+                            width: isActive ? `${progress}%` : isPast ? "100%" : "0%",
+                          }}
+                        />
+                      </div>
+
+                      {/* Monospace Micro Label */}
+                      <div className="flex items-center justify-between text-[10px] font-mono tracking-wider">
+                        <span
+                          className={`transition-colors font-bold ${
+                            isActive
+                              ? "text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]"
+                              : "text-muted/60 group-hover:text-muted"
+                          }`}
+                        >
+                          {slideLabels[idx]}
+                        </span>
+                        {isActive && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping inline-block" />
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
-            {/* Carousel Buttons (Prev, Next, Pause/Play) */}
-            <div className="flex items-center space-x-1.5">
-              <button
-                type="button"
-                onClick={() => setIsPlaying(!isPlaying)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg border border-line text-muted hover:text-ink hover:bg-field transition-colors"
-                aria-label={isPlaying ? "Pause carousel auto-advance" : "Resume carousel"}
-              >
-                {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-              </button>
-              <button
-                type="button"
-                onClick={handlePrev}
-                className="w-8 h-8 flex items-center justify-center rounded-lg border border-line text-muted hover:text-ink hover:bg-field transition-colors"
-                aria-label="Previous slide"
-              >
-                <ChevronLeft className="w-3.5 h-3.5" />
-              </button>
-              <button
-                type="button"
-                onClick={handleNext}
-                className="w-8 h-8 flex items-center justify-center rounded-lg border border-line text-muted hover:text-ink hover:bg-field transition-colors"
-                aria-label="Next slide"
-              >
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
+            {/* Tactile Control Capsule */}
+            <div className="flex items-center space-x-2 self-end sm:self-auto flex-shrink-0">
+              {/* Digital Step Counter Pill */}
+              <div className="px-3 py-1 rounded-full bg-neutral-900/90 border border-line text-[11px] font-mono flex items-center space-x-1.5 shadow-sm">
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                <span className="text-amber-400 font-bold">0{currentSlide + 1}</span>
+                <span className="text-muted/40">/</span>
+                <span className="text-muted font-semibold">04</span>
+              </div>
+
+              {/* Minimal Glass Buttons */}
+              <div className="flex items-center space-x-1 bg-neutral-900/80 border border-line rounded-full p-1 shadow-sm">
+                <button
+                  type="button"
+                  onClick={() => setIsPlaying(!isPlaying)}
+                  className="w-7 h-7 flex items-center justify-center rounded-full text-muted hover:text-neutral-950 hover:bg-amber-400 transition-all active:scale-90"
+                  aria-label={isPlaying ? "Pause carousel" : "Play carousel"}
+                >
+                  {isPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={handlePrev}
+                  className="w-7 h-7 flex items-center justify-center rounded-full text-muted hover:text-neutral-950 hover:bg-amber-400 transition-all active:scale-90"
+                  aria-label="Previous slide"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  className="w-7 h-7 flex items-center justify-center rounded-full text-muted hover:text-neutral-950 hover:bg-amber-400 transition-all active:scale-90"
+                  aria-label="Next slide"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
