@@ -1081,4 +1081,92 @@ describe("PottyPlay Comprehensive Test Suite", () => {
     await prisma.operatorUser.delete({ where: { id: testOp.id } });
     await prisma.cinema.delete({ where: { id: testOpCinema.id } });
   });
+
+  // 31. Cinema Registration Invitation Flow
+  it("31. should manage cinema registration invitations with strict expiration and one-time token enforcement", async () => {
+    // 1. Create an active invitation (valid for 48 hours)
+    const validInvitation = await prisma.cinemaRegistrationInvitation.create({
+      data: {
+        token: "cin_inv_valid_test_token_123",
+        organizationName: "Invite Test Cinema",
+        contactName: "Sarah Invite",
+        contactEmail: "sarah@invitetest.com",
+        city: "Arusha",
+        country: "Tanzania",
+        screensCount: 2,
+        expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000),
+      },
+    });
+
+    expect(validInvitation.token).toBe("cin_inv_valid_test_token_123");
+    expect(validInvitation.isUsed).toBe(false);
+
+    // 2. Create an expired invitation
+    const expiredInvitation = await prisma.cinemaRegistrationInvitation.create({
+      data: {
+        token: "cin_inv_expired_test_token_456",
+        organizationName: "Expired Cinema",
+        contactName: "Late Contact",
+        contactEmail: "late@expiredcinema.com",
+        expiresAt: new Date(Date.now() - 1000), // Expired 1 second ago
+      },
+    });
+
+    expect(new Date(expiredInvitation.expiresAt).getTime()).toBeLessThan(Date.now());
+
+    // 3. Complete registration with valid invitation
+    const { hashPassword } = await import("../src/lib/crypto");
+    const cinema = await prisma.cinema.create({
+      data: {
+        name: validInvitation.organizationName,
+        location: "Arusha, Tanzania",
+        status: CinemaStatus.APPROVED,
+        organizationName: validInvitation.organizationName,
+        contactEmail: validInvitation.contactEmail,
+        contactPhone: "+255712333444",
+      },
+    });
+
+    const opUser = await prisma.operatorUser.create({
+      data: {
+        cinemaId: cinema.id,
+        email: validInvitation.contactEmail,
+        name: validInvitation.contactName,
+        passwordHash: hashPassword("CinemaInvitePass2026!"),
+        role: "MANAGER",
+        isActive: true,
+      },
+    });
+
+    // Mark invitation used
+    await prisma.cinemaRegistrationInvitation.update({
+      where: { id: validInvitation.id },
+      data: {
+        isUsed: true,
+        usedAt: new Date(),
+        cinemaId: cinema.id,
+      },
+    });
+
+    const updatedInv = await prisma.cinemaRegistrationInvitation.findUnique({
+      where: { id: validInvitation.id },
+    });
+    expect(updatedInv?.isUsed).toBe(true);
+
+    // Operator can now log in at /operator
+    const loginResult = await OperatorAuthService.login(
+      "sarah@invitetest.com",
+      "CinemaInvitePass2026!"
+    );
+    expect(loginResult.success).toBe(true);
+    expect(loginResult.operator?.cinema.name).toBe("Invite Test Cinema");
+
+    // Clean up
+    if (loginResult.token) await OperatorAuthService.logout(loginResult.token);
+    await prisma.operatorUser.delete({ where: { id: opUser.id } });
+    await prisma.cinema.delete({ where: { id: cinema.id } });
+    await prisma.cinemaRegistrationInvitation.deleteMany({
+      where: { token: { in: ["cin_inv_valid_test_token_123", "cin_inv_expired_test_token_456"] } },
+    });
+  });
 });

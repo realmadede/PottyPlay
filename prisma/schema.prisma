@@ -46,6 +46,7 @@ enum PartnerStatus {
   UNDER_REVIEW
   APPROVED
   REJECTED
+  INVITATION_SENT
 }
 
 enum PricingStatus {
@@ -172,6 +173,28 @@ model PartnerApplication {
 
   @@index([contactEmail])
   @@index([status])
+}
+
+model CinemaRegistrationInvitation {
+  id               String    @id @default(cuid())
+  token            String    @unique
+  organizationName String
+  contactName      String
+  contactEmail     String
+  contactPhone     String?
+  city             String?
+  country          String    @default("Tanzania")
+  screensCount     Int       @default(1)
+  ticketingSystem  String?   @default("Vista")
+  screeningServer  String?   @default("Dolby TMS")
+  expiresAt        DateTime
+  isUsed           Boolean   @default(false)
+  usedAt           DateTime?
+  cinemaId         String?
+  createdAt        DateTime  @default(now())
+
+  @@index([token])
+  @@index([contactEmail])
 }
 
 model CustomerAccount {

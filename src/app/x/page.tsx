@@ -158,6 +158,44 @@ export default function AdminPortalPage() {
     }
   };
 
+  const handleSendInvite = async (app: any) => {
+    if (!token) return;
+    try {
+      const res = await fetch("/api/admin/cinemas/invite", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          applicationId: app.id,
+          organizationName: app.organizationName,
+          contactName: app.contactName,
+          contactEmail: app.contactEmail,
+          contactPhone: app.contactPhone,
+          city: app.city,
+          country: app.country,
+          screensCount: app.screensCount,
+          ticketingSystem: app.ticketingSystem,
+          screeningServer: app.screeningServer,
+          expiresInHours: 48,
+        }),
+      });
+
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setActionNotice(
+          `Expiring registration invitation link dispatched to ${app.contactEmail}. (Link valid for 48h)`
+        );
+        await fetchDashboard(token);
+      } else {
+        setActionNotice(`Failed to send invitation: ${json.error}`);
+      }
+    } catch (err: unknown) {
+      setActionNotice(err instanceof Error ? err.message : "Invitation error");
+    }
+  };
+
   const handleRegisterCinema = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token) return;
@@ -491,24 +529,36 @@ export default function AdminPortalPage() {
                               ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                               : app.status === "REJECTED"
                               ? "bg-red-500/10 text-red-400 border border-red-500/20"
+                              : app.status === "INVITATION_SENT"
+                              ? "bg-sky-500/10 text-sky-400 border border-sky-500/20"
                               : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
                           }`}
                         >
-                          {app.status}
+                          {app.status === "INVITATION_SENT" ? "INVITE SENT" : app.status}
                         </span>
                       </td>
                       <td className="p-3 text-right">
-                        {app.status === "PENDING" ? (
+                        {app.status === "PENDING" || app.status === "INVITATION_SENT" ? (
                           <div className="flex items-center justify-end space-x-1.5">
                             <button
+                              type="button"
+                              onClick={() => handleSendInvite(app)}
+                              className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 shadow-sm transition-colors cursor-pointer"
+                              title="Dispatch 48-hour expiring registration link via email"
+                            >
+                              {app.status === "INVITATION_SENT" ? "Resend Invite" : "Send Invite Link"}
+                            </button>
+                            <button
+                              type="button"
                               onClick={() => handlePartnerDecision(app.id, "APPROVED")}
-                              className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-500 hover:bg-emerald-400 text-neutral-950 shadow-sm transition-colors"
+                              className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500 hover:text-neutral-950 border border-emerald-500/20 transition-colors cursor-pointer"
                             >
                               Approve
                             </button>
                             <button
+                              type="button"
                               onClick={() => handlePartnerDecision(app.id, "REJECTED")}
-                              className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-field-raised text-muted hover:text-red-400 hover:bg-red-500/10 border border-line transition-colors"
+                              className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-field-raised text-muted hover:text-red-400 hover:bg-red-500/10 border border-line transition-colors cursor-pointer"
                             >
                               Decline
                             </button>

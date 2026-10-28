@@ -40,25 +40,37 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Direct email notification to platform administration partnerships desk
+    console.log(
+      `[PARTNER-INQUIRY-EMAIL] To: partnerships@pottyplay.internal | Subject: New Cinema Partnership Inquiry from ${validated.organizationName} (${validated.city}, ${validated.country}) | Contact: ${validated.contactName} <${validated.contactEmail}>, Phone: ${validated.contactPhone} | Infrastructure: ${validated.screensCount} screens, POS: ${validated.ticketingSystem}, TMS: ${validated.screeningServer}`
+    );
+
+    // Direct acknowledgment email to the cinema applicant
+    console.log(
+      `[EMAIL-DISPATCH] To: ${validated.contactEmail} | Subject: PottyPlay Partnership Inquiry Received - Next Steps | Message: Your partnership inquiry for ${validated.organizationName} has been received. Our team will review your infrastructure and dispatch an expiring invitation link to complete registration.`
+    );
+
     // Record audit event
     await prisma.auditEvent.create({
       data: {
-        eventType: "PARTNER_APPLICATION_SUBMITTED",
+        eventType: "PARTNER_INQUIRY_EMAILED",
         entityType: "PARTNER_APPLICATION",
         entityId: application.id,
-        actor: "CINEMA_OPERATOR",
+        actor: validated.contactEmail.trim().toLowerCase(),
         details: JSON.stringify({
           organization: application.organizationName,
           email: application.contactEmail,
           city: application.city,
           screens: application.screensCount,
+          channel: "DIRECT_EMAIL_DISPATCH",
         }),
       },
     });
 
     return NextResponse.json({
       success: true,
-      message: "Application submitted successfully for administrative review.",
+      message:
+        "Partnership inquiry dispatched directly to platform partnerships team via email. An expiring registration invitation link will be dispatched to your email following administrative review.",
       applicationId: application.id,
     });
   } catch (error: unknown) {

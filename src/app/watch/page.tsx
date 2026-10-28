@@ -773,7 +773,7 @@ function WatchExperience() {
                 href="/app"
                 className="py-2 px-3.5 rounded-xl font-black text-xs bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-all shadow-sm"
               >
-                Open PWA App
+                Open Mobile App
               </Link>
             )}
           </div>
