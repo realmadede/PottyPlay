@@ -10,7 +10,7 @@ PottyPlay is engineered with a **multi-layered rights boundary** that respects s
 1. **RightsAuthorization Table:** Playback cannot be initiated unless an explicit, unexpired record exists in the database linking the `ContentAsset`, the `Cinema` venue, and the screening time window.
 2. **Session Limit Cap:** Studio exhibition guidelines mandate that companion viewing cannot exceed 15 minutes (900 seconds) per patron screening.
 3. **Fail-Closed Verification:** If rights authorization is revoked, expired, or missing, `TicketService.verifyTicket` and `SessionService.activateSession` immediately reject access with code `RIGHTS_UNAUTHORIZED`.
-4. **Tenant Isolation:** Rights authorizations are scoped to specific cinema venue IDs. A rights grant for Century Cinemax cannot be accessed by Oasis Cinema.
+4. **Tenant Isolation:** Rights authorizations are scoped to specific cinema venue IDs. A rights grant for Cinema Circuit A cannot be accessed by Cinema Circuit B.
 
 ## 2. Demonstration Assets & Licensing
 

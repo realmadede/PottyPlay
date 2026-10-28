@@ -27,7 +27,7 @@ export default function PresentationExperiencePage() {
     claimToken: "CLM-MLM-A12-8821",
     seatNumber: "A12",
     screeningTitle: "Serengeti Shadows (Auditorium 1)",
-    cinemaName: "Century Cinemax - Mlimani City (Demonstration)",
+    cinemaName: "Exhibitor Demonstration Auditorium 1",
   };
 
   const companionUrl = `/watch?claim=${demoTicket.claimToken}`;

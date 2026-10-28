@@ -482,7 +482,7 @@ export default function AdminPortalPage() {
                       <td className="p-3 text-muted">{c.location}</td>
                       <td className="p-3 font-semibold text-ink">{c.screensCount} Screens</td>
                       <td className="p-3 font-mono font-bold text-amber-400">
-                        {c.activePriceTzs} TZS
+                        {c.activePriceTzs != null ? `${c.activePriceTzs} TZS` : "Pending Agreement"}
                       </td>
                       <td className="p-3 font-mono text-[11px] text-muted">
                         {c.ticketingSystem} / {c.screeningSystem}

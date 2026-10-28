@@ -9,9 +9,8 @@ export function NavigationHeader() {
   const pathname = usePathname();
 
   const navItems = [
-    { href: "/cinema", label: "Projection Console", shortLabel: "Console", icon: Tv },
     { href: "/operator", label: "Operations Dashboard", shortLabel: "Operator", icon: Sliders },
-    { href: "/watch", label: "Patron Viewer", shortLabel: "Viewer", icon: Film },
+    { href: "/cinema", label: "Projection Console", shortLabel: "Console", icon: Tv },
   ];
 
   return (
@@ -27,14 +26,9 @@ export function NavigationHeader() {
             className="w-8 h-8 rounded-lg shadow-sm group-hover:scale-105 transition-transform duration-200 flex-shrink-0"
           />
           <div className="flex flex-col min-w-0">
-            <div className="flex items-center space-x-1.5 sm:space-x-2">
-              <span className="font-extrabold text-sm sm:text-base text-ink tracking-tight">
-                PottyPlay
-              </span>
-              <span className="text-[9px] sm:text-[10px] font-bold tracking-wider uppercase px-1.5 sm:px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/25 flex-shrink-0">
-                Console
-              </span>
-            </div>
+            <span className="font-extrabold text-sm sm:text-base text-ink tracking-tight">
+              Potty<span className="text-amber-400">Play</span>
+            </span>
             <span className="hidden sm:block text-[11px] text-muted truncate">
               Cinema Companion Viewing Platform
             </span>

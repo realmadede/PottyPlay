@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { NavigationHeader } from "@/components/NavigationHeader";
 import {
   Sliders,
@@ -25,6 +26,8 @@ import {
 
 interface OperatorData {
   timestamp: string;
+  hasCinemas?: boolean;
+  availableCinemas?: Array<{ id: string; name: string; location: string }>;
   cinema: {
     id: string;
     name: string;
@@ -34,12 +37,12 @@ interface OperatorData {
     screeningSystem: string;
     status: string;
     screens: Array<{ id: string; name: string; totalSeats: number }>;
-  };
+  } | null;
   pricing: {
-    currentPrice: number;
+    currentPrice: number | null;
     currency: string;
     status: string;
-    configuredAt: string;
+    configuredAt: string | null;
   };
   stats: {
     activeSessions: number;
@@ -115,7 +118,7 @@ interface OperatorData {
 }
 
 export default function OperatorPage() {
-  const [cinemaId, setCinemaId] = useState("cinema_mlimani_01");
+  const [cinemaId, setCinemaId] = useState("");
   const [data, setData] = useState<OperatorData | null>(null);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<
@@ -130,7 +133,7 @@ export default function OperatorPage() {
   const [actionNotice, setActionNotice] = useState<string | null>(null);
 
   // New pricing rule state
-  const [newPrice, setNewPrice] = useState(500);
+  const [newPrice, setNewPrice] = useState<number | "">("");
   const [newCurrency, setNewCurrency] = useState("TZS");
   const [newPricingStatus, setNewPricingStatus] = useState("ACTIVE");
   const [pricingNotes, setPricingNotes] = useState("");
@@ -138,10 +141,16 @@ export default function OperatorPage() {
 
   const fetchData = async () => {
     try {
-      const res = await fetch(`/api/operator/dashboard?cinemaId=${cinemaId}`);
+      const url = cinemaId
+        ? `/api/operator/dashboard?cinemaId=${cinemaId}`
+        : `/api/operator/dashboard`;
+      const res = await fetch(url);
       if (res.ok) {
-        const json = await res.json();
+        const json: OperatorData = await res.json();
         setData(json);
+        if (!cinemaId && json.cinema?.id) {
+          setCinemaId(json.cinema.id);
+        }
       }
     } catch (err) {
       console.error("Failed to fetch operator dashboard:", err);
@@ -187,13 +196,22 @@ export default function OperatorPage() {
 
   const handleSavePricing = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (newPrice === "" || Number(newPrice) < 0) {
+      setActionNotice("Please enter a valid commercial session rate.");
+      return;
+    }
+    const targetCinemaId = cinemaId || data?.cinema?.id;
+    if (!targetCinemaId) {
+      setActionNotice("No cinema organization selected.");
+      return;
+    }
     setSavingPrice(true);
     try {
       const res = await fetch("/api/operator/pricing", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          cinemaId,
+          cinemaId: targetCinemaId,
           currency: newCurrency,
           pricePerSession: Number(newPrice),
           status: newPricingStatus,
@@ -205,6 +223,7 @@ export default function OperatorPage() {
       if (res.ok && json.success) {
         setActionNotice("Commercial pricing rule updated successfully.");
         setPricingNotes("");
+        setNewPrice("");
         await fetchData();
       } else {
         setActionNotice(`Failed to update pricing: ${json.error}`);
@@ -222,6 +241,8 @@ export default function OperatorPage() {
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
+  const hasNoCinemas = data && (!data.hasCinemas || !data.cinema || !data.availableCinemas || data.availableCinemas.length === 0);
+
   return (
     <div className="flex-1 flex flex-col min-h-screen bg-bg text-ink overflow-x-clip">
       <NavigationHeader />
@@ -238,8 +259,12 @@ export default function OperatorPage() {
                 <h1 className="text-xl sm:text-2xl font-black text-ink tracking-tight">
                   Cinema Operator Workspace
                 </h1>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold">
-                  TENANT ISOLATED
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                  hasNoCinemas
+                    ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                    : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                }`}>
+                  {hasNoCinemas ? "AWAITING ONBOARDING" : "TENANT ISOLATED"}
                 </span>
               </div>
               <p className="text-xs text-muted">
@@ -248,28 +273,42 @@ export default function OperatorPage() {
             </div>
           </div>
 
-          {/* Cinema Venue Switcher */}
-          <div className="flex items-center space-x-2">
-            <label className="text-xs font-bold text-muted uppercase">
-              Venue:
-            </label>
-            <select
-              value={cinemaId}
-              onChange={(e) => setCinemaId(e.target.value)}
-              className="px-3 py-2 rounded-xl border border-line bg-bg text-ink text-xs font-semibold focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
-            >
-              <option value="cinema_mlimani_01" className="bg-field text-ink">Century Cinemax - Mlimani City</option>
-              <option value="cinema_oasis_02" className="bg-field text-ink">Oasis Cinema - Masaki</option>
-            </select>
+          {/* Dynamic Cinema Venue Switcher */}
+          {data?.availableCinemas && data.availableCinemas.length > 0 ? (
+            <div className="flex items-center space-x-2">
+              <label className="text-xs font-bold text-muted uppercase">
+                Venue:
+              </label>
+              <select
+                value={cinemaId || data.cinema?.id || ""}
+                onChange={(e) => setCinemaId(e.target.value)}
+                className="px-3 py-2 rounded-xl border border-line bg-bg text-ink text-xs font-semibold focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
+              >
+                {data.availableCinemas.map((c) => (
+                  <option key={c.id} value={c.id} className="bg-field text-ink">
+                    {c.name} &bull; {c.location}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={fetchData}
+                className="p-2 rounded-xl border border-line bg-field hover:bg-field-raised text-muted hover:text-ink"
+                title="Refresh Telemetry"
+                aria-label="Refresh Telemetry"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
             <button
               onClick={fetchData}
-              className="p-2 rounded-xl border border-line bg-field hover:bg-field-raised text-muted hover:text-ink"
+              className="p-2 rounded-xl border border-line bg-field hover:bg-field-raised text-muted hover:text-ink self-start sm:self-auto"
               title="Refresh Telemetry"
               aria-label="Refresh Telemetry"
             >
               <RefreshCw className="w-4 h-4" />
             </button>
-          </div>
+          )}
         </div>
 
         {/* Action Notice */}
@@ -285,62 +324,90 @@ export default function OperatorPage() {
           </div>
         )}
 
-        {/* Operator Stats Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-          <div className="bg-field p-4 rounded-2xl border border-line shadow-card">
-            <span className="text-[11px] font-semibold text-muted uppercase">
-              Active Breaks
-            </span>
-            <div className="text-2xl sm:text-3xl font-black text-amber-400 mt-1">
-              {data?.stats.activeSessions ?? 0}
+        {/* Truthful Empty State when 0 registered cinemas */}
+        {hasNoCinemas ? (
+          <div className="p-8 sm:p-12 rounded-3xl bg-field border border-line shadow-card text-center max-w-2xl mx-auto space-y-4 my-8">
+            <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-amber-400 flex items-center justify-center mx-auto shadow-sm">
+              <Building2 className="w-7 h-7" />
             </div>
-            <span className="text-[10px] text-muted mt-1 block">
-              15-minute cap active
-            </span>
+            <h2 className="text-xl sm:text-2xl font-black text-ink tracking-tight">
+              No Registered Cinema Circuits Found
+            </h2>
+            <p className="text-sm text-muted leading-relaxed">
+              There are currently no approved cinema organizations in the platform database. Exhibitor partners must submit a partner application and be reviewed by platform administration before operational telemetry, auditorium screens, and commercial pricing become active.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <Link
+                href="/#register"
+                className="py-2.5 px-4 rounded-xl text-xs font-black bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-all shadow-sm"
+              >
+                Apply for Cinema Partnership
+              </Link>
+              <Link
+                href="/admin"
+                className="py-2.5 px-4 rounded-xl text-xs font-semibold bg-bg text-ink border border-line hover:bg-field-raised transition-all"
+              >
+                Go to Admin Review
+              </Link>
+            </div>
           </div>
+        ) : (
+          <>
+            {/* Operator Stats Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+              <div className="bg-field p-4 rounded-2xl border border-line shadow-card">
+                <span className="text-[11px] font-semibold text-muted uppercase">
+                  Active Breaks
+                </span>
+                <div className="text-2xl sm:text-3xl font-black text-amber-400 mt-1">
+                  {data?.stats.activeSessions ?? 0}
+                </div>
+                <span className="text-[10px] text-muted mt-1 block">
+                  15-minute cap active
+                </span>
+              </div>
 
-          <div className="bg-field p-4 rounded-2xl border border-line shadow-card">
-            <span className="text-[11px] font-semibold text-muted uppercase">
-              Screens Connected
-            </span>
-            <div className="text-2xl sm:text-3xl font-black text-ink mt-1">
-              {data?.cinema.screens.length ?? 0}
-            </div>
-            <span className="text-[10px] text-emerald-400 font-semibold mt-1 block">
-              {data?.cinema.screeningSystem}
-            </span>
-          </div>
+              <div className="bg-field p-4 rounded-2xl border border-line shadow-card">
+                <span className="text-[11px] font-semibold text-muted uppercase">
+                  Screens Connected
+                </span>
+                <div className="text-2xl sm:text-3xl font-black text-ink mt-1">
+                  {data?.cinema?.screens.length ?? 0}
+                </div>
+                <span className="text-[10px] text-emerald-400 font-semibold mt-1 block">
+                  {data?.cinema?.screeningSystem || "TMS Ready"}
+                </span>
+              </div>
 
-          <div className="bg-field p-4 rounded-2xl border border-line shadow-card">
-            <span className="text-[11px] font-semibold text-muted uppercase">
-              Agreed Pricing
-            </span>
-            <div className="text-xl sm:text-2xl font-black text-ink mt-1">
-              {data?.pricing.currentPrice ?? 500}{" "}
-              <span className="text-xs font-semibold text-muted">
-                {data?.pricing.currency ?? "TZS"}
-              </span>
-            </div>
-            <span className="text-[10px] text-muted mt-1 block">
-              Status: {data?.pricing.status}
-            </span>
-          </div>
+              <div className="bg-field p-4 rounded-2xl border border-line shadow-card">
+                <span className="text-[11px] font-semibold text-muted uppercase">
+                  Agreed Pricing
+                </span>
+                <div className="text-xl sm:text-2xl font-black text-ink mt-1">
+                  {data?.pricing?.currentPrice != null
+                    ? `${data.pricing.currentPrice} ${data.pricing.currency}`
+                    : "Not Configured"}
+                </div>
+                <span className="text-[10px] text-muted mt-1 block">
+                  Status: {data?.pricing?.status || "NO_RULE"}
+                </span>
+              </div>
 
-          <div className="bg-field p-4 rounded-2xl border border-line shadow-card">
-            <span className="text-[11px] font-semibold text-muted uppercase">
-              Recorded Usage
-            </span>
-            <div className="text-xl sm:text-2xl font-black text-ink mt-1">
-              {data?.stats.totalRecordedAmount.toLocaleString() ?? 0}{" "}
-              <span className="text-xs font-semibold text-muted">
-                {data?.pricing.currency ?? "TZS"}
-              </span>
+              <div className="bg-field p-4 rounded-2xl border border-line shadow-card">
+                <span className="text-[11px] font-semibold text-muted uppercase">
+                  Recorded Usage
+                </span>
+                <div className="text-xl sm:text-2xl font-black text-ink mt-1">
+                  {data?.stats.totalRecordedAmount.toLocaleString() ?? 0}{" "}
+                  <span className="text-xs font-semibold text-muted">
+                    {data?.pricing.currency ?? "TZS"}
+                  </span>
+                </div>
+                <span className="text-[10px] text-muted mt-1 block">
+                  {data?.stats.totalBillableActivations ?? 0} qualifying breaks
+                </span>
+              </div>
             </div>
-            <span className="text-[10px] text-muted mt-1 block">
-              {data?.stats.totalBillableActivations ?? 0} qualifying breaks
-            </span>
-          </div>
-        </div>
 
         {/* Tab Navigation */}
         <div className="flex flex-wrap gap-2 border-b border-line pb-3">
@@ -589,8 +656,9 @@ export default function OperatorPage() {
                       type="number"
                       required
                       min={0}
+                      placeholder="e.g. 500"
                       value={newPrice}
-                      onChange={(e) => setNewPrice(Number(e.target.value))}
+                      onChange={(e) => setNewPrice(e.target.value === "" ? "" : Number(e.target.value))}
                       className="w-full px-3 py-2.5 rounded-xl border border-line bg-bg text-ink text-xs font-mono font-bold focus:outline-none focus:ring-1 focus:ring-amber-500"
                     />
                   </div>
@@ -797,6 +865,8 @@ export default function OperatorPage() {
             </div>
           </div>
         )}
+        </>
+      )}
       </main>
     </div>
   );

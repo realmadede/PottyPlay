@@ -110,7 +110,7 @@ export async function GET(req: NextRequest) {
         screensCount: c.screens.length,
         ticketingSystem: c.ticketingSystem,
         screeningSystem: c.screeningSystem,
-        activePriceTzs: c.pricingRules[0]?.pricePerSession ?? 500,
+        activePriceTzs: c.pricingRules[0]?.pricePerSession ?? null,
         createdAt: c.createdAt,
       })),
       partnerApplications: partnerApplications.map((a) => ({

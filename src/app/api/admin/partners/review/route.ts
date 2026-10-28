@@ -53,14 +53,14 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      // 3. Create initial pricing rule
+      // 3. Create initial pending agreement pricing rule (awaiting commercial rate configuration)
       await prisma.cinemaPricingRule.create({
         data: {
           cinemaId: cinema.id,
           currency: "TZS",
-          pricePerSession: 500,
-          status: "ACTIVE",
-          notes: "Initial standard commercial tier provisioned upon partner approval.",
+          pricePerSession: 0,
+          status: "PENDING_AGREEMENT",
+          notes: "Commercial pricing rate pending partner agreement.",
         },
       });
 

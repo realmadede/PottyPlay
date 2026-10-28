@@ -7,29 +7,84 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const requestedCinemaId =
       searchParams.get("cinemaId") ||
-      req.headers.get("x-cinema-id") ||
-      "cinema_mlimani_01";
+      req.headers.get("x-cinema-id");
 
-    // 1. Fetch authorized Cinema organization
-    const cinema = await prisma.cinema.findUnique({
-      where: { id: requestedCinemaId },
-      include: {
-        screens: {
-          select: { id: true, name: true, totalSeats: true },
-        },
-        pricingRules: {
-          where: { status: "ACTIVE" },
-          orderBy: { createdAt: "desc" },
-          take: 1,
-        },
-      },
+    // 1. Query all approved, registered cinema circuits in database
+    const availableCinemas = await prisma.cinema.findMany({
+      where: { status: "APPROVED" },
+      select: { id: true, name: true, location: true },
+      orderBy: { name: "asc" },
     });
 
+    // 2. Fetch selected or primary authorized Cinema organization
+    let cinema = null;
+    if (requestedCinemaId) {
+      cinema = await prisma.cinema.findUnique({
+        where: { id: requestedCinemaId },
+        include: {
+          screens: {
+            select: { id: true, name: true, totalSeats: true },
+          },
+          pricingRules: {
+            where: { status: "ACTIVE" },
+            orderBy: { createdAt: "desc" },
+            take: 1,
+          },
+        },
+      });
+    }
+
+    if (!cinema && availableCinemas.length > 0) {
+      cinema = await prisma.cinema.findUnique({
+        where: { id: availableCinemas[0].id },
+        include: {
+          screens: {
+            select: { id: true, name: true, totalSeats: true },
+          },
+          pricingRules: {
+            where: { status: "ACTIVE" },
+            orderBy: { createdAt: "desc" },
+            take: 1,
+          },
+        },
+      });
+    }
+
+    // Truthful empty state when no cinema organizations have registered or been approved
     if (!cinema) {
-      return NextResponse.json(
-        { success: false, error: "Cinema organization not found or unauthorized." },
-        { status: 404 }
-      );
+      return NextResponse.json({
+        success: true,
+        hasCinemas: false,
+        availableCinemas: [],
+        cinema: null,
+        stats: {
+          activeSessions: 0,
+          expiredSessions: 0,
+          revokedSessions: 0,
+          totalSessionsTracked: 0,
+          totalBillableActivations: 0,
+          totalRecordedAmount: 0,
+        },
+        pricing: {
+          currentPrice: null,
+          currency: "TZS",
+          status: "NOT_CONFIGURED",
+          configuredAt: null,
+        },
+        screenings: [],
+        sessions: [],
+        billing: {
+          totalBillableActivations: 0,
+          totalEstimatedRevenueTzs: 0,
+          currency: "TZS",
+          pricePerSessionTzs: null,
+          disclaimer:
+            "No registered cinema circuits active in the platform database. Partner application required.",
+          recentBillingEvents: [],
+        },
+        auditEvents: [],
+        smsAttempts: [],
+      });
     }
 
     // 2. Tenant-isolated queries strictly constrained to this cinema organization
@@ -88,11 +143,11 @@ export async function GET(req: NextRequest) {
     const expiredCount = sessions.filter((s) => s.status === "EXPIRED").length;
     const revokedCount = sessions.filter((s) => s.status === "REVOKED").length;
 
-    // Current active commercial pricing
-    const currentPriceTzs =
-      cinema.pricingRules[0]?.pricePerSession ?? 500;
-    const currentCurrency = cinema.pricingRules[0]?.currency ?? "TZS";
-    const pricingStatus = cinema.pricingRules[0]?.status ?? "ACTIVE";
+    // Current active commercial pricing (Truthful record without invented fallbacks)
+    const activePricing = cinema.pricingRules[0];
+    const currentPriceTzs = activePricing ? activePricing.pricePerSession : null;
+    const currentCurrency = activePricing ? activePricing.currency : "TZS";
+    const pricingStatus = activePricing ? activePricing.status : "NOT_CONFIGURED";
 
     // Accurate billing aggregation from real persisted records
     const billableActivations = billingEvents.filter((b) => b.qualifying).length;
@@ -103,6 +158,8 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       timestamp: new Date().toISOString(),
+      hasCinemas: true,
+      availableCinemas,
       cinema: {
         id: cinema.id,
         name: cinema.name,
@@ -117,7 +174,7 @@ export async function GET(req: NextRequest) {
         currentPrice: currentPriceTzs,
         currency: currentCurrency,
         status: pricingStatus,
-        configuredAt: cinema.pricingRules[0]?.createdAt || cinema.createdAt,
+        configuredAt: activePricing?.createdAt || null,
       },
       stats: {
         activeSessions: activeCount,

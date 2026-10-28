@@ -111,7 +111,7 @@ print("Eligible:", data.get("isEligible"))`,
   "screening": {
     "id": "screening_prime_01",
     "title": "Serengeti Shadows (Main Hall)",
-    "cinemaName": "Century Cinemax - Mlimani City"
+    "cinemaName": "Exhibitor Theater 01"
   },
   "rights": {
     "maxSessionDurationSeconds": 900,

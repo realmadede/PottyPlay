@@ -80,7 +80,7 @@ describe("PottyPlay Comprehensive Test Suite", () => {
       create: {
         id: "test_suite_screen_02",
         cinemaId: secondaryCinemaId,
-        name: "Screen 2 Oasis",
+        name: "Screen 2 Deluxe",
         totalSeats: 90,
       },
     });
@@ -292,6 +292,16 @@ describe("PottyPlay Comprehensive Test Suite", () => {
 
   afterAll(async () => {
     await cleanupTestRecords();
+    await prisma.usageBillingEvent.deleteMany({ where: { cinemaId: { in: [cinemaId, secondaryCinemaId] } } });
+    await prisma.breakSession.deleteMany({ where: { screening: { cinemaId: { in: [cinemaId, secondaryCinemaId] } } } });
+    await prisma.demonstrationTicket.deleteMany({ where: { screening: { cinemaId: { in: [cinemaId, secondaryCinemaId] } } } });
+    await prisma.otpChallenge.deleteMany({ where: { phoneNumber: { in: ["+255714000111", "+255714000444", "+255714888111", "+255714999333"] } } });
+    await prisma.rightsAuthorization.deleteMany({ where: { cinemaId: { in: [cinemaId, secondaryCinemaId] } } });
+    await prisma.screening.deleteMany({ where: { cinemaId: { in: [cinemaId, secondaryCinemaId] } } });
+    await prisma.screen.deleteMany({ where: { cinemaId: { in: [cinemaId, secondaryCinemaId] } } });
+    await prisma.cinemaPricingRule.deleteMany({ where: { cinemaId: { in: [cinemaId, secondaryCinemaId] } } });
+    await prisma.cinema.deleteMany({ where: { id: { in: [cinemaId, secondaryCinemaId] } } });
+    await prisma.contentAsset.deleteMany({ where: { id: { in: ["test_suite_asset_01", "test_suite_unlicensed_02"] } } });
     await prisma.$disconnect();
   });
 
