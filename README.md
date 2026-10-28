@@ -50,7 +50,7 @@ The platform enables authenticated cinema patrons to temporarily follow an ongoi
 - Real-time auditorium telemetry, active break session tracking, manual usher revocations with required rationale, and audit ledgers.
 - Cinema-specific commercial pricing configuration (per-session rates, currency, status) preserving historical billing records.
 
-### 1.5 Private Platform Administration (`/x` / `setapart.<domain>`)
+### 1.5 Private Platform Administration (`/x` / `setapart.pottyplay.domain`)
 - Restricted administration portal with rate-limited authentication, session management, and audit logging.
 - Global operational oversight: partner review and approval workflow, global usage ledger, approved cinemas, active sessions, and security events.
 - **Expiring Circuit Invitation System:** Dispatches one-time onboarding links to verified cinema applicants that expire after 48 hours or immediately upon receipt of credentials in the database.
