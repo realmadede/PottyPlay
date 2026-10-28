@@ -63,14 +63,19 @@ export default function CustomerApplication() {
     const root = document.documentElement;
     if (theme === "DARK") {
       root.classList.add("dark");
+      root.removeAttribute("data-theme");
     } else if (theme === "LIGHT") {
       root.classList.remove("dark");
+      root.setAttribute("data-theme", "light");
     } else {
       // System
-      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      const isSystemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (isSystemDark) {
         root.classList.add("dark");
+        root.removeAttribute("data-theme");
       } else {
         root.classList.remove("dark");
+        root.setAttribute("data-theme", "light");
       }
     }
   };

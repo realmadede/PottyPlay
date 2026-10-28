@@ -1,10 +1,13 @@
 import { prisma } from "@/lib/db";
-import { generateSessionToken, hashPassword, verifyPassword } from "@/lib/crypto";
+import { verifyPassword } from "@/lib/crypto";
+import { createHmac, timingSafeEqual } from "crypto";
 
 // In-memory rate limiting for login attempts
 const loginAttempts = new Map<string, { count: number; lastAttempt: number }>();
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_MS = 15 * 60 * 1000; // 15 minutes
+const ADMIN_SECRET = process.env.ADMIN_SESSION_SECRET || "pottyplay_admin_supersecret_key_2026";
+const ADMIN_SESSION_DURATION_MS = 8 * 60 * 60 * 1000; // 8 hours
 
 export class AdminAuthService {
   /**
@@ -38,7 +41,7 @@ export class AdminAuthService {
   }
 
   /**
-   * Authenticates administrator.
+   * Authenticates administrator and returns a cryptographically signed HMAC token.
    */
   static async login(
     username: string,
@@ -76,7 +79,10 @@ export class AdminAuthService {
 
     this.clearAttempts(rateLimitKey);
 
-    const token = generateSessionToken("adm_");
+    const timestamp = Date.now().toString();
+    const payload = `${admin.id}.${timestamp}`;
+    const signature = createHmac("sha256", ADMIN_SECRET).update(payload).digest("hex");
+    const token = `adm_${admin.id}.${timestamp}.${signature}`;
 
     await prisma.adminUser.update({
       where: { id: admin.id },
@@ -100,11 +106,41 @@ export class AdminAuthService {
   }
 
   /**
-   * Validates admin session.
+   * Validates admin session using HMAC signature verification, expiry check, and database lookup.
    */
   static async validateSession(token: string): Promise<boolean> {
     if (!token || !token.startsWith("adm_")) return false;
-    // Session token is valid
-    return true;
+
+    const raw = token.slice(4);
+    const parts = raw.split(".");
+    if (parts.length !== 3) return false;
+
+    const [adminId, timestampStr, candidateSig] = parts;
+    const timestamp = parseInt(timestampStr, 10);
+    if (isNaN(timestamp)) return false;
+
+    // Check expiration (8 hours)
+    if (Date.now() - timestamp > ADMIN_SESSION_DURATION_MS) return false;
+
+    const payload = `${adminId}.${timestampStr}`;
+    const expectedSig = createHmac("sha256", ADMIN_SECRET).update(payload).digest("hex");
+
+    if (candidateSig.length !== expectedSig.length) return false;
+    try {
+      const match = timingSafeEqual(
+        Buffer.from(candidateSig, "hex"),
+        Buffer.from(expectedSig, "hex")
+      );
+      if (!match) return false;
+    } catch {
+      return false;
+    }
+
+    const admin = await prisma.adminUser.findUnique({
+      where: { id: adminId },
+      select: { id: true, isActive: true },
+    });
+
+    return Boolean(admin && admin.isActive);
   }
 }

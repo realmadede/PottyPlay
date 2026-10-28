@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { generateSessionToken, generateOtpCode, hashPassword, verifyPassword } from "@/lib/crypto";
 import { OtpService } from "@/features/messaging/otp-service";
+import { resendService } from "@/features/email/resend-service";
 import { normalizePhoneNumber, isValidPhoneNumber } from "@/lib/phone";
 import { AuthProvider } from "@prisma/client";
 
@@ -150,9 +151,8 @@ export class CustomerAuthService {
       };
     }
 
-    // 6. Deliver email verification code
-    // In production, dispatched via configured SMTP/SendGrid. In test/dev, logged safely.
-    console.log(`[EMAIL-VERIFICATION] Code for ${email}: ${emailVerificationCode} (expires in 15m)`);
+    // 6. Deliver email verification code via Resend
+    await resendService.sendCustomerEmailVerification(email, emailVerificationCode);
 
     return {
       success: true,
@@ -398,7 +398,7 @@ export class CustomerAuthService {
         },
       });
 
-      console.log(`[PASSWORD-RESET] Token for ${customer.email}: ${resetToken}`);
+      await resendService.sendCustomerPasswordReset(customer.email, resetToken);
     }
 
     return {
@@ -527,7 +527,7 @@ export class CustomerAuthService {
       },
     });
 
-    console.log(`[EMAIL-CHANGE-VERIFICATION] Code for ${email}: ${emailVerificationCode} (expires in 15m)`);
+    await resendService.sendEmailChangeVerification(email, emailVerificationCode);
 
     return { success: true, simulatedCode: emailVerificationCode };
   }

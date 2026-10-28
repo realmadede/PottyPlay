@@ -23,4 +23,10 @@ export const config = {
         ? "https://api.sandbox.africastalking.com/version1/messaging"
         : "https://api.africastalking.com/version1/messaging",
   },
+  resend: {
+    apiKey: process.env.RESEND_API_KEY || "",
+    fromEmail: process.env.EMAIL_FROM || "PottyPlay <onboarding@resend.dev>",
+  },
+  posWebhookSecret:
+    process.env.POS_WEBHOOK_SECRET || "pottyplay_pos_webhook_secret_key",
 };

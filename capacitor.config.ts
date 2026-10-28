@@ -7,7 +7,8 @@ const config: CapacitorConfig = {
   server: {
     androidScheme: "https",
     iosScheme: "https",
-    cleartext: false,
+    cleartext: process.env.NODE_ENV !== "production",
+    url: process.env.CAPACITOR_SERVER_URL || undefined,
   },
   plugins: {
     SplashScreen: {

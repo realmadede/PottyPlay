@@ -15,7 +15,8 @@
     "db:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "db:generate": "prisma generate",
-    "cap:sync": "cap sync"
+    "cap:build": "tsx scripts/prepare-mobile-shell.ts && cap sync",
+    "cap:sync": "tsx scripts/prepare-mobile-shell.ts && cap sync"
   },
   "dependencies": {
     "@capacitor-community/privacy-screen": "^8.0.0",
@@ -28,6 +29,7 @@
     "next": "^15.5.28",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "resend": "^6.35.0",
     "tailwind-merge": "^3.0.1",
     "zod": "^3.24.1"
   },

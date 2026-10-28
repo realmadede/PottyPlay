@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/crypto";
+import { AdminAuthService } from "@/features/admin/admin-auth-service";
 import { z } from "zod";
 
 const registerCinemaSchema = z.object({
@@ -24,7 +25,8 @@ export async function POST(req: NextRequest) {
       req.headers.get("authorization")?.replace("Bearer ", "") ||
       req.cookies.get("pp_admin_token")?.value;
 
-    if (!token || !token.startsWith("adm_")) {
+    const isValid = token ? await AdminAuthService.validateSession(token) : false;
+    if (!isValid) {
       return NextResponse.json(
         { success: false, error: "Unauthorized administrative access." },
         { status: 401 }

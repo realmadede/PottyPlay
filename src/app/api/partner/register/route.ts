@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { resendService } from "@/features/email/resend-service";
 import { z } from "zod";
 
 const partnerSchema = z.object({
@@ -61,14 +62,23 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Direct email notification to platform administration partnerships desk
-    console.log(
-      `[PARTNER-INQUIRY-EMAIL] To: partnerships@pottyplay.internal | Subject: New Cinema Partnership Inquiry from ${validated.organizationName} (${validated.city}, ${validated.country}) | Contact: ${validated.contactName} <${validated.contactEmail}>, Phone: ${validated.contactPhone} | Infrastructure: ${validated.screensCount} screens, POS: ${validated.ticketingSystem}, TMS: ${validated.screeningServer}`
-    );
+    // Direct email notification to platform administration partnerships desk via Resend
+    await resendService.sendPartnerInquiryInternal({
+      organizationName: validated.organizationName,
+      contactName: validated.contactName,
+      contactEmail: validated.contactEmail,
+      contactPhone: validated.contactPhone,
+      city: validated.city,
+      country: validated.country,
+      screensCount: validated.screensCount,
+      ticketingSystem: validated.ticketingSystem,
+      screeningServer: validated.screeningServer,
+    });
 
-    // Direct acknowledgment email to the cinema applicant
-    console.log(
-      `[EMAIL-DISPATCH] To: ${validated.contactEmail} | Subject: PottyPlay Partnership Inquiry Received - Next Steps | Message: Your partnership inquiry for ${validated.organizationName} has been received. Our team will review your infrastructure and dispatch an expiring invitation link to complete registration.`
+    // Direct acknowledgment email to the cinema applicant via Resend
+    await resendService.sendPartnerInquiryConfirmation(
+      validated.contactEmail,
+      validated.organizationName
     );
 
     // Record audit event

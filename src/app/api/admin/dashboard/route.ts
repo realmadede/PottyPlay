@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { AdminAuthService } from "@/features/admin/admin-auth-service";
 
 export async function GET(req: NextRequest) {
   try {
@@ -7,7 +8,8 @@ export async function GET(req: NextRequest) {
       req.headers.get("authorization")?.replace("Bearer ", "") ||
       req.cookies.get("pp_admin_token")?.value;
 
-    if (!token || !token.startsWith("adm_")) {
+    const isValid = token ? await AdminAuthService.validateSession(token) : false;
+    if (!isValid) {
       return NextResponse.json({ success: false, error: "Unauthorized admin access." }, { status: 401 });
     }
 

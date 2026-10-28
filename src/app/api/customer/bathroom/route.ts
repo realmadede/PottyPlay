@@ -76,25 +76,63 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // 2. Check for confirmed ticket entitlement eligible for ongoing screening
-    const eligibleTicket = await prisma.demonstrationTicket.findFirst({
+    // 2. Check for confirmed ticket entitlement linked to this customer
+    let eligibleTicket = null;
+
+    // A. Check for ticket linked via active screening reminder
+    const customerReminder = await prisma.screeningReminder.findFirst({
       where: {
-        status: "VALID_ADMITTED",
-        breakCount: { lt: 2 },
-        screening: {
-          status: { in: ["PLAYING", "SCHEDULED"] },
-        },
+        customerId: customerSession.customerId,
+        ticketNumber: { not: null },
+        isEnabled: true,
       },
-      include: {
-        screening: {
-          include: {
-            cinema: { select: { name: true, location: true } },
-            screen: { select: { name: true } },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (customerReminder?.ticketNumber) {
+      eligibleTicket = await prisma.demonstrationTicket.findFirst({
+        where: {
+          ticketNumber: customerReminder.ticketNumber,
+          status: "VALID_ADMITTED",
+          breakCount: { lt: 2 },
+          screening: {
+            status: { in: ["PLAYING", "SCHEDULED"] },
           },
         },
-        breakSessions: true,
-      },
-    });
+        include: {
+          screening: {
+            include: {
+              cinema: { select: { name: true, location: true } },
+              screen: { select: { name: true } },
+            },
+          },
+          breakSessions: true,
+        },
+      });
+    }
+
+    // B. Check for ticket linked by customer name if not found via reminder
+    if (!eligibleTicket && customerSession.name) {
+      eligibleTicket = await prisma.demonstrationTicket.findFirst({
+        where: {
+          customerName: { equals: customerSession.name, mode: "insensitive" },
+          status: "VALID_ADMITTED",
+          breakCount: { lt: 2 },
+          screening: {
+            status: { in: ["PLAYING", "SCHEDULED"] },
+          },
+        },
+        include: {
+          screening: {
+            include: {
+              cinema: { select: { name: true, location: true } },
+              screen: { select: { name: true } },
+            },
+          },
+          breakSessions: true,
+        },
+      });
+    }
 
     return NextResponse.json({
       success: true,

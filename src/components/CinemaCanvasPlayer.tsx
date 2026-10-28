@@ -24,11 +24,86 @@ export function CinemaCanvasPlayer({
   patronIdentity,
 }: CinemaCanvasPlayerProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const [internalTime, setInternalTime] = useState(positionSeconds);
   const [captureBlocked, setCaptureBlocked] = useState(false);
   const [blockMessage, setBlockMessage] = useState<string | null>(null);
   const lastSyncRef = useRef({ serverPos: positionSeconds, localTime: Date.now() });
+
+  // Web Audio Synthesizer
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const gainNodeRef = useRef<GainNode | null>(null);
+
+  const toggleMute = () => {
+    if (isMuted) {
+      try {
+        if (!audioCtxRef.current) {
+          const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+          if (AudioContextClass) {
+            const ctx = new AudioContextClass();
+            audioCtxRef.current = ctx;
+
+            const masterGain = ctx.createGain();
+            masterGain.gain.setValueAtTime(0, ctx.currentTime);
+            masterGain.connect(ctx.destination);
+            gainNodeRef.current = masterGain;
+
+            const osc1 = ctx.createOscillator();
+            const osc2 = ctx.createOscillator();
+            const filter = ctx.createBiquadFilter();
+
+            filter.type = "lowpass";
+            filter.frequency.setValueAtTime(260, ctx.currentTime);
+
+            osc1.type = "sine";
+            osc1.frequency.setValueAtTime(110, ctx.currentTime);
+
+            osc2.type = "triangle";
+            osc2.frequency.setValueAtTime(164.81, ctx.currentTime);
+
+            osc1.connect(filter);
+            osc2.connect(filter);
+            filter.connect(masterGain);
+
+            osc1.start();
+            osc2.start();
+          }
+        }
+        if (audioCtxRef.current?.state === "suspended") {
+          audioCtxRef.current.resume();
+        }
+        if (gainNodeRef.current && audioCtxRef.current) {
+          gainNodeRef.current.gain.setTargetAtTime(0.06, audioCtxRef.current.currentTime, 0.1);
+        }
+      } catch (err) {
+        console.warn("[AUDIO] Audio synthesis failed to initialize:", err);
+      }
+      setIsMuted(false);
+    } else {
+      if (gainNodeRef.current && audioCtxRef.current) {
+        gainNodeRef.current.gain.setTargetAtTime(0, audioCtxRef.current.currentTime, 0.05);
+      }
+      setIsMuted(true);
+    }
+  };
+
+  useEffect(() => {
+    if (gainNodeRef.current && audioCtxRef.current) {
+      if (isPaused || captureBlocked || isMuted) {
+        gainNodeRef.current.gain.setTargetAtTime(0, audioCtxRef.current.currentTime, 0.05);
+      } else {
+        gainNodeRef.current.gain.setTargetAtTime(0.06, audioCtxRef.current.currentTime, 0.1);
+      }
+    }
+  }, [isPaused, captureBlocked, isMuted]);
+
+  useEffect(() => {
+    return () => {
+      if (audioCtxRef.current && audioCtxRef.current.state !== "closed") {
+        audioCtxRef.current.close().catch(() => {});
+      }
+    };
+  }, []);
 
   // Anti-screenshot & anti-screen-recording detection
   useEffect(() => {
@@ -410,8 +485,8 @@ export function CinemaCanvasPlayer({
         <div className="flex items-center space-x-2">
           <button
             type="button"
-            onClick={() => setIsMuted(!isMuted)}
-            className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-900 transition-colors"
+            onClick={toggleMute}
+            className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-900 transition-colors cursor-pointer"
             title={isMuted ? "Unmute stream" : "Mute stream"}
           >
             {isMuted ? (

@@ -3,7 +3,7 @@
     "apps": [],
     "details": [
       {
-        "appID": "TEAMID1234.com.pottyplay.companion",
+        "appID": "K5P84Z9R92.com.pottyplay.companion",
         "paths": [
           "/watch",
           "/watch/*",
@@ -14,7 +14,7 @@
   },
   "webcredentials": {
     "apps": [
-      "TEAMID1234.com.pottyplay.companion"
+      "K5P84Z9R92.com.pottyplay.companion"
     ]
   }
 }

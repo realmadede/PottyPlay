@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { NavigationHeader } from "@/components/NavigationHeader";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -30,6 +30,7 @@ import {
   ArrowRight,
   LogOut,
   Check,
+  Ticket,
 } from "lucide-react";
 
 interface OperatorSession {
@@ -171,8 +172,29 @@ export default function OperatorPage() {
   const [data, setData] = useState<OperatorData | null>(null);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<
-    "sessions" | "screenings" | "pricing" | "billing" | "sms" | "audit"
+    "sessions" | "screenings" | "tickets" | "pricing" | "billing" | "sms" | "audit"
   >("sessions");
+
+  // Screening Scheduling State
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [scheduleTitle, setScheduleTitle] = useState("");
+  const [scheduleScreenId, setScheduleScreenId] = useState("");
+  const [scheduleStartTime, setScheduleStartTime] = useState("");
+  const [schedulingLoading, setSchedulingLoading] = useState(false);
+
+  // Tickets State
+  const [tickets, setTickets] = useState<any[]>([]);
+  const [ticketsLoading, setTicketsLoading] = useState(false);
+  const [showIssueTicketModal, setShowIssueTicketModal] = useState(false);
+  const [ticketScreeningId, setTicketScreeningId] = useState("");
+  const [ticketSeatNumber, setTicketSeatNumber] = useState("");
+  const [ticketCustomerName, setTicketCustomerName] = useState("");
+  const [issuingTicket, setIssuingTicket] = useState(false);
+  const [issuedTicketSuccess, setIssuedTicketSuccess] = useState<{
+    ticketNumber: string;
+    claimToken: string;
+    watchClaimUrl: string;
+  } | null>(null);
 
   // Revoke State
   const [revokeSessionId, setRevokeSessionId] = useState<string | null>(null);
@@ -330,7 +352,7 @@ export default function OperatorPage() {
     setAuthMode("signin");
   };
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     if (!token) return;
     try {
       const url = cinemaId
@@ -349,14 +371,111 @@ export default function OperatorPage() {
     } catch (err) {
       console.error("Failed to fetch operator dashboard:", err);
     }
-  };
+  }, [cinemaId, token]);
+
+  const fetchTickets = useCallback(async () => {
+    if (!token || !cinemaId) return;
+    setTicketsLoading(true);
+    try {
+      const res = await fetch(`/api/operator/tickets?cinemaId=${cinemaId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setTickets(json.tickets || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch tickets:", err);
+    } finally {
+      setTicketsLoading(false);
+    }
+  }, [cinemaId, token]);
 
   useEffect(() => {
     if (!token) return;
     fetchData();
     const interval = setInterval(fetchData, 4000);
     return () => clearInterval(interval);
-  }, [cinemaId, token]);
+  }, [fetchData, token]);
+
+  useEffect(() => {
+    if (activeTab === "tickets" && token && cinemaId) {
+      fetchTickets();
+    }
+  }, [activeTab, fetchTickets, token, cinemaId]);
+
+  const handleScheduleScreening = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token || !cinemaId || !scheduleTitle || !scheduleScreenId || !scheduleStartTime) return;
+    setSchedulingLoading(true);
+    try {
+      const res = await fetch("/api/operator/screenings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          cinemaId,
+          screenId: scheduleScreenId,
+          title: scheduleTitle,
+          scheduledStart: new Date(scheduleStartTime).toISOString(),
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Failed to schedule screening.");
+      }
+      setActionNotice(`Screening "${scheduleTitle}" successfully scheduled!`);
+      setShowScheduleModal(false);
+      setScheduleTitle("");
+      setScheduleScreenId("");
+      setScheduleStartTime("");
+      await fetchData();
+    } catch (err: any) {
+      setActionNotice(err.message || "Failed to schedule screening.");
+    } finally {
+      setSchedulingLoading(false);
+    }
+  };
+
+  const handleIssueTicket = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token || !cinemaId || !ticketScreeningId || !ticketSeatNumber || !ticketCustomerName) return;
+    setIssuingTicket(true);
+    try {
+      const res = await fetch("/api/operator/tickets", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          cinemaId,
+          screeningId: ticketScreeningId,
+          seatNumber: ticketSeatNumber,
+          customerName: ticketCustomerName,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Failed to issue demonstration ticket.");
+      }
+      setIssuedTicketSuccess({
+        ticketNumber: json.ticket.ticketNumber,
+        claimToken: json.ticket.claimToken,
+        watchClaimUrl: json.watchClaimUrl,
+      });
+      setActionNotice(`Ticket ${json.ticket.ticketNumber} issued successfully!`);
+      setTicketSeatNumber("");
+      setTicketCustomerName("");
+      await fetchTickets();
+    } catch (err: any) {
+      setActionNotice(err.message || "Failed to issue ticket.");
+    } finally {
+      setIssuingTicket(false);
+    }
+  };
 
   const handleRevoke = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -902,6 +1021,7 @@ export default function OperatorPage() {
               {[
                 { id: "sessions", label: "Active & Recent Breaks", count: data?.sessions?.length },
                 { id: "screenings", label: "Auditorium Screens", count: data?.screenings?.length },
+                { id: "tickets", label: "Tickets & Entitlements", count: tickets.length || null },
                 { id: "pricing", label: "Commercial Pricing", count: null },
                 { id: "billing", label: "Billed Transactions", count: data?.billing?.totalBillableActivations },
                 { id: "sms", label: "Delivery Telemetry", count: data?.smsAttempts?.length },
@@ -1012,66 +1132,361 @@ export default function OperatorPage() {
 
             {/* TAB 2: AUDITORIUM SCREENS */}
             {activeTab === "screenings" && (
-              <div className="bg-field rounded-2xl border border-line overflow-hidden shadow-card">
-                <div className="p-4 border-b border-line text-xs font-bold uppercase tracking-wider text-muted">
-                  Live Auditorium Screenings & Timeline Positions
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
-                  {data?.screenings?.map((sc) => (
-                    <div
-                      key={sc.id}
-                      className="p-4 rounded-xl border border-line bg-bg space-y-3 shadow-card"
+              <div className="space-y-4">
+                <div className="bg-field rounded-2xl border border-line overflow-hidden shadow-card">
+                  <div className="p-4 border-b border-line flex justify-between items-center">
+                    <div className="text-xs font-bold uppercase tracking-wider text-muted">
+                      Live Auditorium Screenings & Timeline Positions
+                    </div>
+                    <button
+                      onClick={() => setShowScheduleModal(true)}
+                      className="px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/30 text-xs font-bold hover:bg-amber-500 hover:text-neutral-950 transition flex items-center space-x-1 cursor-pointer"
                     >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <span className="text-[10px] font-bold uppercase text-amber-400 tracking-wider">
-                            {sc.screen.name} &bull; {sc.screen.totalSeats} Seats
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Schedule Screening</span>
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+                    {data?.screenings?.map((sc) => (
+                      <div
+                        key={sc.id}
+                        className="p-4 rounded-xl border border-line bg-bg space-y-3 shadow-card"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <span className="text-[10px] font-bold uppercase text-amber-400 tracking-wider">
+                              {sc.screen.name} &bull; {sc.screen.totalSeats} Seats
+                            </span>
+                            <h3 className="font-bold text-sm sm:text-base text-ink mt-0.5">
+                              {sc.title}
+                            </h3>
+                          </div>
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                              sc.status === "PLAYING" || sc.status === "IN_PROGRESS"
+                                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                : "bg-field text-muted border border-line"
+                            }`}
+                          >
+                            {sc.status}
                           </span>
-                          <h3 className="font-bold text-sm sm:text-base text-ink mt-0.5">
-                            {sc.title}
-                          </h3>
                         </div>
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                            sc.status === "IN_PROGRESS"
-                              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                              : "bg-field text-muted border border-line"
-                          }`}
+
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between text-[11px] text-muted font-mono">
+                            <span>Timeline: {formatSeconds(sc.currentPositionSeconds)}</span>
+                            <span>Duration: {formatSeconds(sc.contentAsset.durationSeconds)}</span>
+                          </div>
+                          <div className="w-full bg-field-raised h-2 rounded-full overflow-hidden border border-line">
+                            <div
+                              className="bg-amber-400 h-full rounded-full transition-all duration-1000"
+                              style={{
+                                width: `${Math.min(
+                                  100,
+                                  (sc.currentPositionSeconds / sc.contentAsset.durationSeconds) * 100
+                                )}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex justify-between items-center text-[11px] text-muted pt-2 border-t border-line">
+                          <span>Playback State: {sc.isPaused ? "PAUSED" : "PLAYING"}</span>
+                          <span>Start: {new Date(sc.scheduledStart).toLocaleTimeString()}</span>
+                        </div>
+                      </div>
+                    ))}
+                    {data?.screenings?.length === 0 && (
+                      <div className="col-span-2 p-8 text-center text-xs text-muted">
+                        No auditorium screenings configured.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Schedule Screening Modal */}
+                {showScheduleModal && (
+                  <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-field border border-line rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+                      <div className="flex justify-between items-center border-b border-line pb-3">
+                        <h3 className="text-sm font-bold text-ink uppercase tracking-wider">
+                          Schedule Auditorium Screening
+                        </h3>
+                        <button
+                          onClick={() => setShowScheduleModal(false)}
+                          className="text-muted hover:text-ink cursor-pointer"
                         >
-                          {sc.status}
-                        </span>
+                          <XCircle className="w-5 h-5" />
+                        </button>
                       </div>
 
-                      <div className="space-y-1.5">
-                        <div className="flex justify-between text-[11px] text-muted font-mono">
-                          <span>Timeline: {formatSeconds(sc.currentPositionSeconds)}</span>
-                          <span>Duration: {formatSeconds(sc.contentAsset.durationSeconds)}</span>
-                        </div>
-                        <div className="w-full bg-field-raised h-2 rounded-full overflow-hidden border border-line">
-                          <div
-                            className="bg-amber-400 h-full rounded-full transition-all duration-1000"
-                            style={{
-                              width: `${Math.min(
-                                100,
-                                (sc.currentPositionSeconds / sc.contentAsset.durationSeconds) * 100
-                              )}%`,
-                            }}
+                      <form onSubmit={handleScheduleScreening} className="space-y-4 text-xs">
+                        <div>
+                          <label className="block text-muted font-bold mb-1">Film / Presentation Title</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. Serengeti Symphony - 4K Feature"
+                            value={scheduleTitle}
+                            onChange={(e) => setScheduleTitle(e.target.value)}
+                            className="w-full bg-bg border border-line rounded-xl px-3 py-2 text-ink outline-none focus:border-amber-400"
                           />
                         </div>
-                      </div>
 
-                      <div className="flex justify-between items-center text-[11px] text-muted pt-2 border-t border-line">
-                        <span>Playback State: {sc.isPaused ? "PAUSED" : "PLAYING"}</span>
-                        <span>Start: {new Date(sc.scheduledStart).toLocaleTimeString()}</span>
+                        <div>
+                          <label className="block text-muted font-bold mb-1">Auditorium Screen</label>
+                          <select
+                            required
+                            value={scheduleScreenId}
+                            onChange={(e) => setScheduleScreenId(e.target.value)}
+                            className="w-full bg-bg border border-line rounded-xl px-3 py-2 text-ink outline-none focus:border-amber-400"
+                          >
+                            <option value="">Select an auditorium screen...</option>
+                            {data?.cinema?.screens?.map((screen) => (
+                              <option key={screen.id} value={screen.id}>
+                                {screen.name} ({screen.totalSeats} seats)
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-muted font-bold mb-1">Scheduled Start Time</label>
+                          <input
+                            type="datetime-local"
+                            required
+                            value={scheduleStartTime}
+                            onChange={(e) => setScheduleStartTime(e.target.value)}
+                            className="w-full bg-bg border border-line rounded-xl px-3 py-2 text-ink outline-none focus:border-amber-400"
+                          />
+                        </div>
+
+                        <div className="flex justify-end space-x-2 pt-2">
+                          <button
+                            type="button"
+                            onClick={() => setShowScheduleModal(false)}
+                            className="px-4 py-2 rounded-xl bg-field-raised border border-line text-muted hover:text-ink cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={schedulingLoading}
+                            className="px-4 py-2 rounded-xl bg-amber-500 text-neutral-950 font-bold hover:bg-amber-400 transition cursor-pointer flex items-center space-x-1"
+                          >
+                            {schedulingLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                            <span>Confirm & Schedule</span>
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB: TICKETS & ENTITLEMENTS */}
+            {activeTab === "tickets" && (
+              <div className="space-y-4">
+                <div className="bg-field rounded-2xl border border-line overflow-hidden shadow-card">
+                  <div className="p-4 border-b border-line flex justify-between items-center">
+                    <div>
+                      <div className="text-xs font-bold uppercase tracking-wider text-muted">
+                        Demonstration Tickets & QR Entitlements
+                      </div>
+                      <div className="text-[11px] text-muted mt-0.5">
+                        Issue verified tickets for live companion viewing testing
                       </div>
                     </div>
-                  ))}
-                  {data?.screenings?.length === 0 && (
-                    <div className="col-span-2 p-8 text-center text-xs text-muted">
-                      No auditorium screenings configured.
+                    <button
+                      onClick={() => {
+                        setShowIssueTicketModal(true);
+                        setIssuedTicketSuccess(null);
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/30 text-xs font-bold hover:bg-amber-500 hover:text-neutral-950 transition flex items-center space-x-1 cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Issue Demonstration Ticket</span>
+                    </button>
+                  </div>
+
+                  {issuedTicketSuccess && (
+                    <div className="m-4 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs space-y-2">
+                      <div className="font-bold text-amber-400 flex items-center space-x-1.5">
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>Ticket Issued Successfully</span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-ink">
+                        <div>Ticket Number: <span className="font-mono font-bold text-amber-300">{issuedTicketSuccess.ticketNumber}</span></div>
+                        <div>Claim Token: <span className="font-mono font-bold text-amber-300">{issuedTicketSuccess.claimToken}</span></div>
+                      </div>
+                      <div className="pt-1 flex items-center space-x-2">
+                        <Link
+                          href={issuedTicketSuccess.watchClaimUrl}
+                          target="_blank"
+                          className="inline-flex items-center space-x-1 text-amber-400 underline font-mono text-[11px] hover:text-amber-300"
+                        >
+                          <span>Open Direct Companion Stream</span>
+                          <ArrowRight className="w-3 h-3" />
+                        </Link>
+                      </div>
                     </div>
                   )}
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-field-raised text-muted uppercase font-mono text-[10px] border-b border-line">
+                        <tr>
+                          <th className="p-3">Ticket #</th>
+                          <th className="p-3">Customer</th>
+                          <th className="p-3">Screen & Seat</th>
+                          <th className="p-3">Screening</th>
+                          <th className="p-3">Claim Token</th>
+                          <th className="p-3">Status</th>
+                          <th className="p-3 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-line text-ink">
+                        {ticketsLoading ? (
+                          <tr>
+                            <td colSpan={7} className="p-8 text-center text-xs text-muted">
+                              <Loader2 className="w-5 h-5 animate-spin mx-auto text-amber-400" />
+                            </td>
+                          </tr>
+                        ) : tickets.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="p-8 text-center text-xs text-muted">
+                              No tickets issued yet. Click &quot;Issue Demonstration Ticket&quot; above to create one.
+                            </td>
+                          </tr>
+                        ) : (
+                          tickets.map((t: any) => (
+                            <tr key={t.id} className="hover:bg-field-raised/50 transition">
+                              <td className="p-3 font-mono font-bold text-amber-400">
+                                {t.ticketNumber}
+                              </td>
+                              <td className="p-3 font-medium">{t.customerName}</td>
+                              <td className="p-3">
+                                {t.screening?.screen?.name || "Screen"} &bull; Seat {t.seatNumber}
+                              </td>
+                              <td className="p-3 max-w-[180px] truncate">
+                                {t.screening?.title || "Screening"}
+                              </td>
+                              <td className="p-3 font-mono text-muted text-[11px]">
+                                {t.claimToken || "-"}
+                              </td>
+                              <td className="p-3">
+                                <span
+                                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                    t.status === "VALID_ADMITTED"
+                                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                      : "bg-field text-muted border border-line"
+                                  }`}
+                                >
+                                  {t.status}
+                                </span>
+                              </td>
+                              <td className="p-3 text-right">
+                                {t.claimToken ? (
+                                  <Link
+                                    href={`/watch?claim=${encodeURIComponent(t.claimToken)}`}
+                                    target="_blank"
+                                    className="px-2 py-1 rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500 hover:text-neutral-950 font-bold text-[11px] border border-amber-500/30 transition inline-flex items-center space-x-1"
+                                  >
+                                    <span>Stream</span>
+                                    <ArrowRight className="w-2.5 h-2.5" />
+                                  </Link>
+                                ) : (
+                                  <span className="text-muted text-[11px]">-</span>
+                                )}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
+
+                {/* Issue Ticket Modal */}
+                {showIssueTicketModal && (
+                  <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-field border border-line rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+                      <div className="flex justify-between items-center border-b border-line pb-3">
+                        <h3 className="text-sm font-bold text-ink uppercase tracking-wider">
+                          Issue Demonstration Ticket
+                        </h3>
+                        <button
+                          onClick={() => setShowIssueTicketModal(false)}
+                          className="text-muted hover:text-ink cursor-pointer"
+                        >
+                          <XCircle className="w-5 h-5" />
+                        </button>
+                      </div>
+
+                      <form onSubmit={handleIssueTicket} className="space-y-4 text-xs">
+                        <div>
+                          <label className="block text-muted font-bold mb-1">Target Screening</label>
+                          <select
+                            required
+                            value={ticketScreeningId}
+                            onChange={(e) => setTicketScreeningId(e.target.value)}
+                            className="w-full bg-bg border border-line rounded-xl px-3 py-2 text-ink outline-none focus:border-amber-400"
+                          >
+                            <option value="">Select a screening...</option>
+                            {data?.screenings?.map((sc) => (
+                              <option key={sc.id} value={sc.id}>
+                                {sc.title} ({sc.screen.name})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-muted font-bold mb-1">Patron Customer Name</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. Amani Mwamba"
+                            value={ticketCustomerName}
+                            onChange={(e) => setTicketCustomerName(e.target.value)}
+                            className="w-full bg-bg border border-line rounded-xl px-3 py-2 text-ink outline-none focus:border-amber-400"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-muted font-bold mb-1">Seat Number</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. F12 or D04"
+                            value={ticketSeatNumber}
+                            onChange={(e) => setTicketSeatNumber(e.target.value)}
+                            className="w-full bg-bg border border-line rounded-xl px-3 py-2 text-ink outline-none focus:border-amber-400"
+                          />
+                        </div>
+
+                        <div className="flex justify-end space-x-2 pt-2">
+                          <button
+                            type="button"
+                            onClick={() => setShowIssueTicketModal(false)}
+                            className="px-4 py-2 rounded-xl bg-field-raised border border-line text-muted hover:text-ink cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={issuingTicket}
+                            className="px-4 py-2 rounded-xl bg-amber-500 text-neutral-950 font-bold hover:bg-amber-400 transition cursor-pointer flex items-center space-x-1"
+                          >
+                            {issuingTicket && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                            <span>Generate & Issue</span>
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

@@ -11,6 +11,7 @@ import { OperatorAuthService } from "../src/features/operator/operator-auth-serv
 import { AfricasTalkingSmsAdapter } from "../src/features/messaging/africas-talking-adapter";
 import { hashOtp } from "../src/lib/crypto";
 import { ScreeningStatus, SessionStatus, TicketStatus, CinemaStatus } from "@prisma/client";
+import { NextRequest } from "next/server";
 
 describe("PottyPlay Comprehensive Test Suite", () => {
   const cinemaId = "test_suite_cinema_01";
@@ -1248,5 +1249,273 @@ describe("PottyPlay Comprehensive Test Suite", () => {
       });
       await prisma.partnerApplication.delete({ where: { id: app.id } });
     }
+  });
+
+  // 33. Dynamic billing applies configured CinemaPricingRule rate instead of default
+  it("33. should apply active CinemaPricingRule rate and currency to usage billing events", async () => {
+    // Set up a custom pricing rule of 750 TZS for secondaryCinemaId
+    await prisma.cinemaPricingRule.deleteMany({ where: { cinemaId: secondaryCinemaId } });
+    await prisma.cinemaPricingRule.create({
+      data: {
+        cinemaId: secondaryCinemaId,
+        currency: "TZS",
+        pricePerSession: 750,
+        status: "ACTIVE",
+        notes: "Custom test commercial agreement rate",
+        effectiveFrom: new Date(Date.now() - 3600 * 1000),
+      },
+    });
+
+    const testSessionId = "session_dynamic_price_test_01";
+    // Create dummy break session
+    const ticket = await prisma.demonstrationTicket.findFirst({
+      where: { screening: { cinemaId: secondaryCinemaId } },
+    });
+    expect(ticket).not.toBeNull();
+
+    const session = await prisma.breakSession.create({
+      data: {
+        id: testSessionId,
+        sessionToken: "tok_dyn_price_test_" + Date.now(),
+        ticketId: ticket!.id,
+        screeningId: ticket!.screeningId,
+        expiresAt: new Date(Date.now() + 900 * 1000),
+        status: SessionStatus.ACTIVE,
+      },
+    });
+
+    const event = await BillingService.recordActivationBilling(
+      session.id,
+      secondaryCinemaId,
+      ticket!.ticketNumber
+    );
+
+    expect(event.priceTzs).toBe(750);
+    expect(event.currency).toBe("TZS");
+    expect(event.isSimulated).toBe(false);
+    expect(event.disclaimer).toContain("Custom test commercial agreement rate");
+
+    // Clean up
+    await prisma.usageBillingEvent.deleteMany({ where: { sessionId: session.id } });
+    await prisma.breakSession.delete({ where: { id: session.id } });
+  });
+
+  // 34. POS webhook receiver validates HMAC signature, updates ticket status, pauses/resumes playback, and revokes sessions on refund
+  it("34. should handle POS webhook events with HMAC signature verification and state synchronization", async () => {
+    const { POST: posWebhookPost } = await import("../src/app/api/webhooks/pos/route");
+    const { createHmac } = await import("crypto");
+    const { config } = await import("../src/lib/config");
+
+    // Helper to generate signed NextRequest
+    const createSignedReq = (bodyObj: any) => {
+      const raw = JSON.stringify(bodyObj);
+      const sig = createHmac("sha256", config.posWebhookSecret).update(raw).digest("hex");
+      return new NextRequest("http://localhost:3000/api/webhooks/pos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-pos-signature": sig,
+        },
+        body: raw,
+      });
+    };
+
+    // 1. Admit ticket via POS webhook
+    const admitPayload = {
+      event: "ticket.admitted",
+      data: {
+        ticketNumber: "POS-TK-9901",
+        screeningId: mainScreeningId,
+        seatNumber: "K12",
+        customerName: "Khalfan Juma",
+        claimToken: "POS-CLM-9901",
+      },
+    };
+    const admitRes = await posWebhookPost(createSignedReq(admitPayload));
+    const admitData = await admitRes.json();
+    expect(admitRes.status).toBe(200);
+    expect(admitData.success).toBe(true);
+
+    const ticketInDb = await prisma.demonstrationTicket.findUnique({
+      where: { ticketNumber: "POS-TK-9901" },
+    });
+    expect(ticketInDb).not.toBeNull();
+    expect(ticketInDb?.status).toBe(TicketStatus.VALID_ADMITTED);
+
+    // 2. Pause screening via POS webhook
+    const pausePayload = {
+      event: "screening.timeline_pause",
+      data: { screeningId: mainScreeningId },
+    };
+    const pauseRes = await posWebhookPost(createSignedReq(pausePayload));
+    const pauseData = await pauseRes.json();
+    expect(pauseRes.status).toBe(200);
+    expect(pauseData.success).toBe(true);
+    expect(pauseData.playbackState.isPaused).toBe(true);
+
+    // 3. Resume screening via POS webhook
+    const resumePayload = {
+      event: "screening.timeline_resume",
+      data: { screeningId: mainScreeningId },
+    };
+    const resumeRes = await posWebhookPost(createSignedReq(resumePayload));
+    const resumeData = await resumeRes.json();
+    expect(resumeRes.status).toBe(200);
+    expect(resumeData.playbackState.isPaused).toBe(false);
+
+    // 4. Create active break session for ticket, then refund via POS webhook
+    const activeSession = await prisma.breakSession.create({
+      data: {
+        sessionToken: "tok_pos_ref_test_" + Date.now(),
+        ticketId: ticketInDb!.id,
+        screeningId: mainScreeningId,
+        expiresAt: new Date(Date.now() + 900 * 1000),
+        status: SessionStatus.ACTIVE,
+      },
+    });
+
+    const refundPayload = {
+      event: "ticket.refunded",
+      data: { ticketNumber: "POS-TK-9901" },
+    };
+    const refundRes = await posWebhookPost(createSignedReq(refundPayload));
+    const refundData = await refundRes.json();
+    expect(refundRes.status).toBe(200);
+    expect(refundData.success).toBe(true);
+    expect(refundData.revokedSessions).toBe(1);
+
+    const updatedSession = await prisma.breakSession.findUnique({
+      where: { id: activeSession.id },
+    });
+    expect(updatedSession?.status).toBe(SessionStatus.REVOKED);
+    expect(updatedSession?.revokedReason).toContain("POS");
+
+    // Clean up
+    await prisma.breakSession.deleteMany({ where: { ticketId: ticketInDb!.id } });
+    await prisma.demonstrationTicket.delete({ where: { id: ticketInDb!.id } });
+  });
+
+  // 35. Screening reminder dispatch worker
+  it("35. should evaluate pending screening reminders and dispatch notifications when due", async () => {
+    const { POST: remindersDispatchPost } = await import("../src/app/api/reminders/dispatch/route");
+
+    // Create a customer with a reminder due now
+    const reminderCustomer = await prisma.customerAccount.create({
+      data: {
+        email: "remindee_patron@example.com",
+        name: "Baraka Remindee",
+        phoneNumber: "+255714000777",
+        status: "ACTIVE",
+        phoneVerified: true,
+        emailVerified: true,
+      },
+    });
+
+    // Create reminder for mainScreeningId
+    const reminder = await prisma.screeningReminder.create({
+      data: {
+        customerId: reminderCustomer.id,
+        screeningId: mainScreeningId,
+        offsetMinutes: 1440,
+        isEnabled: true,
+        sentAt: null,
+      },
+    });
+
+    const req = new NextRequest("http://localhost:3000/api/reminders/dispatch", {
+      method: "POST",
+    });
+
+    const res = await remindersDispatchPost(req);
+    const data = await res.json();
+    expect(res.status).toBe(200);
+    expect(data.success).toBe(true);
+
+    const updatedReminder = await prisma.screeningReminder.findUnique({
+      where: { id: reminder.id },
+    });
+    expect(updatedReminder?.sentAt).not.toBeNull();
+
+    // Clean up
+    await prisma.screeningReminder.delete({ where: { id: reminder.id } });
+    await prisma.customerAccount.delete({ where: { id: reminderCustomer.id } });
+  });
+
+  // 36. Operator screening and ticket provisioning endpoints
+  it("36. should provision screenings and tickets with operator authorization", async () => {
+    const { POST: operatorScreeningsPost } = await import("../src/app/api/operator/screenings/route");
+    const { POST: operatorTicketsPost } = await import("../src/app/api/operator/tickets/route");
+
+    // Create dedicated authorized operator user for cinemaId
+    const { hashPassword } = await import("../src/lib/crypto");
+    const testOp = await prisma.operatorUser.upsert({
+      where: { email: "test_op_36@cinema.com" },
+      update: {},
+      create: {
+        cinemaId,
+        email: "test_op_36@cinema.com",
+        name: "Test Operator 36",
+        passwordHash: hashPassword("OperatorPass36!"),
+        role: "MANAGER",
+        isActive: true,
+      },
+    });
+
+    const opLogin = await OperatorAuthService.login(
+      "test_op_36@cinema.com",
+      "OperatorPass36!"
+    );
+    expect(opLogin.token).toBeDefined();
+    const opToken = opLogin.token!;
+
+    // 1. Create a new screening via operator endpoint
+    const screen = await prisma.screen.findFirst({ where: { cinemaId } });
+    expect(screen).not.toBeNull();
+
+    const screeningReq = new NextRequest("http://localhost:3000/api/operator/screenings", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${opToken}`,
+      },
+      body: JSON.stringify({
+        screenId: screen!.id,
+        title: "The Lion King - Special Projection",
+        scheduledStart: new Date(Date.now() + 2 * 3600 * 1000).toISOString(),
+      }),
+    });
+
+    const screeningRes = await operatorScreeningsPost(screeningReq);
+    const screeningData = await screeningRes.json();
+    expect(screeningRes.status).toBe(200);
+    expect(screeningData.success).toBe(true);
+    expect(screeningData.screening.title).toBe("The Lion King - Special Projection");
+    const createdScreeningId = screeningData.screening.id;
+
+    // 2. Issue a demonstration ticket for the newly created screening
+    const ticketReq = new NextRequest("http://localhost:3000/api/operator/tickets", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${opToken}`,
+      },
+      body: JSON.stringify({
+        screeningId: createdScreeningId,
+        seatNumber: "H10",
+        customerName: "Faraji Salum",
+      }),
+    });
+
+    const ticketRes = await operatorTicketsPost(ticketReq);
+    const ticketData = await ticketRes.json();
+    expect(ticketRes.status).toBe(200);
+    expect(ticketData.success).toBe(true);
+    expect(ticketData.ticket.seatNumber).toBe("H10");
+    expect(ticketData.watchClaimUrl).toContain("/watch?claim=");
+
+    // Clean up
+    await prisma.demonstrationTicket.delete({ where: { id: ticketData.ticket.id } });
+    await prisma.screening.delete({ where: { id: createdScreeningId } });
+    await prisma.operatorUser.delete({ where: { id: testOp.id } });
   });
 });

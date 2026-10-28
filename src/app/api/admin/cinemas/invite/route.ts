@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { resendService } from "@/features/email/resend-service";
+import { AdminAuthService } from "@/features/admin/admin-auth-service";
 import { randomBytes } from "crypto";
 import { z } from "zod";
 
@@ -23,7 +25,8 @@ export async function POST(req: NextRequest) {
       req.headers.get("authorization")?.replace("Bearer ", "") ||
       req.cookies.get("pp_admin_token")?.value;
 
-    if (!token || !token.startsWith("adm_")) {
+    const isValid = token ? await AdminAuthService.validateSession(token) : false;
+    if (!isValid) {
       return NextResponse.json(
         { success: false, error: "Unauthorized administrative access." },
         { status: 401 }
@@ -67,10 +70,14 @@ export async function POST(req: NextRequest) {
     const protocol = host.includes("localhost") || host.includes("127.0.0.1") ? "http" : "https";
     const inviteUrl = `${protocol}://${host}/register/cinema?token=${inviteToken}`;
 
-    // Dispatch official email notification
-    console.log(
-      `[INVITATION-EMAIL] To: ${data.contactEmail} | Subject: PottyPlay Official Cinema Registration Invitation | Link: ${inviteUrl} (Expires in ${data.expiresInHours}h at ${expiresAt.toISOString()})`
-    );
+    // Dispatch official email notification via Resend
+    await resendService.sendCinemaInvitation({
+      to: data.contactEmail,
+      organizationName: data.organizationName,
+      inviteUrl,
+      expiresInHours: data.expiresInHours,
+      expiresAt,
+    });
 
     // Record audit event
     await prisma.auditEvent.create({

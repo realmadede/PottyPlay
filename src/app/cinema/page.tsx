@@ -76,11 +76,15 @@ export default function CinemaControlPage() {
       const res = await fetch("/api/simulator/playback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, ...payload }),
+        body: JSON.stringify({
+          screeningId: playback?.screeningId,
+          action,
+          ...payload,
+        }),
       });
       const data = await res.json();
       if (res.ok) {
-        setPlayback(data);
+        setPlayback(data.playback || data);
         if (data.statusMessage) {
           setStatusNotice(data.statusMessage);
         }

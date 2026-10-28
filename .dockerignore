@@ -2,6 +2,9 @@
 .gitignore
 .env
 .env*.local
+node_modules
+.next
+out
 AGENT.md
 agents.md
 *.agent.md

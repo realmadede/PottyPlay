@@ -14,25 +14,52 @@ interface ReminderItem {
   ticketNumber?: string;
 }
 
+interface AvailableScreening {
+  id: string;
+  title: string;
+  cinemaName: string;
+}
+
 export function RemindersView() {
   const [reminders, setReminders] = useState<ReminderItem[]>([]);
+  const [availableScreenings, setAvailableScreenings] = useState<AvailableScreening[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [ticketInput, setTicketInput] = useState("");
-  const [selectedScreeningId, setSelectedScreeningId] = useState("screening_prime_01");
+  const [selectedScreeningId, setSelectedScreeningId] = useState("");
   const [offsetMinutes, setOffsetMinutes] = useState(30);
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    async function loadReminders() {
+    async function loadRemindersAndScreenings() {
       try {
-        const res = await fetch("/api/reminders");
-        const data = await res.json();
-        if (data.success && Array.isArray(data.reminders)) {
-          setReminders(data.reminders);
+        const [remindersRes, discoveryRes] = await Promise.all([
+          fetch("/api/reminders"),
+          fetch("/api/cinemas/discovery"),
+        ]);
+
+        const remindersData = await remindersRes.json();
+        if (remindersData.success && Array.isArray(remindersData.reminders)) {
+          setReminders(remindersData.reminders);
         } else {
           setReminders([]);
+        }
+
+        const discoveryData = await discoveryRes.json();
+        if (discoveryData.success && Array.isArray(discoveryData.cinemas)) {
+          const list: AvailableScreening[] = [];
+          for (const c of discoveryData.cinemas) {
+            if (Array.isArray(c.activeScreenings)) {
+              for (const s of c.activeScreenings) {
+                list.push({ id: s.id, title: s.title, cinemaName: c.name });
+              }
+            }
+          }
+          setAvailableScreenings(list);
+          if (list.length > 0) {
+            setSelectedScreeningId((prev) => prev || list[0].id);
+          }
         }
       } catch {
         setErrorMessage("Unable to load reminders.");
@@ -40,7 +67,7 @@ export function RemindersView() {
         setLoading(false);
       }
     }
-    loadReminders();
+    loadRemindersAndScreenings();
   }, []);
 
   const handleAddReminder = async (e: React.FormEvent) => {
@@ -138,10 +165,18 @@ export function RemindersView() {
               <select
                 value={selectedScreeningId}
                 onChange={(e) => setSelectedScreeningId(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl border border-line bg-bg text-ink text-xs focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
+                disabled={availableScreenings.length === 0}
+                className="w-full px-3 py-2.5 rounded-xl border border-line bg-bg text-ink text-xs focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20 disabled:opacity-50"
               >
-                <option value="screening_prime_01" className="bg-field text-ink">Serengeti Shadows (Main Hall - 21:00)</option>
-                <option value="screening_wrong_02" className="bg-field text-ink">Serengeti Shadows (Late Show - 23:30)</option>
+                {availableScreenings.length === 0 ? (
+                  <option value="" className="bg-field text-ink">No scheduled screenings available</option>
+                ) : (
+                  availableScreenings.map((s) => (
+                    <option key={s.id} value={s.id} className="bg-field text-ink">
+                      {s.title} ({s.cinemaName})
+                    </option>
+                  ))
+                )}
               </select>
             </div>
 

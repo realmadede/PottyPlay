@@ -84,46 +84,8 @@ function WatchExperience() {
   const [secondsRemaining, setSecondsRemaining] = useState<number>(0);
   const syncIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Check for existing session token in localStorage or query params on mount
-  useEffect(() => {
-    const savedToken = initialToken || localStorage.getItem("pottyplay_customer_token");
-    if (savedToken) {
-      syncExistingSession(savedToken);
-    } else if (initialClaim) {
-      verifyEntitlement(initialClaim);
-    }
-  }, [initialToken, initialClaim]);
-
-  // Periodic synchronization when session is active
-  useEffect(() => {
-    if (!activeSession) return;
-
-    setSecondsRemaining(activeSession.remainingSeconds);
-
-    const timer = setInterval(() => {
-      setSecondsRemaining((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          syncExistingSession(activeSession.sessionToken);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    // Sync authoritative position with backend every 6 seconds
-    syncIntervalRef.current = setInterval(() => {
-      syncExistingSession(activeSession.sessionToken, true);
-    }, 6000);
-
-    return () => {
-      clearInterval(timer);
-      if (syncIntervalRef.current) clearInterval(syncIntervalRef.current);
-    };
-  }, [activeSession?.sessionToken]);
-
   // Synchronize session with server
-  const syncExistingSession = async (token: string, silent: boolean = false) => {
+  const syncExistingSession = useCallback(async (token: string, silent: boolean = false) => {
     if (!silent) setIsSyncing(true);
     try {
       const res = await fetch("/api/sessions/sync", {
@@ -162,10 +124,10 @@ function WatchExperience() {
     } finally {
       if (!silent) setIsSyncing(false);
     }
-  };
+  }, []);
 
   // Verify ticket or claim token
-  const verifyEntitlement = async (identifierToVerify?: string) => {
+  const verifyEntitlement = useCallback(async (identifierToVerify?: string) => {
     const code = (identifierToVerify || ticketInput).trim();
     if (!code) {
       setErrorMessage("Please enter your ticket code or claim token.");
@@ -201,7 +163,46 @@ function WatchExperience() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [ticketInput]);
+
+  // Check for existing session token in localStorage or query params on mount
+  useEffect(() => {
+    const savedToken = initialToken || localStorage.getItem("pottyplay_customer_token");
+    if (savedToken) {
+      syncExistingSession(savedToken);
+    } else if (initialClaim) {
+      verifyEntitlement(initialClaim);
+    }
+  }, [initialToken, initialClaim, syncExistingSession, verifyEntitlement]);
+
+  // Periodic synchronization when session is active
+  useEffect(() => {
+    if (!activeSession) return;
+
+    setSecondsRemaining(activeSession.remainingSeconds);
+    const sessionToken = activeSession.sessionToken;
+
+    const timer = setInterval(() => {
+      setSecondsRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          syncExistingSession(sessionToken);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    // Sync authoritative position with backend every 6 seconds
+    syncIntervalRef.current = setInterval(() => {
+      syncExistingSession(sessionToken, true);
+    }, 6000);
+
+    return () => {
+      clearInterval(timer);
+      if (syncIntervalRef.current) clearInterval(syncIntervalRef.current);
+    };
+  }, [activeSession, syncExistingSession]);
 
   // Direct activation (one-time patron claim)
   const handleDirectActivate = async () => {
@@ -248,7 +249,7 @@ function WatchExperience() {
             cinemaName: data.cinemaName,
             screenName: data.screenName,
             playbackPositionSeconds: data.initialPlaybackPositionSeconds || 0,
-            durationSeconds: 1800,
+            durationSeconds: data.totalDurationSeconds || 1800,
             isPaused: false,
             videoUrl: data.videoUrl,
           },
@@ -331,7 +332,18 @@ function WatchExperience() {
   };
 
   // Leave break session
-  const handleLeaveSession = () => {
+  const handleLeaveSession = async () => {
+    const token = activeSession?.sessionToken || localStorage.getItem("pottyplay_customer_token");
+    if (token) {
+      try {
+        await fetch("/api/sessions/complete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-session-token": token },
+        });
+      } catch {
+        // silent fallback
+      }
+    }
     localStorage.removeItem("pottyplay_customer_token");
     setActiveSession(null);
     setSessionExpiredReason("You ended your break companion session.");

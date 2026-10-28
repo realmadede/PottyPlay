@@ -31,6 +31,7 @@ export interface ActivateSessionResult {
   cinemaName?: string;
   screenName?: string;
   initialPlaybackPositionSeconds?: number;
+  totalDurationSeconds?: number;
   videoUrl?: string;
   error?: string;
 }
@@ -284,6 +285,7 @@ export class SessionService {
         screenName: transactionResult.ticket.screening.screen.name,
         initialPlaybackPositionSeconds:
           Math.round(transactionResult.currentPosition * 10) / 10,
+        totalDurationSeconds: transactionResult.ticket.screening.contentAsset.durationSeconds,
         videoUrl: transactionResult.ticket.screening.contentAsset.videoUrl,
       };
     } catch (err: unknown) {
@@ -467,5 +469,42 @@ export class SessionService {
     });
 
     return true;
+  }
+
+  /**
+   * Patron action: Ends and completes an active break session upon returning to auditorium.
+   */
+  static async completeSession(sessionToken: string, reason: string = "Auditorium re-entry by patron") {
+    const session = await prisma.breakSession.findUnique({
+      where: { sessionToken },
+    });
+
+    if (!session) throw new Error("Session not found.");
+    if (session.status !== SessionStatus.ACTIVE) return session;
+
+    const now = new Date();
+    const duration = Math.round((now.getTime() - session.startedAt.getTime()) / 1000);
+
+    const updated = await prisma.breakSession.update({
+      where: { id: session.id },
+      data: {
+        status: SessionStatus.COMPLETED,
+        endedAt: now,
+        durationSeconds: duration,
+      },
+    });
+
+    await prisma.auditEvent.create({
+      data: {
+        sessionId: session.id,
+        eventType: "SESSION_COMPLETED_EARLY",
+        entityType: "BREAK_SESSION",
+        entityId: session.id,
+        actor: "PATRON",
+        details: JSON.stringify({ reason, durationSeconds: duration }),
+      },
+    });
+
+    return updated;
   }
 }

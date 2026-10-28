@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { CinemaCanvasPlayer } from "@/components/CinemaCanvasPlayer";
 import {
   Clock,
@@ -60,7 +60,7 @@ export function BathroomView() {
   // Manual ticket entry fallback if no ticket pre-linked
   const [manualTicket, setManualTicket] = useState("");
 
-  const checkStatus = async () => {
+  const checkStatus = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch("/api/customer/bathroom");
@@ -82,11 +82,11 @@ export function BathroomView() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     checkStatus();
-  }, []);
+  }, [checkStatus]);
 
   // Timer countdown countdown for active session
   useEffect(() => {
@@ -105,7 +105,64 @@ export function BathroomView() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [activeSession, remainingTimer]);
+  }, [activeSession, remainingTimer, checkStatus]);
+
+  // Periodic authoritative synchronization with cinema timeline
+  useEffect(() => {
+    if (!activeSession) return;
+
+    const sessionToken = activeSession.sessionToken;
+
+    const syncInterval = setInterval(async () => {
+      try {
+        const res = await fetch("/api/sessions/sync", {
+          headers: { "x-session-token": sessionToken },
+        });
+        const data = await res.json();
+        if (res.ok && data.isValid) {
+          setRemainingTimer(data.remainingSeconds);
+          setActiveSession((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  remainingSeconds: data.remainingSeconds,
+                  screening: {
+                    ...prev.screening,
+                    playbackPositionSeconds: data.screening?.playbackPositionSeconds ?? prev.screening.playbackPositionSeconds,
+                    isPaused: data.screening?.isPaused ?? prev.screening.isPaused,
+                  },
+                }
+              : null
+          );
+        } else if (res.ok && !data.isValid) {
+          // Hard expiration or operator revocation
+          setActiveSession(null);
+          checkStatus();
+        }
+      } catch {
+        // silent background sync
+      }
+    }, 5000);
+
+    return () => clearInterval(syncInterval);
+  }, [activeSession, checkStatus]);
+
+  const handleEndBreak = async () => {
+    if (!activeSession) return;
+    try {
+      await fetch("/api/sessions/complete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-session-token": activeSession.sessionToken,
+        },
+      });
+    } catch {
+      // silent
+    }
+    setActiveSession(null);
+    await checkStatus();
+  };
 
   // Activate session
   const handleActivate = async (ticketNumberToUse: string) => {
@@ -209,10 +266,7 @@ export function BathroomView() {
             </div>
             <button
               type="button"
-              onClick={() => {
-                setActiveSession(null);
-                checkStatus();
-              }}
+              onClick={handleEndBreak}
               className="py-1.5 px-3 rounded-lg bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-[11px] transition-colors"
             >
               Return to Auditorium

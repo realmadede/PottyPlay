@@ -116,6 +116,36 @@ class SmsService {
 
     return result;
   }
+
+  async sendScreeningUpcomingReminder(
+    phoneNumber: string,
+    screeningTitle: string,
+    minutesRemaining: number,
+    cinemaName: string
+  ): Promise<SendSmsResult> {
+    const message = `PottyPlay Reminder: Screening "${screeningTitle}" at ${cinemaName} begins in ${minutesRemaining} minute(s). Get your seat ready!`;
+
+    const result = await this.provider.sendSms({
+      to: phoneNumber,
+      message,
+      messageType: "SCREENING_REMINDER",
+    });
+
+    await prisma.smsDeliveryAttempt.create({
+      data: {
+        phoneNumber,
+        messageType: "SCREENING_REMINDER",
+        messageBody: `Screening reminder sent for ${screeningTitle} (${minutesRemaining}m)`,
+        provider: result.provider,
+        status: result.status,
+        providerMessageId: result.providerMessageId || null,
+        cost: result.cost || null,
+        errorDetails: result.errorDetails || null,
+      },
+    });
+
+    return result;
+  }
 }
 
 export const smsService = new SmsService();

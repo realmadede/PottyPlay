@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { generateSessionToken, hashPassword, verifyPassword } from "@/lib/crypto";
+import { resendService } from "@/features/email/resend-service";
 import { randomBytes } from "crypto";
 
 const loginAttempts = new Map<string, { count: number; lastAttempt: number }>();
@@ -171,7 +172,7 @@ export class OperatorAuthService {
         },
       });
 
-      console.log(`[OPERATOR-PASSWORD-RESET] Token for ${cleanEmail}: ${resetToken} (expires in 15m)`);
+      await resendService.sendOperatorPasswordReset(cleanEmail, resetToken);
 
       await prisma.auditEvent.create({
         data: {

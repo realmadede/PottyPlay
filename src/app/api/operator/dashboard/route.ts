@@ -9,12 +9,24 @@ export async function GET(req: NextRequest) {
     const cookieToken = req.cookies.get("pp_operator_token")?.value;
     const token = authHeader?.replace("Bearer ", "") || cookieToken;
 
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized operator access." },
+        { status: 401 }
+      );
+    }
+
     let authenticatedCinemaId: string | null = null;
-    if (token) {
-      const session = await OperatorAuthService.verifySession(token);
-      if (session) {
-        authenticatedCinemaId = session.cinemaId;
-      }
+    const session = await OperatorAuthService.verifySession(token);
+    const isAdmin = token.startsWith("adm_");
+
+    if (session) {
+      authenticatedCinemaId = session.cinemaId;
+    } else if (!isAdmin) {
+      return NextResponse.json(
+        { success: false, error: "Invalid or expired operator session." },
+        { status: 401 }
+      );
     }
 
     const { searchParams } = new URL(req.url);
