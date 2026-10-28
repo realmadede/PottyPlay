@@ -41,10 +41,10 @@ The platform enables authenticated cinema patrons to temporarily follow an ongoi
 - Screen and screening management, live break counters, manual usher revocations with required rationale, and audit history.
 - Cinema-specific commercial pricing configuration (per-session rates, currency, status) preserving historical billing records.
 
-### 1.5 Private Platform Administration (`/admin` / `setapart.pottyplay.domain`)
+### 1.5 Private Platform Administration (`/x` / `setapart.<domain>`)
 - Restricted administration portal with rate-limited authentication, session management, and audit logging.
 - Global operational oversight: partner review and approval workflow, global usage ledger, approved cinemas, active sessions, and security events.
-- Strictly isolated by domain routing: the public marketing domain blocks `/admin` routes.
+- Strictly isolated by domain routing: the public marketing domain blocks `/x` and unmapped `/admin` routes.
 
 ### 1.6 Developer Portal (`/developers`)
 - Complete integration documentation for cinema IT teams, POS vendors (Vista, Veezi, RTS), and TMS projection servers.

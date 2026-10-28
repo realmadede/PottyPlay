@@ -150,7 +150,7 @@ export default function AdminPortalPage() {
               Private Platform Administration
             </h1>
             <p className="text-xs text-muted mt-1">
-              setapart.pottyplay.co.tz &bull; Restricted Access
+              Platform Administration &bull; Restricted Access
             </p>
           </div>
 
@@ -191,11 +191,21 @@ export default function AdminPortalPage() {
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink p-1 transition-colors focus:outline-none"
+                  tabIndex={-1}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowPassword((prev) => !prev);
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink p-1.5 rounded-lg transition-colors focus:outline-none cursor-pointer z-10 flex items-center justify-center"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4 pointer-events-none" />
+                  ) : (
+                    <Eye className="w-4 h-4 pointer-events-none" />
+                  )}
                 </button>
               </div>
             </div>
@@ -233,7 +243,7 @@ export default function AdminPortalPage() {
         <div className="flex items-center space-x-3">
           <BrandLogo size="sm" variant="full" />
           <span className="hidden sm:inline-block px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-            setapart.pottyplay.co.tz
+            Internal Administration
           </span>
         </div>
 

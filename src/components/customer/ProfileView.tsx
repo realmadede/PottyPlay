@@ -622,11 +622,21 @@ export function ProfileView({ customer, onUpdateCustomer }: ProfileViewProps) {
               />
               <button
                 type="button"
-                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink p-1 transition-colors focus:outline-none"
+                tabIndex={-1}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowCurrentPassword((prev) => !prev);
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink p-1.5 rounded-lg transition-colors focus:outline-none cursor-pointer z-10 flex items-center justify-center"
                 aria-label={showCurrentPassword ? "Hide current password" : "Show current password"}
               >
-                {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showCurrentPassword ? (
+                  <EyeOff className="w-4 h-4 pointer-events-none" />
+                ) : (
+                  <Eye className="w-4 h-4 pointer-events-none" />
+                )}
               </button>
             </div>
           </div>
@@ -648,11 +658,21 @@ export function ProfileView({ customer, onUpdateCustomer }: ProfileViewProps) {
               />
               <button
                 type="button"
-                onClick={() => setShowNewPassword(!showNewPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink p-1 transition-colors focus:outline-none"
+                tabIndex={-1}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowNewPassword((prev) => !prev);
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink p-1.5 rounded-lg transition-colors focus:outline-none cursor-pointer z-10 flex items-center justify-center"
                 aria-label={showNewPassword ? "Hide new password" : "Show new password"}
               >
-                {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showNewPassword ? (
+                  <EyeOff className="w-4 h-4 pointer-events-none" />
+                ) : (
+                  <Eye className="w-4 h-4 pointer-events-none" />
+                )}
               </button>
             </div>
           </div>
@@ -674,11 +694,21 @@ export function ProfileView({ customer, onUpdateCustomer }: ProfileViewProps) {
               />
               <button
                 type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink p-1 transition-colors focus:outline-none"
+                tabIndex={-1}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowConfirmPassword((prev) => !prev);
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink p-1.5 rounded-lg transition-colors focus:outline-none cursor-pointer z-10 flex items-center justify-center"
                 aria-label={showConfirmPassword ? "Hide confirmation password" : "Show confirmation password"}
               >
-                {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showConfirmPassword ? (
+                  <EyeOff className="w-4 h-4 pointer-events-none" />
+                ) : (
+                  <Eye className="w-4 h-4 pointer-events-none" />
+                )}
               </button>
             </div>
           </div>

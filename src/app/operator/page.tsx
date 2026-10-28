@@ -343,12 +343,6 @@ export default function OperatorPage() {
               >
                 Apply for Cinema Partnership
               </Link>
-              <Link
-                href="/admin"
-                className="py-2.5 px-4 rounded-xl text-xs font-semibold bg-bg text-ink border border-line hover:bg-field-raised transition-all"
-              >
-                Go to Admin Review
-              </Link>
             </div>
           </div>
         ) : (

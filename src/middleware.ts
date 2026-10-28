@@ -23,12 +23,17 @@ export function middleware(req: NextRequest) {
   const isSetapartHost = host.startsWith("setapart.") || req.headers.get("x-pottyplay-host") === "setapart";
   const isOperationsHost = host.startsWith("operations.") || req.headers.get("x-pottyplay-host") === "operations";
 
+  // Reject any request to /admin globally (unguessable /x replaces it)
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
+    return new NextResponse("Not Found", { status: 404 });
+  }
+
   // 1. Administration Hostname: setapart.pottyplay.<domain>
   if (isSetapartHost) {
-    // If root on admin host, rewrite to /admin
+    // If root on admin host, rewrite to /x
     if (pathname === "/") {
       const url = req.nextUrl.clone();
-      url.pathname = "/admin";
+      url.pathname = "/x";
       return NextResponse.rewrite(url);
     }
 
@@ -50,7 +55,7 @@ export function middleware(req: NextRequest) {
     }
 
     // Prohibit platform administration access on operations hostname
-    if (pathname.startsWith("/admin") || pathname.startsWith("/api/admin")) {
+    if (pathname.startsWith("/x") || pathname.startsWith("/api/admin")) {
       return new NextResponse("Not Found", { status: 404 });
     }
 
@@ -59,7 +64,7 @@ export function middleware(req: NextRequest) {
 
   // 3. Public Marketing Hostname: pottyplay.<domain> (Default)
   // In production (or when baseDomain configured), public hostname MUST NOT expose private admin portal
-  if (!isDev && (pathname.startsWith("/admin") || pathname.startsWith("/api/admin"))) {
+  if (!isDev && (pathname.startsWith("/x") || pathname.startsWith("/api/admin"))) {
     // Reject private admin requests on public marketing host without leaking administrative existence
     return new NextResponse("Not Found", { status: 404 });
   }

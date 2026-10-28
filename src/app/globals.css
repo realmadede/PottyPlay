@@ -104,6 +104,12 @@ input, textarea, select {
   font-size: 16px;
 }
 
+/* Disable native browser password reveal and clear buttons to avoid colliding with custom eye toggles */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
+
 /* Controls have instant touch manipulation and control user-select */
 button, a, [role="button"] {
   touch-action: manipulation;
