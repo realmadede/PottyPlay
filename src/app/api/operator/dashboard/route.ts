@@ -1,11 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { ScreeningService } from "@/features/screenings/screening-service";
+import { OperatorAuthService } from "@/features/operator/operator-auth-service";
 
 export async function GET(req: NextRequest) {
   try {
+    const authHeader = req.headers.get("authorization");
+    const cookieToken = req.cookies.get("pp_operator_token")?.value;
+    const token = authHeader?.replace("Bearer ", "") || cookieToken;
+
+    let authenticatedCinemaId: string | null = null;
+    if (token) {
+      const session = await OperatorAuthService.verifySession(token);
+      if (session) {
+        authenticatedCinemaId = session.cinemaId;
+      }
+    }
+
     const { searchParams } = new URL(req.url);
     const requestedCinemaId =
+      authenticatedCinemaId ||
       searchParams.get("cinemaId") ||
       req.headers.get("x-cinema-id");
 

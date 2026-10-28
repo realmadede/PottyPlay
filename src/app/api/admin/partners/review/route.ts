@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { hashPassword } from "@/lib/crypto";
 import { z } from "zod";
 
 const reviewSchema = z.object({
@@ -75,7 +76,25 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      // 5. Audit event
+      // 5. Provision manager operator user
+      const cleanEmail = application.contactEmail.toLowerCase().trim();
+      const existingOp = await prisma.operatorUser.findUnique({
+        where: { email: cleanEmail },
+      });
+      if (!existingOp) {
+        await prisma.operatorUser.create({
+          data: {
+            cinemaId: cinema.id,
+            email: cleanEmail,
+            name: application.contactName.trim(),
+            passwordHash: hashPassword("CinemaPass2026!"),
+            role: "MANAGER",
+            isActive: true,
+          },
+        });
+      }
+
+      // 6. Audit event
       await prisma.auditEvent.create({
         data: {
           cinemaId: cinema.id,

@@ -113,21 +113,26 @@ model CinemaPricingRule {
 }
 
 model OperatorUser {
-  id           String       @id @default(cuid())
-  cinemaId     String
-  email        String       @unique
-  name         String
-  passwordHash String
-  role         OperatorRole @default(MANAGER)
-  isActive     Boolean      @default(true)
-  lastLoginAt  DateTime?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  id                     String       @id @default(cuid())
+  cinemaId               String
+  email                  String       @unique
+  name                   String
+  passwordHash           String
+  role                   OperatorRole @default(MANAGER)
+  isActive               Boolean      @default(true)
+  lastLoginAt            DateTime?
+  sessionToken           String?      @unique
+  tokenExpiresAt         DateTime?
+  passwordResetToken     String?      @unique
+  passwordResetExpiresAt DateTime?
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
 
   cinema Cinema @relation(fields: [cinemaId], references: [id], onDelete: Cascade)
 
   @@index([cinemaId])
   @@index([email])
+  @@index([sessionToken])
 }
 
 model AdminUser {

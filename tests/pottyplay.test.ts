@@ -7,6 +7,7 @@ import { ScreeningService } from "../src/features/screenings/screening-service";
 import { BillingService } from "../src/features/billing/billing-service";
 import { RightsService } from "../src/features/rights/rights-service";
 import { CustomerAuthService } from "../src/features/auth/customer-auth-service";
+import { OperatorAuthService } from "../src/features/operator/operator-auth-service";
 import { AfricasTalkingSmsAdapter } from "../src/features/messaging/africas-talking-adapter";
 import { hashOtp } from "../src/lib/crypto";
 import { ScreeningStatus, SessionStatus, TicketStatus, CinemaStatus } from "@prisma/client";
@@ -877,5 +878,207 @@ describe("PottyPlay Comprehensive Test Suite", () => {
       password: "superBrandNewPass789!",
     });
     expect(newLogin.success).toBe(true);
+  });
+
+  // 28. Cinema Registration through Admin Provisioning
+  it("28. should provision cinema, screens, pricing rule and operator user when registered", async () => {
+    // Clean any previous test instance
+    await prisma.operatorUser.deleteMany({ where: { email: "test_op_manager@cinema.com" } });
+    await prisma.cinema.deleteMany({ where: { name: "Suite Test Provisioned Cinema" } });
+
+    // Provision cinema record directly as admin endpoint does
+    const cinema = await prisma.cinema.create({
+      data: {
+        name: "Suite Test Provisioned Cinema",
+        location: "Kariakoo, Dar es Salaam",
+        status: CinemaStatus.APPROVED,
+        organizationName: "Suite Test Cinema Group",
+        contactEmail: "admin@suitetestcinema.com",
+        contactPhone: "+255712000999",
+        ticketingSystem: "Vista Cinema POS",
+        screeningSystem: "Dolby IMS3000 TMS",
+      },
+    });
+
+    const screen = await prisma.screen.create({
+      data: {
+        cinemaId: cinema.id,
+        name: "Screen 1 - Atmos",
+        totalSeats: 150,
+      },
+    });
+
+    const pricing = await prisma.cinemaPricingRule.create({
+      data: {
+        cinemaId: cinema.id,
+        currency: "TZS",
+        pricePerSession: 600,
+        status: "ACTIVE",
+      },
+    });
+
+    // Create operator user with hashed password
+    const { hashPassword } = await import("../src/lib/crypto");
+    const operator = await prisma.operatorUser.create({
+      data: {
+        cinemaId: cinema.id,
+        email: "test_op_manager@cinema.com",
+        name: "Kariakoo Manager",
+        passwordHash: hashPassword("CinemaPass123!"),
+        role: "MANAGER",
+        isActive: true,
+      },
+    });
+
+    expect(cinema.id).toBeDefined();
+    expect(screen.cinemaId).toBe(cinema.id);
+    expect(pricing.pricePerSession).toBe(600);
+    expect(operator.email).toBe("test_op_manager@cinema.com");
+
+    // Clean up
+    await prisma.operatorUser.delete({ where: { id: operator.id } });
+    await prisma.cinemaPricingRule.deleteMany({ where: { cinemaId: cinema.id } });
+    await prisma.screen.deleteMany({ where: { cinemaId: cinema.id } });
+    await prisma.cinema.delete({ where: { id: cinema.id } });
+  });
+
+  // 29. Operator Authentication
+  it("29. should authenticate operator manager and reject invalid credentials or inactive accounts", async () => {
+    const { hashPassword } = await import("../src/lib/crypto");
+    const testOpCinema = await prisma.cinema.create({
+      data: {
+        name: "Auth Test Cinema",
+        location: "Oysterbay, Dar es Salaam",
+        status: CinemaStatus.APPROVED,
+        organizationName: "Auth Test Group",
+        contactEmail: "contact@authtest.com",
+        contactPhone: "+255713444555",
+      },
+    });
+
+    const testOp = await prisma.operatorUser.create({
+      data: {
+        cinemaId: testOpCinema.id,
+        email: "test_op_manager@cinema.com",
+        name: "Test Manager",
+        passwordHash: hashPassword("StrongOperatorPass123!"),
+        role: "MANAGER",
+        isActive: true,
+      },
+    });
+
+    // Invalid password must fail
+    const badLogin = await OperatorAuthService.login(
+      "test_op_manager@cinema.com",
+      "wrongPassword999!"
+    );
+    expect(badLogin.success).toBe(false);
+    expect(badLogin.error).toContain("Invalid operator credentials");
+
+    // Non-existent email must fail
+    const unknownLogin = await OperatorAuthService.login(
+      "unknown_operator@cinema.com",
+      "StrongOperatorPass123!"
+    );
+    expect(unknownLogin.success).toBe(false);
+
+    // Valid credentials must succeed
+    const validLogin = await OperatorAuthService.login(
+      "test_op_manager@cinema.com",
+      "StrongOperatorPass123!"
+    );
+    expect(validLogin.success).toBe(true);
+    expect(validLogin.token).toBeDefined();
+    expect(validLogin.operator?.cinema.name).toBe("Auth Test Cinema");
+
+    // Verify session
+    const verified = await OperatorAuthService.verifySession(validLogin.token!);
+    expect(verified).not.toBeNull();
+    expect(verified?.email).toBe("test_op_manager@cinema.com");
+
+    // Logout
+    await OperatorAuthService.logout(validLogin.token!);
+    const afterLogout = await OperatorAuthService.verifySession(validLogin.token!);
+    expect(afterLogout).toBeNull();
+
+    // Clean up
+    await prisma.operatorUser.delete({ where: { id: testOp.id } });
+    await prisma.cinema.delete({ where: { id: testOpCinema.id } });
+  });
+
+  // 30. Operator Forgot Password and Reset Flow
+  it("30. should process operator forgot password request and reset password with token", async () => {
+    const { hashPassword } = await import("../src/lib/crypto");
+    const testOpCinema = await prisma.cinema.create({
+      data: {
+        name: "Reset Test Cinema",
+        location: "Mikocheni, Dar es Salaam",
+        status: CinemaStatus.APPROVED,
+        organizationName: "Reset Test Group",
+        contactEmail: "contact@resettest.com",
+        contactPhone: "+255713888777",
+      },
+    });
+
+    const testOp = await prisma.operatorUser.create({
+      data: {
+        cinemaId: testOpCinema.id,
+        email: "test_op_reset@cinema.com",
+        name: "Reset Manager",
+        passwordHash: hashPassword("InitialPass123!"),
+        role: "MANAGER",
+        isActive: true,
+      },
+    });
+
+    // Request reset token
+    const forgotResult = await OperatorAuthService.requestPasswordReset("test_op_reset@cinema.com");
+    expect(forgotResult.success).toBe(true);
+
+    const updatedOp = await prisma.operatorUser.findUnique({
+      where: { id: testOp.id },
+    });
+    expect(updatedOp?.passwordResetToken).toBeDefined();
+    expect(updatedOp?.passwordResetToken?.startsWith("opr_rst_")).toBe(true);
+
+    // Invalid token must fail
+    const invalidReset = await OperatorAuthService.resetPassword(
+      "opr_rst_fake_invalid_token",
+      "BrandNewPass456!"
+    );
+    expect(invalidReset.success).toBe(false);
+
+    // Password shorter than 8 chars must fail
+    const shortPassReset = await OperatorAuthService.resetPassword(
+      updatedOp!.passwordResetToken!,
+      "short"
+    );
+    expect(shortPassReset.success).toBe(false);
+
+    // Valid reset
+    const validReset = await OperatorAuthService.resetPassword(
+      updatedOp!.passwordResetToken!,
+      "BrandNewStrongPass456!"
+    );
+    expect(validReset.success).toBe(true);
+
+    // Old password fails
+    const oldLogin = await OperatorAuthService.login(
+      "test_op_reset@cinema.com",
+      "InitialPass123!"
+    );
+    expect(oldLogin.success).toBe(false);
+
+    // New password succeeds
+    const newLogin = await OperatorAuthService.login(
+      "test_op_reset@cinema.com",
+      "BrandNewStrongPass456!"
+    );
+    expect(newLogin.success).toBe(true);
+
+    // Clean up
+    await OperatorAuthService.logout(newLogin.token!);
+    await prisma.operatorUser.delete({ where: { id: testOp.id } });
+    await prisma.cinema.delete({ where: { id: testOpCinema.id } });
   });
 });
