@@ -40,8 +40,8 @@ Validates that a ticket barcode or claim token corresponds to a valid admission 
 ```json
 // Request
 {
-  "ticketNumber": "CC-MLM-7821-A12",
-  "screeningId": "screening_prime_01"
+  "ticketNumber": "TK-8821-A12",
+  "screeningId": "screening_auditorium_01"
 }
 
 // Response (200 OK)
@@ -49,18 +49,18 @@ Validates that a ticket barcode or claim token corresponds to a valid admission 
   "isEligible": true,
   "status": "ELIGIBLE",
   "ticket": {
-    "ticketNumber": "CC-MLM-7821-A12",
+    "ticketNumber": "TK-8821-A12",
     "seatNumber": "A12",
-    "customerName": "Juma Mwanamvua"
+    "customerName": "Patron Name"
   },
   "screening": {
-    "id": "screening_prime_01",
-    "title": "Serengeti Shadows (Main Hall)",
-    "cinemaName": "Century Cinemax - Mlimani City"
+    "id": "screening_auditorium_01",
+    "title": "Screening Feature (Auditorium 1)",
+    "cinemaName": "Partner Cinema Circuit"
   },
   "rights": {
     "maxSessionDurationSeconds": 900,
-    "licenseType": "Authorized Exhibitor Trial"
+    "licenseType": "Authorized Exhibitor License"
   }
 }
 ```
@@ -73,38 +73,61 @@ Atomically activates a 900-second session. Enforces the strict 2-break limit per
 ```json
 // Request
 {
-  "ticketNumber": "CC-MLM-7821-A12",
+  "ticketNumber": "TK-8821-A12",
   "deviceInfo": "Safari on iOS 18 (Mobile)"
 }
 
 // Response (200 OK)
 {
-  "success": true,
-  "sessionId": "session_88192a_cuid",
-  "sessionToken": "pstk_e92bf18a032d88...",
-  "durationSeconds": 900,
-  "initialPlaybackPositionSeconds": 720.0
+  "sessionId": "ses_9f81a7b3c2d4e5f6",
+  "sessionToken": "pstk_0192837465abcde",
+  "screeningId": "screening_auditorium_01",
+  "streamUrl": "https://stream.pottyplay.internal/hls/screening_auditorium_01/manifest.m3u8",
+  "currentPositionSeconds": 1420,
+  "expiresAt": "2026-10-28T12:35:00.000Z",
+  "maxDurationSeconds": 900,
+  "breakNumber": 1,
+  "remainingBreaks": 1
 }
 ```
 
-### 3.3 Authoritative Synchronization
-`GET /api/sessions/sync`
+### 3.3 Synchronize Playback Timeline
+`GET /api/sessions/sync?sessionToken=pstk_...`
 
-Header: `x-session-token: pstk_e92bf18a032d88...`
+Returns the authoritative projection timecode.
 
-Returns current authoritative playback position, pause state, and remaining seconds.
+```json
+// Response (200 OK)
+{
+  "currentPositionSeconds": 1435,
+  "isPaused": false,
+  "canFollow": true,
+  "secondsRemaining": 885,
+  "serverTimestamp": 1793183700000
+}
+```
 
 ---
 
-## 4. Ticketing POS Webhooks
+## 4. Ticketing Webhook Specification
 
-Exhibitor POS systems send webhooks to `https://api.pottyplay.co.tz/webhooks/pos`:
+Exhibitor POS systems emit admission events to PottyPlay:
 
-- `ticket.admitted`: Provisions ticket entitlement when scanned at theater turnstiles.
-- `ticket.refunded`: Immediately revokes companion authorization if a ticket is refunded.
+```http
+POST /api/webhooks/pottyplay/tickets
+Content-Type: application/json
+X-PottyPlay-Signature: sha256=...
 
----
-
-## 5. Certification and Sandbox
-
-Partners receive sandbox credentials upon administrative approval. The sandbox runs against isolated fixtures at `https://sandbox.pottyplay.co.tz`.
+{
+  "event": "ticket.admitted",
+  "cinemaId": "cinema_circuit_01",
+  "screeningId": "screening_auditorium_01",
+  "ticketNumber": "TK-8821-A12",
+  "seatNumber": "A12",
+  "customerName": "Patron Name",
+  "customerPhone": "+255714000111",
+  "claimToken": "CLM-A12-9901",
+  "maxBreaks": 2,
+  "maxSessionSeconds": 900
+}
+```

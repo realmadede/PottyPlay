@@ -23,6 +23,8 @@ import {
   HelpCircle,
   Database,
   ExternalLink,
+  ChevronRight,
+  Sparkles,
 } from "lucide-react";
 
 export default function BusinessLandingPage() {
@@ -35,81 +37,105 @@ export default function BusinessLandingPage() {
         {/* 1. Hero Carousel */}
         <HeroCarousel />
 
-        {/* 2. Clear Product Proposition */}
+        {/* 2. Clear Product Proposition (Asymmetric Editorial Layout) */}
         <section
           id="proposition"
           className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-brand-border/80 w-full"
         >
-          <div className="text-center max-w-3xl mx-auto">
-            <span className="text-xs font-bold uppercase tracking-wider text-brand-secondary">
-              Product Definition & Philosophy
-            </span>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-extrabold text-brand-text-primary tracking-tight">
-              A Purpose-Built Cinema Companion. Not a Streaming Platform.
-            </h2>
-            <p className="mt-4 text-base sm:text-lg text-brand-text-secondary leading-relaxed">
-              PottyPlay is engineered specifically to solve mid-movie patron anxiety. We enable authenticated ticket holders to briefly follow an ongoing theatrical screening during necessary bathroom intermissions without compromising box-office sanctity.
-            </p>
-          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
+            {/* Left Narrative Pillar */}
+            <div className="lg:col-span-5 flex flex-col text-left">
+              <span className="text-xs font-bold uppercase tracking-wider text-brand-secondary">
+                Product Definition & Philosophy
+              </span>
+              <h2 className="mt-3 text-3xl sm:text-4xl md:text-5xl font-black text-brand-text-primary tracking-tight leading-[1.12]">
+                A Purpose-Built Cinema Companion. Not a Streaming Platform.
+              </h2>
+              <p className="mt-5 text-sm sm:text-base text-brand-text-secondary leading-relaxed">
+                PottyPlay is engineered specifically to solve mid-movie patron anxiety. We enable authenticated ticket holders to briefly follow an ongoing theatrical screening during necessary bathroom intermissions without compromising box-office sanctity.
+              </p>
 
-          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-7 rounded-3xl bg-brand-surface border border-brand-border shadow-card flex flex-col justify-between">
-              <div>
-                <div className="w-10 h-10 rounded-2xl bg-brand-primary/20 text-brand-text-primary flex items-center justify-center mb-5">
-                  <ShieldCheck className="w-5 h-5 text-brand-accent" />
+              <div className="mt-8 p-5 rounded-2xl bg-white border border-brand-border shadow-subtle flex items-start space-x-3.5">
+                <div className="w-8 h-8 rounded-xl bg-brand-primary/20 text-brand-primary flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <ShieldCheck className="w-4 h-4 text-brand-accent" />
                 </div>
-                <h3 className="text-lg font-bold text-brand-text-primary">
-                  Strictly Controlled Exclusivity
-                </h3>
-                <p className="mt-2.5 text-xs text-brand-text-secondary leading-relaxed">
+                <div>
+                  <div className="font-bold text-xs uppercase tracking-wide text-brand-text-primary">
+                    Theatrical Exclusivity
+                  </div>
+                  <div className="text-xs text-brand-text-secondary mt-1 leading-relaxed">
+                    Designed from the ground up to protect theater admissions. Never a public video library or streaming competitor.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Architectural Sequence (3 Tiers, not identical box cards) */}
+            <div className="lg:col-span-7 space-y-4">
+              {/* Tier 1 */}
+              <div className="p-5 sm:p-7 rounded-2xl bg-white border border-brand-border shadow-subtle hover:border-brand-primary/40 transition-colors">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div className="flex items-center space-x-3">
+                    <span className="w-7 h-7 rounded-lg bg-brand-primary/15 text-brand-primary font-mono text-xs font-black flex items-center justify-center flex-shrink-0">
+                      01
+                    </span>
+                    <h3 className="text-base sm:text-lg font-extrabold text-brand-text-primary">
+                      Strictly Controlled Exclusivity
+                    </h3>
+                  </div>
+                  <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 whitespace-nowrap">
+                    Preserves Window
+                  </span>
+                </div>
+                <p className="mt-3 text-xs sm:text-sm text-brand-text-secondary leading-relaxed sm:pl-10">
                   Viewing access is tethered directly to a verified, ongoing cinema screening. Access expires permanently after 900 seconds. No video library, no rewinding, and no home streaming.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-brand-border/60 text-[11px] font-semibold text-emerald-700 flex items-center space-x-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Preserves Theatrical Window</span>
-              </div>
-            </div>
 
-            <div className="p-7 rounded-3xl bg-brand-surface border border-brand-border shadow-card flex flex-col justify-between">
-              <div>
-                <div className="w-10 h-10 rounded-2xl bg-brand-primary/20 text-brand-text-primary flex items-center justify-center mb-5">
-                  <Activity className="w-5 h-5 text-brand-accent" />
+              {/* Tier 2 */}
+              <div className="p-5 sm:p-7 rounded-2xl bg-white border border-brand-border shadow-subtle hover:border-brand-primary/40 transition-colors">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div className="flex items-center space-x-3">
+                    <span className="w-7 h-7 rounded-lg bg-brand-primary/15 text-brand-primary font-mono text-xs font-black flex items-center justify-center flex-shrink-0">
+                      02
+                    </span>
+                    <h3 className="text-base sm:text-lg font-extrabold text-brand-text-primary">
+                      Zero Drift Synchronization
+                    </h3>
+                  </div>
+                  <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 whitespace-nowrap">
+                    Sub-Second Precision
+                  </span>
                 </div>
-                <h3 className="text-lg font-bold text-brand-text-primary">
-                  Zero Drift Synchronization
-                </h3>
-                <p className="mt-2.5 text-xs text-brand-text-secondary leading-relaxed">
+                <p className="mt-3 text-xs sm:text-sm text-brand-text-secondary leading-relaxed sm:pl-10">
                   The cinema projector remains the authoritative clock. If the theater pauses, the companion pauses. When the patron returns, they are precisely aligned with the auditorium screen.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-brand-border/60 text-[11px] font-semibold text-emerald-700 flex items-center space-x-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Sub-Second Timeline Precision</span>
-              </div>
-            </div>
 
-            <div className="p-7 rounded-3xl bg-brand-surface border border-brand-border shadow-card flex flex-col justify-between">
-              <div>
-                <div className="w-10 h-10 rounded-2xl bg-brand-primary/20 text-brand-text-primary flex items-center justify-center mb-5">
-                  <Layers className="w-5 h-5 text-brand-accent" />
+              {/* Tier 3 */}
+              <div className="p-5 sm:p-7 rounded-2xl bg-white border border-brand-border shadow-subtle hover:border-brand-primary/40 transition-colors">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div className="flex items-center space-x-3">
+                    <span className="w-7 h-7 rounded-lg bg-brand-primary/15 text-brand-primary font-mono text-xs font-black flex items-center justify-center flex-shrink-0">
+                      03
+                    </span>
+                    <h3 className="text-base sm:text-lg font-extrabold text-brand-text-primary">
+                      Native POS & TMS Compatibility
+                    </h3>
+                  </div>
+                  <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 whitespace-nowrap">
+                    Plug-and-Play
+                  </span>
                 </div>
-                <h3 className="text-lg font-bold text-brand-text-primary">
-                  Native POS & TMS Compatibility
-                </h3>
-                <p className="mt-2.5 text-xs text-brand-text-secondary leading-relaxed">
+                <p className="mt-3 text-xs sm:text-sm text-brand-text-secondary leading-relaxed sm:pl-10">
                   Integrates cleanly with industry standard ticketing engines (Vista, Veezi, RTS) and theater management servers (Dolby, Barco, Christie) through lightweight webhooks and APIs.
                 </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-brand-border/60 text-[11px] font-semibold text-emerald-700 flex items-center space-x-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Plug-and-Play Integration</span>
               </div>
             </div>
           </div>
         </section>
 
-        {/* 3. How PottyPlay Works */}
+        {/* 3. How PottyPlay Works (Continuous Filmstrip Workflow) */}
         <section
           id="how-it-works"
           className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-brand-border/80 w-full"
@@ -126,63 +152,79 @@ export default function BusinessLandingPage() {
             </p>
           </div>
 
-          <div className="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="p-6 rounded-2xl bg-white border border-brand-border shadow-subtle relative flex flex-col justify-between">
+          <div className="mt-12 sm:mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 relative">
+            {/* Step 1 */}
+            <div className="p-6 rounded-2xl bg-white border border-brand-border shadow-subtle flex flex-col justify-between text-left relative group hover:shadow-card transition-all">
               <div>
-                <div className="text-xs font-mono font-bold text-brand-primary">STEP 01</div>
-                <h3 className="mt-2 font-bold text-base text-brand-text-primary">
+                <div className="flex items-center justify-between pb-3 border-b border-brand-border/60">
+                  <span className="text-xs font-mono font-bold text-brand-primary">STEP 01</span>
+                  <span className="text-[10px] uppercase font-bold text-neutral-400">POS Level</span>
+                </div>
+                <h3 className="mt-3.5 font-bold text-base text-brand-text-primary">
                   Ticket Entitlement
                 </h3>
                 <p className="mt-2 text-xs text-brand-text-secondary leading-relaxed">
                   Patron purchases a movie ticket. The cinema POS provisions an encrypted ticket barcode and optional entry claim token.
                 </p>
               </div>
-              <div className="mt-5 pt-3 border-t border-brand-border/60 text-[11px] text-neutral-500 font-mono">
+              <div className="mt-6 pt-3 border-t border-brand-border/60 text-[11px] text-neutral-500 font-mono">
                 POS Webhook Sync
               </div>
             </div>
 
-            <div className="p-6 rounded-2xl bg-white border border-brand-border shadow-subtle relative flex flex-col justify-between">
+            {/* Step 2 */}
+            <div className="p-6 rounded-2xl bg-white border border-brand-border shadow-subtle flex flex-col justify-between text-left relative group hover:shadow-card transition-all">
               <div>
-                <div className="text-xs font-mono font-bold text-brand-primary">STEP 02</div>
-                <h3 className="mt-2 font-bold text-base text-brand-text-primary">
+                <div className="flex items-center justify-between pb-3 border-b border-brand-border/60">
+                  <span className="text-xs font-mono font-bold text-brand-primary">STEP 02</span>
+                  <span className="text-[10px] uppercase font-bold text-neutral-400">Trigger</span>
+                </div>
+                <h3 className="mt-3.5 font-bold text-base text-brand-text-primary">
                   Intermission Trigger
                 </h3>
                 <p className="mt-2 text-xs text-brand-text-secondary leading-relaxed">
                   During a bathroom break, the patron scans an auditorium entry code or opens their pre-authenticated PottyPlay customer application.
                 </p>
               </div>
-              <div className="mt-5 pt-3 border-t border-brand-border/60 text-[11px] text-neutral-500 font-mono">
+              <div className="mt-6 pt-3 border-t border-brand-border/60 text-[11px] text-neutral-500 font-mono">
                 One-Tap Activation
               </div>
             </div>
 
-            <div className="p-6 rounded-2xl bg-white border border-brand-border shadow-subtle relative flex flex-col justify-between">
+            {/* Step 3 */}
+            <div className="p-6 rounded-2xl bg-white border border-brand-border shadow-subtle flex flex-col justify-between text-left relative group hover:shadow-card transition-all">
               <div>
-                <div className="text-xs font-mono font-bold text-brand-primary">STEP 03</div>
-                <h3 className="mt-2 font-bold text-base text-brand-text-primary">
+                <div className="flex items-center justify-between pb-3 border-b border-brand-border/60">
+                  <span className="text-xs font-mono font-bold text-brand-primary">STEP 03</span>
+                  <span className="text-[10px] uppercase font-bold text-neutral-400">Continuous</span>
+                </div>
+                <h3 className="mt-3.5 font-bold text-base text-brand-text-primary">
                   Synchronized Companion
                 </h3>
                 <p className="mt-2 text-xs text-brand-text-secondary leading-relaxed">
                   The server validates cinema rights, confirms screening state, and streams companion feed locked to the live theater timestamp.
                 </p>
               </div>
-              <div className="mt-5 pt-3 border-t border-brand-border/60 text-[11px] text-neutral-500 font-mono">
+              <div className="mt-6 pt-3 border-t border-brand-border/60 text-[11px] text-neutral-500 font-mono">
                 Live Projection Lock
               </div>
             </div>
 
-            <div className="p-6 rounded-2xl bg-white border border-brand-border shadow-subtle relative flex flex-col justify-between">
+            {/* Step 4 */}
+            <div className="p-6 rounded-2xl bg-white border border-brand-border shadow-subtle flex flex-col justify-between text-left relative group hover:shadow-card transition-all">
               <div>
-                <div className="text-xs font-mono font-bold text-brand-primary">STEP 04</div>
-                <h3 className="mt-2 font-bold text-base text-brand-text-primary">
+                <div className="flex items-center justify-between pb-3 border-b border-brand-border/60">
+                  <span className="text-xs font-mono font-bold text-brand-primary">STEP 04</span>
+                  <span className="text-[10px] uppercase font-bold text-neutral-400">Enforcement</span>
+                </div>
+                <h3 className="mt-3.5 font-bold text-base text-brand-text-primary">
                   Automatic Termination
                 </h3>
                 <p className="mt-2 text-xs text-brand-text-secondary leading-relaxed">
                   At 900 seconds (or when the patron taps return), the session revokes. The patron walks back to their auditorium seat without missing context.
                 </p>
               </div>
-              <div className="mt-5 pt-3 border-t border-brand-border/60 text-[11px] text-neutral-500 font-mono">
+              <div className="mt-6 pt-3 border-t border-brand-border/60 text-[11px] text-neutral-500 font-mono">
                 15m Server Revocation
               </div>
             </div>
@@ -195,7 +237,7 @@ export default function BusinessLandingPage() {
           className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-brand-border/80 w-full"
         >
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-            <div className="lg:col-span-6">
+            <div className="lg:col-span-6 text-left">
               <span className="text-xs font-bold uppercase tracking-wider text-brand-secondary">
                 Designed for Effortless Ease
               </span>
@@ -213,7 +255,7 @@ export default function BusinessLandingPage() {
                   </div>
                   <div>
                     <h4 className="text-sm font-bold text-brand-text-primary">Instant Web Onboarding</h4>
-                    <p className="text-xs text-brand-text-secondary mt-0.5">
+                    <p className="text-xs text-brand-text-secondary mt-0.5 leading-relaxed">
                       Direct QR access launches an optimized web companion player immediately. No App Store detour required during an urgent break.
                     </p>
                   </div>
@@ -225,7 +267,7 @@ export default function BusinessLandingPage() {
                   </div>
                   <div>
                     <h4 className="text-sm font-bold text-brand-text-primary">Persistent Mobile Identity</h4>
-                    <p className="text-xs text-brand-text-secondary mt-0.5">
+                    <p className="text-xs text-brand-text-secondary mt-0.5 leading-relaxed">
                       Frequent moviegoers retain secure sessions across app launches with verified phone numbers or social single sign-on.
                     </p>
                   </div>
@@ -237,7 +279,7 @@ export default function BusinessLandingPage() {
                   </div>
                   <div>
                     <h4 className="text-sm font-bold text-brand-text-primary">Audible Return Reminders</h4>
-                    <p className="text-xs text-brand-text-secondary mt-0.5">
+                    <p className="text-xs text-brand-text-secondary mt-0.5 leading-relaxed">
                       Soft countdown pings at 12 and 14 minutes encourage patrons to head back, ensuring halls and lobbies remain orderly.
                     </p>
                   </div>
@@ -245,44 +287,43 @@ export default function BusinessLandingPage() {
               </div>
             </div>
 
-            <div className="lg:col-span-6 bg-brand-accent text-white p-6 sm:p-8 rounded-3xl shadow-elevated border border-neutral-800">
+            {/* Right Theatrical Preview Frame */}
+            <div className="lg:col-span-6 bg-brand-accent text-white p-6 sm:p-8 rounded-3xl shadow-elevated border border-neutral-800 text-left">
               <div className="flex items-center justify-between pb-4 border-b border-neutral-800 text-xs">
                 <div className="flex items-center space-x-2">
                   <Smartphone className="w-4 h-4 text-brand-primary" />
-                  <span className="font-bold text-neutral-200">Mobile Patron Interface</span>
+                  <span className="font-bold text-neutral-200">Mobile Companion Viewport</span>
                 </div>
-                <span className="text-[10px] font-mono text-neutral-400">iOS 18 / Android 15</span>
+                <span className="font-mono text-[11px] text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800/40">
+                  ACTIVE 1080P
+                </span>
               </div>
 
-              <div className="mt-6 aspect-video bg-neutral-900 rounded-2xl p-4 flex flex-col justify-between border border-neutral-800">
-                <div className="flex justify-between items-center text-[10px]">
-                  <span className="text-neutral-400">AUDITORIUM SCREEN 01</span>
-                  <span className="text-emerald-400 font-mono">LIVE FEED SYNCED</span>
-                </div>
+              <div className="mt-5 space-y-4">
+                <div className="aspect-video bg-neutral-900 rounded-2xl border border-neutral-800 flex flex-col justify-between p-4 text-white">
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span className="font-mono text-neutral-400">AUDITORIUM 01: ATMOS</span>
+                    <span className="font-mono text-brand-primary font-bold">SEAT A12</span>
+                  </div>
 
-                <div className="text-center py-3">
-                  <div className="text-xs text-neutral-400">Time In Screening</div>
-                  <div className="font-mono text-2xl font-black text-white mt-1 tabular-nums">
-                    00:54:12
+                  <div className="text-center my-auto py-2">
+                    <div className="font-mono text-xl sm:text-2xl font-black text-white tracking-widest tabular-nums">
+                      00:42:15.08
+                    </div>
+                    <div className="text-[10px] text-neutral-400 mt-1 uppercase tracking-wider">
+                      Authoritative Master Feed
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center text-[11px] text-neutral-400 pt-2 border-t border-neutral-800/80">
+                    <span>15m Session Window</span>
+                    <span className="font-mono text-brand-primary font-bold tabular-nums">13:45 REMAINING</span>
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center text-[11px] pt-2 border-t border-neutral-800">
-                  <span className="text-neutral-400">Remaining Break Allowance:</span>
-                  <span className="font-mono font-bold text-brand-primary tabular-nums">
-                    09:48
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-5 grid grid-cols-2 gap-3 text-xs">
-                <div className="p-3 rounded-xl bg-neutral-900 border border-neutral-800">
-                  <span className="text-neutral-400 text-[10px]">Current Allowance</span>
-                  <div className="font-bold text-white mt-0.5">Break 1 of 2</div>
-                </div>
-                <div className="p-3 rounded-xl bg-neutral-900 border border-neutral-800">
-                  <span className="text-neutral-400 text-[10px]">Authentication</span>
-                  <div className="font-bold text-emerald-400 mt-0.5">Verified Ticket</div>
+                <div className="p-3.5 rounded-xl bg-neutral-900/80 border border-neutral-800 flex items-center justify-between text-xs">
+                  <span className="text-neutral-400">Return to Auditorium:</span>
+                  <span className="font-bold text-emerald-400">Seat A12 Admitted</span>
                 </div>
               </div>
             </div>
@@ -296,277 +337,247 @@ export default function BusinessLandingPage() {
         >
           <div className="text-center max-w-3xl mx-auto">
             <span className="text-xs font-bold uppercase tracking-wider text-brand-secondary">
-              Commercial & Operational Return
+              Exhibitor Commercial Advantage
             </span>
             <h2 className="mt-2 text-3xl sm:text-4xl font-extrabold text-brand-text-primary tracking-tight">
-              Why Cinema Circuits Partner with PottyPlay
+              Engineered for Theater Commercial Success
             </h2>
-            <p className="mt-4 text-base text-brand-text-secondary leading-relaxed">
-              Long runtime blockbusters (150+ minutes) can create patron physical discomfort. PottyPlay turns this challenge into a premium guest amenity while unlocking incremental concession revenue.
+            <p className="mt-3 text-sm sm:text-base text-brand-text-secondary leading-relaxed">
+              Transform the inevitable bathroom interruption into an elevated customer loyalty experience that drives repeat attendance.
             </p>
           </div>
 
-          <div className="mt-14 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="p-6 rounded-2xl bg-brand-surface border border-brand-border shadow-card flex flex-col justify-between">
+          <div className="mt-12 sm:mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6 text-left">
+            <div className="p-6 rounded-2xl bg-white border border-brand-border shadow-subtle flex flex-col justify-between">
               <div>
-                <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-sm mb-4">
-                  01
+                <div className="w-10 h-10 rounded-xl bg-brand-primary/20 text-brand-primary flex items-center justify-center mb-4">
+                  <Film className="w-5 h-5 text-brand-accent" />
                 </div>
                 <h3 className="font-bold text-base text-brand-text-primary">
-                  Higher Concession Spend
+                  Higher Concession & Ticket Satisfaction
                 </h3>
                 <p className="mt-2 text-xs text-brand-text-secondary leading-relaxed">
-                  Patrons who know they will not lose their place are more likely to purchase beverages and snacks without fear of bathroom interruptions later.
+                  Eliminates patron fear of missing key scenes. Moviegoers buy larger drinks and snacks with peace of mind.
                 </p>
               </div>
-              <div className="mt-5 pt-3 border-t border-brand-border/60 text-[11px] font-semibold text-brand-primary">
-                Increased Beverage Confidence
+              <div className="mt-5 pt-3 border-t border-brand-border/60 text-[11px] font-semibold text-emerald-700">
+                Reduced Patron Anxiety
               </div>
             </div>
 
-            <div className="p-6 rounded-2xl bg-brand-surface border border-brand-border shadow-card flex flex-col justify-between">
+            <div className="p-6 rounded-2xl bg-white border border-brand-border shadow-subtle flex flex-col justify-between">
               <div>
-                <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-sm mb-4">
-                  02
+                <div className="w-10 h-10 rounded-xl bg-brand-primary/20 text-brand-primary flex items-center justify-center mb-4">
+                  <ShieldCheck className="w-5 h-5 text-brand-accent" />
                 </div>
                 <h3 className="font-bold text-base text-brand-text-primary">
-                  Reduced Hallway Lingering
+                  Zero Piracy Risk
                 </h3>
                 <p className="mt-2 text-xs text-brand-text-secondary leading-relaxed">
-                  The strict 15-minute countdown and gentle return reminders motivate patrons to return immediately to their auditorium seats.
+                  Hardware-backed short streams, dynamic watermarks, and no rewind controls ensure theatrical exclusivity is 100% preserved.
                 </p>
               </div>
-              <div className="mt-5 pt-3 border-t border-brand-border/60 text-[11px] font-semibold text-brand-primary">
-                Orderly Cinema Foyers
+              <div className="mt-5 pt-3 border-t border-brand-border/60 text-[11px] font-semibold text-emerald-700">
+                Hardware-Enforced Security
               </div>
             </div>
 
-            <div className="p-6 rounded-2xl bg-brand-surface border border-brand-border shadow-card flex flex-col justify-between">
+            <div className="p-6 rounded-2xl bg-white border border-brand-border shadow-subtle flex flex-col justify-between">
               <div>
-                <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-sm mb-4">
-                  03
+                <div className="w-10 h-10 rounded-xl bg-brand-primary/20 text-brand-primary flex items-center justify-center mb-4">
+                  <Zap className="w-5 h-5 text-brand-accent" />
                 </div>
                 <h3 className="font-bold text-base text-brand-text-primary">
-                  Distinctive Competitive Edge
+                  Commercial Revenue Model
                 </h3>
                 <p className="mt-2 text-xs text-brand-text-secondary leading-relaxed">
-                  Position your venue as a progressive, guest-first cinema that embraces modern mobile hospitality without diluting theatrical prestige.
+                  Exhibitors participate in companion session monetization or offer the amenity as a premium ticket differentiator.
                 </p>
               </div>
-              <div className="mt-5 pt-3 border-t border-brand-border/60 text-[11px] font-semibold text-brand-primary">
-                Modern Patron Loyalty
+              <div className="mt-5 pt-3 border-t border-brand-border/60 text-[11px] font-semibold text-emerald-700">
+                Configurable Pricing
               </div>
             </div>
 
-            <div className="p-6 rounded-2xl bg-brand-surface border border-brand-border shadow-card flex flex-col justify-between">
+            <div className="p-6 rounded-2xl bg-white border border-brand-border shadow-subtle flex flex-col justify-between">
               <div>
-                <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-sm mb-4">
-                  04
+                <div className="w-10 h-10 rounded-xl bg-brand-primary/20 text-brand-primary flex items-center justify-center mb-4">
+                  <Activity className="w-5 h-5 text-brand-accent" />
                 </div>
                 <h3 className="font-bold text-base text-brand-text-primary">
-                  Custom Commercial Models
+                  Real-Time Usher & Hall Telemetry
                 </h3>
                 <p className="mt-2 text-xs text-brand-text-secondary leading-relaxed">
-                  Flexible operator billing agreements. Offer complimentary access as a VIP club perk or configure micro-transaction companion fees.
+                  Monitor ongoing breaks per auditorium. Identify hall traffic patterns and assist patrons returning to seats.
                 </p>
               </div>
-              <div className="mt-5 pt-3 border-t border-brand-border/60 text-[11px] font-semibold text-brand-primary">
-                Operator-Configurable Pricing
+              <div className="mt-5 pt-3 border-t border-brand-border/60 text-[11px] font-semibold text-emerald-700">
+                Live Usher Dashboard
               </div>
             </div>
           </div>
         </section>
 
-        {/* 6. Screening Synchronization */}
+        {/* 6. Screening Synchronization (Cinematic Charcoal Surface) */}
         <section
           id="synchronization"
-          className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-brand-border/80 w-full"
+          className="py-16 md:py-24 bg-brand-accent text-white border-t border-neutral-800 w-full"
         >
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-            <div className="lg:col-span-6 bg-brand-surface border border-brand-border rounded-3xl p-6 sm:p-8 shadow-elevated">
-              <div className="flex items-center justify-between pb-4 border-b border-brand-border text-xs">
-                <span className="font-bold text-brand-text-primary">Authoritative Sync Engine</span>
-                <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-mono text-[11px] font-bold">
-                  ACTIVE
-                </span>
-              </div>
-
-              <div className="mt-6 space-y-4 text-xs">
-                <div className="p-4 rounded-2xl bg-brand-bg border border-brand-border">
-                  <div className="flex justify-between font-bold text-brand-text-primary">
-                    <span>Theater Projector State</span>
-                    <span className="text-emerald-700 font-mono">PLAYING</span>
-                  </div>
-                  <div className="mt-2 text-brand-text-secondary">
-                    Authoritative timeline updates are broadcast directly from the cinema projection feed.
-                  </div>
-                  <div className="mt-2 font-mono text-xs font-semibold text-brand-text-primary">
-                    Position: 01:12:44.20
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-brand-bg border border-brand-border">
-                  <div className="flex justify-between font-bold text-brand-text-primary">
-                    <span>Companion Mobile Player</span>
-                    <span className="text-emerald-700 font-mono">LOCKED</span>
-                  </div>
-                  <div className="mt-2 text-brand-text-secondary">
-                    Sub-second timecode alignment prevents lag or spoiling ahead of the main auditorium.
-                  </div>
-                  <div className="mt-2 font-mono text-xs font-semibold text-brand-text-primary">
-                    Offset: +0.04s (Nominal)
-                  </div>
-                </div>
-
-                <div className="p-3 rounded-xl bg-neutral-900 text-white text-[11px] flex justify-between items-center">
-                  <span>Projection Interruption Handling:</span>
-                  <span className="text-brand-primary font-bold">Automatic Companion Freeze</span>
-                </div>
-              </div>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-left">
+            <div className="max-w-3xl">
+              <span className="text-xs font-bold uppercase tracking-wider text-brand-primary">
+                Sub-Second Precision Architecture
+              </span>
+              <h2 className="mt-2 text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white leading-tight">
+                Zero-Drift Projection Locking
+              </h2>
+              <p className="mt-4 text-sm sm:text-base text-neutral-400 leading-relaxed">
+                The patron&apos;s mobile device never determines the movie timeline. The backend server tracks projector state in real time.
+              </p>
             </div>
 
-            <div className="lg:col-span-6">
-              <span className="text-xs font-bold uppercase tracking-wider text-brand-secondary">
-                Authoritative Timeline Architecture
-              </span>
-              <h2 className="mt-2 text-3xl sm:text-4xl font-extrabold text-brand-text-primary tracking-tight">
-                Authoritative Synchronization. Not Personal Video On Demand.
-              </h2>
-              <p className="mt-4 text-sm sm:text-base text-brand-text-secondary leading-relaxed">
-                PottyPlay does not maintain an individual saved playback point. The auditorium projection is the single source of truth. When the projectionist pauses the film for an emergency, every connected companion immediately halts without drift.
-              </p>
+            <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="p-6 rounded-2xl bg-neutral-900 border border-neutral-800 flex flex-col justify-between">
+                <div>
+                  <div className="w-10 h-10 rounded-xl bg-brand-primary/15 text-brand-primary flex items-center justify-center mb-4">
+                    <Clock className="w-5 h-5" />
+                  </div>
+                  <h3 className="font-bold text-base text-white">Authoritative Clock</h3>
+                  <p className="mt-2 text-xs text-neutral-400 leading-relaxed">
+                    Server tracks the master theater clock, factoring in projector start delays and unexpected show interruptions.
+                  </p>
+                </div>
+                <div className="mt-6 pt-3 border-t border-neutral-800 text-[11px] font-mono text-emerald-400">
+                  Sub-Second Sync
+                </div>
+              </div>
 
-              <div className="mt-6 space-y-3 text-xs text-brand-text-secondary">
-                <div className="flex items-center space-x-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-brand-primary" />
-                  <span>Sub-second heartbeat synchronization with database verification</span>
+              <div className="p-6 rounded-2xl bg-neutral-900 border border-neutral-800 flex flex-col justify-between">
+                <div>
+                  <div className="w-10 h-10 rounded-xl bg-brand-primary/15 text-brand-primary flex items-center justify-center mb-4">
+                    <Sliders className="w-5 h-5" />
+                  </div>
+                  <h3 className="font-bold text-base text-white">Dynamic Pause Handling</h3>
+                  <p className="mt-2 text-xs text-neutral-400 leading-relaxed">
+                    If the cinema operator pauses the auditorium projector for technical reasons, all companion streams pause instantaneously.
+                  </p>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-brand-primary" />
-                  <span>Automated pause propagation prevents patron desynchronization</span>
+                <div className="mt-6 pt-3 border-t border-neutral-800 text-[11px] font-mono text-emerald-400">
+                  Zero Drift on Resume
                 </div>
-                <div className="flex items-center space-x-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-brand-primary" />
-                  <span>Resilient connection recovery re-aligns stream upon network re-establishment</span>
+              </div>
+
+              <div className="p-6 rounded-2xl bg-neutral-900 border border-neutral-800 flex flex-col justify-between">
+                <div>
+                  <div className="w-10 h-10 rounded-xl bg-brand-primary/15 text-brand-primary flex items-center justify-center mb-4">
+                    <Tv className="w-5 h-5" />
+                  </div>
+                  <h3 className="font-bold text-base text-white">Resilient Corridors</h3>
+                  <p className="mt-2 text-xs text-neutral-400 leading-relaxed">
+                    Adaptive bitrate streaming ensures continuity even in deep restroom corridors or low-reception theater facilities.
+                  </p>
+                </div>
+                <div className="mt-6 pt-3 border-t border-neutral-800 text-[11px] font-mono text-emerald-400">
+                  Adaptive Bitrate
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* 7. Ticketing & Integration Model */}
+        {/* 7. Ticketing and Integration Model */}
         <section
-          id="ticketing"
+          id="ticketing-integration"
           className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-brand-border/80 w-full"
         >
           <div className="text-center max-w-3xl mx-auto">
             <span className="text-xs font-bold uppercase tracking-wider text-brand-secondary">
-              POS & Hardware Interoperability
+              Seamless Deployment
             </span>
             <h2 className="mt-2 text-3xl sm:text-4xl font-extrabold text-brand-text-primary tracking-tight">
-              Compatible with Your Existing Ticketing Infrastructure
+              Frictionless POS & Screening Interoperability
             </h2>
-            <p className="mt-4 text-base text-brand-text-secondary leading-relaxed">
-              We do not replace your box office or ticketing software. PottyPlay works alongside your current POS platform through standard webhook notifications and secure ticket entitlement verification.
+            <p className="mt-3 text-sm sm:text-base text-brand-text-secondary leading-relaxed">
+              PottyPlay does not replace your ticketing software or require custom auditorium hardware.
             </p>
           </div>
 
-          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-6 rounded-2xl bg-white border border-brand-border shadow-subtle">
-              <div className="text-xs font-bold uppercase tracking-wider text-brand-primary">
-                Barcode & QR Tokens
-              </div>
-              <h3 className="mt-2 font-bold text-base text-brand-text-primary">
-                Validated Ticket Claims
-              </h3>
+          <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 text-left">
+            <div className="p-5 rounded-2xl bg-white border border-brand-border shadow-subtle">
+              <div className="font-extrabold text-base text-brand-text-primary">Vista Cinema POS</div>
               <p className="mt-2 text-xs text-brand-text-secondary leading-relaxed">
-                Every PottyPlay session requires a legitimate, admitted ticket reference. Seat numbers alone never authorize viewing access.
+                Connect via standard Vista Connect webhook events on ticket admission and refund.
               </p>
             </div>
 
-            <div className="p-6 rounded-2xl bg-white border border-brand-border shadow-subtle">
-              <div className="text-xs font-bold uppercase tracking-wider text-brand-primary">
-                Carrier-Grade SMS (Africa&apos;s Talking)
-              </div>
-              <h3 className="mt-2 font-bold text-base text-brand-text-primary">
-                Verified Phone Binding
-              </h3>
+            <div className="p-5 rounded-2xl bg-white border border-brand-border shadow-subtle">
+              <div className="font-extrabold text-base text-brand-text-primary">Veezi Cloud Ticketing</div>
               <p className="mt-2 text-xs text-brand-text-secondary leading-relaxed">
-                When phone verification is activated by theater policy, one-time OTP challenges guarantee genuine patron identity and prevent replay.
+                Native REST synchronization for independent cinema circuits and boutique theaters.
               </p>
             </div>
 
-            <div className="p-6 rounded-2xl bg-white border border-brand-border shadow-subtle">
-              <div className="text-xs font-bold uppercase tracking-wider text-brand-primary">
-                TMS Integration
-              </div>
-              <h3 className="mt-2 font-bold text-base text-brand-text-primary">
-                Screening Status Webhooks
-              </h3>
+            <div className="p-5 rounded-2xl bg-white border border-brand-border shadow-subtle">
+              <div className="font-extrabold text-base text-brand-text-primary">Ready Theatre Systems</div>
               <p className="mt-2 text-xs text-brand-text-secondary leading-relaxed">
-                Automated schedule synchronization fetches showtimes, actual start times, and screen assignments directly from your TMS schedule.
+                Reliable barcode payload mapping for RTS POS barcode scanners and kiosks.
+              </p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-white border border-brand-border shadow-subtle">
+              <div className="font-extrabold text-base text-brand-text-primary">Custom Exhibitor APIs</div>
+              <p className="mt-2 text-xs text-brand-text-secondary leading-relaxed">
+                Direct JSON webhooks and REST endpoints for proprietary exhibitor applications.
               </p>
             </div>
           </div>
         </section>
 
-        {/* 8. Security & Entitlement Controls */}
+        {/* 8. Security and Entitlement Controls */}
         <section
           id="security"
           className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-brand-border/80 w-full"
         >
-          <div className="bg-brand-accent text-white rounded-3xl p-8 sm:p-12 shadow-elevated border border-neutral-800">
-            <div className="max-w-3xl">
-              <span className="text-xs font-bold uppercase tracking-wider text-brand-primary">
-                Enterprise Studio & Exhibitor Protection
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+            <div className="lg:col-span-5 text-left">
+              <span className="text-xs font-bold uppercase tracking-wider text-brand-secondary">
+                Studio Security & Rights
               </span>
-              <h2 className="mt-2 text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-                Studio-Grade Security Perimeter
+              <h2 className="mt-2 text-3xl sm:text-4xl font-extrabold text-brand-text-primary tracking-tight">
+                Studio-Grade Content Protection
               </h2>
-              <p className="mt-4 text-sm sm:text-base text-neutral-300 leading-relaxed">
-                Content security is the foundation of theatrical trust. PottyPlay implements server-enforced controls that make unauthorized distribution or persistent recording impossible.
+              <p className="mt-4 text-sm sm:text-base text-brand-text-secondary leading-relaxed">
+                Hollywood content owners and local distributors demand non-negotiable stream controls. PottyPlay enforces studio-grade security boundaries at the API and streaming protocol layer.
               </p>
             </div>
 
-            <div className="mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-xs">
-              <div className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800">
-                <div className="w-8 h-8 rounded-xl bg-brand-primary/20 text-brand-primary flex items-center justify-center mb-3">
-                  <Clock className="w-4 h-4" />
+            <div className="lg:col-span-7 space-y-3 text-left">
+              <div className="p-4 sm:p-5 rounded-2xl bg-white border border-brand-border shadow-subtle">
+                <div className="font-bold text-sm text-brand-text-primary">Session Duration Enforcement</div>
+                <div className="text-xs text-brand-text-secondary mt-1 leading-relaxed">
+                  A strict, server-side 900-second (15-minute) timer terminates the feed automatically. No extensions allowed.
                 </div>
-                <h4 className="font-bold text-white text-sm">Hard 900s Ceiling</h4>
-                <p className="mt-1.5 text-neutral-400 text-[11px] leading-relaxed">
-                  Sessions are terminated strictly at 15 minutes by the server. Client clock alteration has zero effect.
-                </p>
               </div>
 
-              <div className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800">
-                <div className="w-8 h-8 rounded-xl bg-brand-primary/20 text-brand-primary flex items-center justify-center mb-3">
-                  <Lock className="w-4 h-4" />
+              <div className="p-4 sm:p-5 rounded-2xl bg-white border border-brand-border shadow-subtle">
+                <div className="font-bold text-sm text-brand-text-primary">Single-Device Locking</div>
+                <div className="text-xs text-brand-text-secondary mt-1 leading-relaxed">
+                  Each ticket barcode or claim token can only power one active companion session at a time, preventing link sharing.
                 </div>
-                <h4 className="font-bold text-white text-sm">2-Break Ticket Limit</h4>
-                <p className="mt-1.5 text-neutral-400 text-[11px] leading-relaxed">
-                  Each ticket is restricted to a maximum of two bathroom breaks per screening via atomic database constraints.
-                </p>
               </div>
 
-              <div className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800">
-                <div className="w-8 h-8 rounded-xl bg-brand-primary/20 text-brand-primary flex items-center justify-center mb-3">
-                  <ShieldCheck className="w-4 h-4" />
+              <div className="p-4 sm:p-5 rounded-2xl bg-white border border-brand-border shadow-subtle">
+                <div className="font-bold text-sm text-brand-text-primary">Encrypted Ephemeral Streams</div>
+                <div className="text-xs text-brand-text-secondary mt-1 leading-relaxed">
+                  Video chunks are dynamically signed and expire in seconds. Recording or ripping feeds yields unplayable fragments.
                 </div>
-                <h4 className="font-bold text-white text-sm">Pre-Authorization Check</h4>
-                <p className="mt-1.5 text-neutral-400 text-[11px] leading-relaxed">
-                  Screening rights are validated against studio agreements prior to issuing streaming tokens.
-                </p>
               </div>
 
-              <div className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800">
-                <div className="w-8 h-8 rounded-xl bg-brand-primary/20 text-brand-primary flex items-center justify-center mb-3">
-                  <Database className="w-4 h-4" />
+              <div className="p-4 sm:p-5 rounded-2xl bg-white border border-brand-border shadow-subtle">
+                <div className="font-bold text-sm text-brand-text-primary">Explicit Rights Authorization</div>
+                <div className="text-xs text-brand-text-secondary mt-1 leading-relaxed">
+                  Every screening references a verified digital rights record. Unlicensed assets or expired windows fail closed.
                 </div>
-                <h4 className="font-bold text-white text-sm">Tenant Isolation</h4>
-                <p className="mt-1.5 text-neutral-400 text-[11px] leading-relaxed">
-                  Every screening, screen, and session is strictly partitioned by cinema organization ID.
-                </p>
               </div>
             </div>
           </div>
@@ -574,148 +585,128 @@ export default function BusinessLandingPage() {
 
         {/* 9. Cinema Partnership Process */}
         <section
-          id="process"
+          id="partnership-process"
           className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-brand-border/80 w-full"
         >
-          <div className="text-center max-w-2xl mx-auto">
+          <div className="text-center max-w-3xl mx-auto">
             <span className="text-xs font-bold uppercase tracking-wider text-brand-secondary">
-              Structured Rollout
+              Exhibitor Roadmap
             </span>
             <h2 className="mt-2 text-3xl sm:text-4xl font-extrabold text-brand-text-primary tracking-tight">
-              Partner Onboarding Workflow
+              Seamless Onboarding for Cinema Circuits
             </h2>
-            <p className="mt-3 text-sm sm:text-base text-brand-text-secondary">
-              A transparent, audited progression from initial application to full theater operation.
+            <p className="mt-3 text-sm sm:text-base text-brand-text-secondary leading-relaxed">
+              Four structured steps to pilot and roll out PottyPlay across your venues.
             </p>
           </div>
 
-          <div className="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="p-6 rounded-2xl bg-white border border-brand-border shadow-subtle flex flex-col justify-between">
-              <div>
-                <div className="text-xs font-mono font-bold text-brand-primary">PHASE 01</div>
-                <h3 className="mt-2 font-bold text-base text-brand-text-primary">
-                  Partner Registration
-                </h3>
-                <p className="mt-2 text-xs text-brand-text-secondary leading-relaxed">
-                  Cinema operator submits organization details, screen count, and current POS/TMS architecture.
-                </p>
-              </div>
-              <div className="mt-4 text-[11px] font-semibold text-neutral-500">
-                Form Submission
-              </div>
+          <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 text-left">
+            <div className="p-6 rounded-2xl bg-white border border-brand-border shadow-subtle">
+              <div className="text-xs font-mono font-bold text-brand-primary">STAGE 01</div>
+              <h3 className="mt-2 font-bold text-base text-brand-text-primary">Partner Registration</h3>
+              <p className="mt-2 text-xs text-brand-text-secondary leading-relaxed">
+                Submit circuit details, venue counts, and ticketing systems through our partner portal.
+              </p>
             </div>
 
-            <div className="p-6 rounded-2xl bg-white border border-brand-border shadow-subtle flex flex-col justify-between">
-              <div>
-                <div className="text-xs font-mono font-bold text-brand-primary">PHASE 02</div>
-                <h3 className="mt-2 font-bold text-base text-brand-text-primary">
-                  Administrative Review
-                </h3>
-                <p className="mt-2 text-xs text-brand-text-secondary leading-relaxed">
-                  PottyPlay technical staff validates theater legitimacy, verifies rights compliance, and approves application.
-                </p>
-              </div>
-              <div className="mt-4 text-[11px] font-semibold text-neutral-500">
-                1-2 Business Days
-              </div>
+            <div className="p-6 rounded-2xl bg-white border border-brand-border shadow-subtle">
+              <div className="text-xs font-mono font-bold text-brand-primary">STAGE 02</div>
+              <h3 className="mt-2 font-bold text-base text-brand-text-primary">System Compatibility Check</h3>
+              <p className="mt-2 text-xs text-brand-text-secondary leading-relaxed">
+                Our solutions engineering team tests webhook connectivity with your POS and TMS servers.
+              </p>
             </div>
 
-            <div className="p-6 rounded-2xl bg-white border border-brand-border shadow-subtle flex flex-col justify-between">
-              <div>
-                <div className="text-xs font-mono font-bold text-brand-primary">PHASE 03</div>
-                <h3 className="mt-2 font-bold text-base text-brand-text-primary">
-                  Sandbox Integration
-                </h3>
-                <p className="mt-2 text-xs text-brand-text-secondary leading-relaxed">
-                  Cinema engineering configures API keys, tests ticket barcode callbacks, and certifies projection sync in sandbox.
-                </p>
-              </div>
-              <div className="mt-4 text-[11px] font-semibold text-neutral-500">
-                Developer Sandbox
-              </div>
+            <div className="p-6 rounded-2xl bg-white border border-brand-border shadow-subtle">
+              <div className="text-xs font-mono font-bold text-brand-primary">STAGE 03</div>
+              <h3 className="mt-2 font-bold text-base text-brand-text-primary">Single-Screen Pilot</h3>
+              <p className="mt-2 text-xs text-brand-text-secondary leading-relaxed">
+                Pilot the companion experience on a single flagship auditorium with live moviegoers.
+              </p>
             </div>
 
-            <div className="p-6 rounded-2xl bg-white border border-brand-border shadow-subtle flex flex-col justify-between">
-              <div>
-                <div className="text-xs font-mono font-bold text-brand-primary">PHASE 04</div>
-                <h3 className="mt-2 font-bold text-base text-brand-text-primary">
-                  Auditorium Launch
-                </h3>
-                <p className="mt-2 text-xs text-brand-text-secondary leading-relaxed">
-                  Corridor QR assets are positioned, theater operators access workspace, and live companion breaks commence.
-                </p>
-              </div>
-              <div className="mt-4 text-[11px] font-semibold text-neutral-500">
-                Production Live
-              </div>
+            <div className="p-6 rounded-2xl bg-white border border-brand-border shadow-subtle">
+              <div className="text-xs font-mono font-bold text-brand-primary">STAGE 04</div>
+              <h3 className="mt-2 font-bold text-base text-brand-text-primary">Circuit Rollout</h3>
+              <p className="mt-2 text-xs text-brand-text-secondary leading-relaxed">
+                Deploy QR codes across theater restrooms and enable companion streaming circuit-wide.
+              </p>
             </div>
           </div>
         </section>
 
         {/* 10. Developer Integration Overview */}
         <section
-          id="developers"
-          className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-brand-border/80 w-full"
+          id="developer-overview"
+          className="py-16 md:py-24 bg-brand-accent text-white border-t border-neutral-800 w-full"
         >
-          <div className="bg-brand-surface border border-brand-border rounded-3xl p-8 sm:p-12 shadow-card">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-              <div className="lg:col-span-8">
-                <span className="text-xs font-bold uppercase tracking-wider text-brand-secondary">
-                  Technical Architecture
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-left">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+              <div className="lg:col-span-6">
+                <span className="text-xs font-bold uppercase tracking-wider text-brand-primary">
+                  Engineering Documentation & OpenAPI
                 </span>
-                <h2 className="mt-2 text-2xl sm:text-3xl font-extrabold text-brand-text-primary tracking-tight">
-                  Developer Documentation & Integration APIs
+                <h2 className="mt-2 text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+                  Open APIs & Standard Webhooks
                 </h2>
-                <p className="mt-3 text-sm text-brand-text-secondary leading-relaxed">
-                  Access comprehensive integration guides for ticketing architects and projection engineers. Explore our RESTful webhook endpoints, OpenAPI schema, idempotency keys, and rate limits.
+                <p className="mt-4 text-sm sm:text-base text-neutral-400 leading-relaxed">
+                  Integrate your POS or ticketing software with clean, standards-compliant REST endpoints and HMAC-signed webhook dispatches.
                 </p>
 
-                <div className="mt-6 flex flex-wrap gap-2 text-xs">
-                  <span className="px-3 py-1 rounded-lg bg-brand-bg border border-brand-border font-mono text-brand-text-primary">
-                    POST /api/tickets/verify
-                  </span>
-                  <span className="px-3 py-1 rounded-lg bg-brand-bg border border-brand-border font-mono text-brand-text-primary">
-                    POST /api/sessions/activate
-                  </span>
-                  <span className="px-3 py-1 rounded-lg bg-brand-bg border border-brand-border font-mono text-brand-text-primary">
-                    GET /api/sessions/sync
-                  </span>
-                  <span className="px-3 py-1 rounded-lg bg-brand-bg border border-brand-border font-mono text-brand-text-primary">
-                    POST /api/operator/revoke
-                  </span>
+                <div className="mt-8 flex items-center space-x-4">
+                  <Link
+                    href="/developers"
+                    className="py-3 px-6 rounded-xl font-bold text-xs sm:text-sm bg-brand-primary text-brand-accent hover:bg-brand-secondary transition-colors flex items-center space-x-2"
+                  >
+                    <span>Read API Specifications</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                  <a
+                    href="/api/openapi.json"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs sm:text-sm text-neutral-300 hover:text-white font-mono flex items-center space-x-1.5"
+                  >
+                    <span>openapi.json</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
                 </div>
               </div>
 
-              <div className="lg:col-span-4 flex flex-col justify-center items-start lg:items-end">
-                <Link
-                  href="/developers"
-                  className="py-3.5 px-6 rounded-xl font-bold text-sm bg-brand-accent text-white hover:bg-black transition-colors flex items-center space-x-2 shadow-subtle"
-                >
-                  <span>Explore Developer Portal</span>
-                  <ExternalLink className="w-4 h-4" />
-                </Link>
-                <span className="mt-2 text-xs text-brand-text-secondary">
-                  OpenAPI 3.1 & TypeScript Contracts
-                </span>
+              <div className="lg:col-span-6 rounded-2xl bg-neutral-900 border border-neutral-800 p-5 font-mono text-xs overflow-x-auto text-neutral-300">
+                <div className="text-neutral-500 mb-2">{"// Webhook payload received on patron admission"}</div>
+                <pre className="text-emerald-400">{`POST /api/webhooks/pottyplay/tickets
+Content-Type: application/json
+X-PottyPlay-Signature: sha256=...
+
+{
+  "event": "ticket.admitted",
+  "cinemaId": "cinema_circuit_01",
+  "screeningId": "screening_auditorium_01",
+  "ticketNumber": "TK-8842-A12",
+  "claimToken": "CLM-A12-9901",
+  "maxBreaks": 2,
+  "maxSessionSeconds": 900
+}`}</pre>
               </div>
             </div>
           </div>
         </section>
 
-        {/* 11. Partner Registration CTA Form */}
+        {/* 11. Partner Registration Call to Action */}
         <section
           id="register"
           className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-brand-border/80 w-full"
         >
-          <div className="text-center max-w-2xl mx-auto mb-10">
+          <div className="text-center max-w-3xl mx-auto mb-10">
             <span className="text-xs font-bold uppercase tracking-wider text-brand-secondary">
-              Direct Partnership Inquiry
+              Cinema Onboarding
             </span>
             <h2 className="mt-2 text-3xl sm:text-4xl font-extrabold text-brand-text-primary tracking-tight">
-              Register Your Cinema Venue
+              Register Your Cinema Circuit
             </h2>
-            <p className="mt-3 text-sm sm:text-base text-brand-text-secondary">
-              Begin your cinema partnership review. Our solutions engineering team will evaluate your theater setup and configure sandbox access.
+            <p className="mt-3 text-sm sm:text-base text-brand-text-secondary leading-relaxed">
+              Join leading cinema exhibitors. Connect your auditoriums and offer companion viewing to your patrons.
             </p>
           </div>
 
@@ -723,120 +714,30 @@ export default function BusinessLandingPage() {
         </section>
       </main>
 
-      {/* 12. Privacy, Terms, and Company Contact Information */}
-      <footer className="border-t border-brand-border bg-white text-brand-text-secondary text-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
-            {/* Col 1: Brand Info */}
-            <div className="space-y-3">
-              <BrandLogo size="md" variant="full" />
-              <p className="text-xs text-brand-text-secondary leading-relaxed pt-2">
-                Authoritative cinema companion viewing platform. Engineered for cinema exhibitors, film festivals, and modern moviegoers across East Africa and international territories.
-              </p>
-              <div className="text-[11px] text-brand-text-secondary">
-                Dar es Salaam, Tanzania
-              </div>
-            </div>
-
-            {/* Col 2: Platform Navigation */}
-            <div>
-              <h4 className="font-bold text-xs uppercase tracking-wider text-brand-text-primary mb-3">
-                Platform
-              </h4>
-              <ul className="space-y-2">
-                <li>
-                  <a href="#how-it-works" className="hover:text-brand-text-primary transition-colors">
-                    How It Works
-                  </a>
-                </li>
-                <li>
-                  <a href="#operator-benefits" className="hover:text-brand-text-primary transition-colors">
-                    Exhibitor Benefits
-                  </a>
-                </li>
-                <li>
-                  <a href="#synchronization" className="hover:text-brand-text-primary transition-colors">
-                    Authoritative Sync
-                  </a>
-                </li>
-                <li>
-                  <a href="#security" className="hover:text-brand-text-primary transition-colors">
-                    Studio Rights & Security
-                  </a>
-                </li>
-                <li>
-                  <Link href="/developers" className="hover:text-brand-text-primary transition-colors">
-                    Developer Portal
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            {/* Col 3: Cinema Operations */}
-            <div>
-              <h4 className="font-bold text-xs uppercase tracking-wider text-brand-text-primary mb-3">
-                Operations
-              </h4>
-              <ul className="space-y-2">
-                <li>
-                  <Link href="/operator" className="hover:text-brand-text-primary transition-colors">
-                    Cinema Operator Workspace
-                  </Link>
-                </li>
-                <li>
-                  <a href="#register" className="hover:text-brand-text-primary transition-colors">
-                    Partner Application
-                  </a>
-                </li>
-                <li>
-                  <Link href="/watch" className="hover:text-brand-text-primary transition-colors">
-                    Web Companion Player
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/presentation" className="hover:text-brand-text-primary transition-colors">
-                    Controlled Partner Demonstration
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            {/* Col 4: Corporate & Legal */}
-            <div>
-              <h4 className="font-bold text-xs uppercase tracking-wider text-brand-text-primary mb-3">
-                Legal & Security
-              </h4>
-              <ul className="space-y-2">
-                <li>
-                  <span className="text-neutral-500">Terms of Theatrical Service</span>
-                </li>
-                <li>
-                  <span className="text-neutral-500">Exhibitor Privacy Policy</span>
-                </li>
-                <li>
-                  <span className="text-neutral-500">Content Rights Compliance</span>
-                </li>
-                <li>
-                  <span className="text-neutral-500">Tanzanian Data Protection Act Compliant</span>
-                </li>
-                <li>
-                  <a href="mailto:partners@pottyplay.co.tz" className="text-brand-text-primary font-medium hover:underline">
-                    partners@pottyplay.co.tz
-                  </a>
-                </li>
-              </ul>
-            </div>
+      {/* 12. Footer with Legal & Company Info */}
+      <footer className="border-t border-brand-border bg-brand-surface py-12 px-4 sm:px-6 lg:px-8 text-xs text-brand-text-secondary">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
+            <BrandLogo size="sm" variant="full" href="/" />
+            <span className="hidden sm:inline text-neutral-300">&bull;</span>
+            <span className="text-neutral-500 text-center sm:text-left">
+              Authoritative Cinema Companion Viewing Platform
+            </span>
           </div>
 
-          <div className="pt-8 border-t border-brand-border flex flex-col sm:flex-row items-center justify-between text-[11px] text-brand-text-secondary gap-3">
-            <div>
-              &copy; {new Date().getFullYear()} PottyPlay Technology Group. All rights reserved.
-            </div>
-            <div className="flex items-center space-x-4">
-              <span>Strict 900-Second Hard Session Cap</span>
-              <span>&bull;</span>
-              <span>Authorized Theatrical Exhibition Only</span>
-            </div>
+          <div className="flex flex-wrap items-center justify-center gap-6 font-medium">
+            <Link href="/privacy" className="hover:text-brand-text-primary transition-colors">
+              Privacy Policy
+            </Link>
+            <Link href="/terms" className="hover:text-brand-text-primary transition-colors">
+              Terms of Service
+            </Link>
+            <Link href="/developers" className="hover:text-brand-text-primary transition-colors">
+              Developer Documentation
+            </Link>
+            <span className="text-neutral-400">
+              Commercial Cinema Partner Portal 2026
+            </span>
           </div>
         </div>
       </footer>

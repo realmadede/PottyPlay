@@ -43,20 +43,23 @@ export function generateSessionToken(prefix: string = "pstk_"): string {
   return prefix + randomBytes(32).toString("hex");
 }
 
+import { hashSync as argon2HashSync, verifySync as argon2VerifySync } from "@node-rs/argon2";
+
 /**
- * Securely hashes a password using PBKDF2 with SHA-512 and a random salt.
+ * Securely hashes a password using modern Argon2id.
  */
 export function hashPassword(password: string): string {
-  const salt = randomBytes(16).toString("hex");
-  const hash = pbkdf2Sync(password, salt, 100000, 64, "sha512").toString("hex");
-  return `${salt}:${hash}`;
+  return argon2HashSync(password);
 }
 
 /**
- * Verifies a candidate password against a stored PBKDF2 hash using timing-safe comparison.
+ * Verifies a candidate password against an Argon2id or legacy PBKDF2 hash using timing-safe comparison.
  */
 export function verifyPassword(password: string, storedHash: string): boolean {
   try {
+    if (storedHash.startsWith("$argon2")) {
+      return argon2VerifySync(storedHash, password);
+    }
     const parts = storedHash.split(":");
     if (parts.length !== 2) return false;
     const [salt, key] = parts;

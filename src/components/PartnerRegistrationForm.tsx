@@ -122,7 +122,7 @@ export function PartnerRegistrationForm() {
             <input
               type="text"
               required
-              placeholder="e.g. Century Cinemax, Oasis Theaters"
+              placeholder="e.g. Cinema Circuit, Premier Theaters"
               value={formData.organizationName}
               onChange={(e) => setFormData({ ...formData, organizationName: e.target.value })}
               className="w-full px-4 py-3 rounded-xl border border-brand-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"

@@ -1,236 +1,48 @@
-import { PrismaClient, TicketStatus, ScreeningStatus } from "@prisma/client";
+import { PrismaClient, AdminRole } from "@prisma/client";
+import { hashPassword } from "../src/lib/crypto";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("Seeding PottyPlay database...");
+  console.log("Seeding PottyPlay production-ready database...");
 
-  // Clean up any existing data in correct order
+  // 1. Purge all synthetic demo data while preserving schema integrity
   await prisma.auditEvent.deleteMany();
   await prisma.usageBillingEvent.deleteMany();
   await prisma.smsDeliveryAttempt.deleteMany();
   await prisma.breakSession.deleteMany();
   await prisma.demonstrationTicket.deleteMany();
   await prisma.otpChallenge.deleteMany();
+  await prisma.screeningReminder.deleteMany();
   await prisma.rightsAuthorization.deleteMany();
   await prisma.screening.deleteMany();
   await prisma.screen.deleteMany();
   await prisma.contentAsset.deleteMany();
+  await prisma.cinemaPricingRule.deleteMany();
+  await prisma.operatorUser.deleteMany();
   await prisma.cinema.deleteMany();
 
-  // 1. Cinema
-  const cinema = await prisma.cinema.create({
-    data: {
-      id: "cinema_mlimani_01",
-      name: "Century Cinemax - Mlimani City (Simulated)",
-      location: "Mlimani City Mall, Dar es Salaam, Tanzania",
-      timezone: "Africa/Dar_es_Salaam",
+  // 2. Provision Initial Platform Administrator for setapart administration
+  const adminPassword = process.env.ADMIN_INITIAL_PASSWORD || "AdminPottyPlay2026!";
+  const passwordHash = hashPassword(adminPassword);
+
+  const admin = await prisma.adminUser.upsert({
+    where: { username: "admin" },
+    update: {
+      passwordHash,
+      isActive: true,
+    },
+    create: {
+      username: "admin",
+      email: "admin@pottyplay.internal",
+      passwordHash,
+      role: AdminRole.SUPERADMIN,
+      isActive: true,
     },
   });
 
-  const secondaryCinema = await prisma.cinema.create({
-    data: {
-      id: "cinema_oasis_02",
-      name: "Oasis Cinema - Masaki (Simulated)",
-      location: "Masaki Peninsula, Dar es Salaam, Tanzania",
-      timezone: "Africa/Dar_es_Salaam",
-    },
-  });
-
-  // 2. Screen
-  const screen = await prisma.screen.create({
-    data: {
-      id: "screen_atmosphere_01",
-      cinemaId: cinema.id,
-      name: "Screen 1 (Dolby Atmos)",
-      totalSeats: 160,
-    },
-  });
-
-  const screenSecondary = await prisma.screen.create({
-    data: {
-      id: "screen_oasis_01",
-      cinemaId: secondaryCinema.id,
-      name: "Screen 2 (Oasis Premiere)",
-      totalSeats: 90,
-    },
-  });
-
-  // 3. Content Asset (Explicit demonstration asset)
-  const contentAsset = await prisma.contentAsset.create({
-    data: {
-      id: "asset_serengeti_shadows",
-      title: "Serengeti Shadows: The Silent Guardian",
-      durationSeconds: 1800, // 30 minutes
-      videoUrl: "/assets/demo-feature.mp4",
-      thumbnailUrl: "/assets/demo-thumbnail.jpg",
-      licenseType: "Creative Commons BY-NC 4.0 & Original Visual Demonstration Asset",
-      licenseSource: "Tanzanian Cinema Heritage & Open Demonstration Archives 2026",
-    },
-  });
-
-  // Unlicensed asset for testing rights failure
-  const unlicensedAsset = await prisma.contentAsset.create({
-    data: {
-      id: "asset_unlicensed_test",
-      title: "Unlicensed Test Feature",
-      durationSeconds: 1200,
-      videoUrl: "/assets/unlicensed.mp4",
-      licenseType: "Unlicensed / Restricted",
-      licenseSource: "Restricted Proprietary",
-    },
-  });
-
-  // 4. Rights Authorization
-  const now = new Date();
-  const validFrom = new Date(now.getTime() - 24 * 60 * 60 * 1000); // 1 day ago
-  const validUntil = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days ahead
-
-  await prisma.rightsAuthorization.create({
-    data: {
-      id: "auth_mlimani_serengeti",
-      contentAssetId: contentAsset.id,
-      cinemaId: cinema.id,
-      isAuthorized: true,
-      validFrom,
-      validUntil,
-      maxSessionDurationSeconds: 900,
-      notes: "Authorized demonstration asset for cinema partner trials 2026",
-    },
-  });
-
-  // 5. Screenings
-  const scheduledStart = new Date(now.getTime() - 15 * 60 * 1000); // 15 mins ago
-  const actualStart = new Date(now.getTime() - 12 * 60 * 1000); // 12 mins ago (3 min delay)
-  const initialPositionSeconds = 720.0; // 12 minutes in
-
-  const screening = await prisma.screening.create({
-    data: {
-      id: "screening_prime_01",
-      cinemaId: cinema.id,
-      screenId: screen.id,
-      contentAssetId: contentAsset.id,
-      title: "Serengeti Shadows (Main Hall)",
-      scheduledStart,
-      actualStart,
-      status: ScreeningStatus.PLAYING,
-      playbackPositionSeconds: initialPositionSeconds,
-      lastPositionUpdatedAt: now,
-      totalPausedDurationSeconds: 0.0,
-      isPaused: false,
-    },
-  });
-
-  // Other screening for wrong-screening ticket testing
-  const wrongScreening = await prisma.screening.create({
-    data: {
-      id: "screening_wrong_02",
-      cinemaId: cinema.id,
-      screenId: screen.id,
-      contentAssetId: contentAsset.id,
-      title: "Serengeti Shadows (Late Show)",
-      scheduledStart: new Date(now.getTime() + 2 * 60 * 60 * 1000),
-      status: ScreeningStatus.SCHEDULED,
-      playbackPositionSeconds: 0.0,
-      isPaused: false,
-    },
-  });
-
-  // Screening with missing rights for testing rights authorization failure
-  const screeningNoRights = await prisma.screening.create({
-    data: {
-      id: "screening_no_rights_03",
-      cinemaId: secondaryCinema.id,
-      screenId: screenSecondary.id,
-      contentAssetId: unlicensedAsset.id,
-      title: "Unlicensed Screening Test",
-      scheduledStart,
-      actualStart,
-      status: ScreeningStatus.PLAYING,
-      playbackPositionSeconds: 100.0,
-      lastPositionUpdatedAt: now,
-      isPaused: false,
-    },
-  });
-
-  // 6. Demonstration Tickets
-  const validTicket1 = await prisma.demonstrationTicket.create({
-    data: {
-      id: "ticket_val_01",
-      ticketNumber: "CC-MLM-7821-A12",
-      claimToken: "CLM-MLM-A12-8821",
-      screeningId: screening.id,
-      seatNumber: "A12",
-      customerName: "Juma Mwanamvua",
-      status: TicketStatus.VALID_ADMITTED,
-    },
-  });
-
-  await prisma.demonstrationTicket.create({
-    data: {
-      id: "ticket_val_02",
-      ticketNumber: "CC-MLM-7822-B04",
-      claimToken: "CLM-MLM-B04-8822",
-      screeningId: screening.id,
-      seatNumber: "B04",
-      customerName: "Neema Kimaro",
-      status: TicketStatus.VALID_ADMITTED,
-    },
-  });
-
-  // Cancelled/Refunded ticket
-  await prisma.demonstrationTicket.create({
-    data: {
-      id: "ticket_can_04",
-      ticketNumber: "CC-MLM-7824-D15",
-      claimToken: "CLM-MLM-D15-8824",
-      screeningId: screening.id,
-      seatNumber: "D15",
-      customerName: "Zainab Rashid",
-      status: TicketStatus.CANCELLED_REFUNDED,
-    },
-  });
-
-  // Ineligible ticket
-  await prisma.demonstrationTicket.create({
-    data: {
-      id: "ticket_ine_05",
-      ticketNumber: "CC-MLM-7825-E02",
-      claimToken: "CLM-MLM-E02-8825",
-      screeningId: screening.id,
-      seatNumber: "E02",
-      customerName: "Bakari Salum",
-      status: TicketStatus.INELIGIBLE,
-    },
-  });
-
-  // Ticket for the wrong screening
-  await prisma.demonstrationTicket.create({
-    data: {
-      id: "ticket_wrg_06",
-      ticketNumber: "CC-MLM-9999-Z99",
-      claimToken: "CLM-MLM-Z99-9999",
-      screeningId: wrongScreening.id,
-      seatNumber: "Z99",
-      customerName: "Fatma Kassim",
-      status: TicketStatus.VALID_ADMITTED,
-    },
-  });
-
-  // Ticket for screening with no rights
-  await prisma.demonstrationTicket.create({
-    data: {
-      id: "ticket_norights_07",
-      ticketNumber: "OAS-MSC-1100-F01",
-      claimToken: "CLM-OAS-F01-1100",
-      screeningId: screeningNoRights.id,
-      seatNumber: "F01",
-      customerName: "Baraka Mwangi",
-      status: TicketStatus.VALID_ADMITTED,
-    },
-  });
-
-  console.log("Database seeded successfully with simulated cinema, screening, tickets, and rights.");
+  console.log(`Platform superadmin provisioned: ${admin.username} (${admin.email})`);
+  console.log("Database initialized with 0 cinema circuits. Truthful empty states active across all partner surfaces.");
 }
 
 main()

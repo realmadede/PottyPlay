@@ -732,22 +732,42 @@ function WatchExperience() {
             </p>
           </div>
         </div>
-        {/* App Store / Native App Promotion Banner */}
-        <div className="bg-brand-surface p-4 rounded-2xl border border-brand-border text-left shadow-subtle flex items-center justify-between gap-3">
-          <div className="space-y-0.5">
-            <p className="text-xs font-bold text-brand-text-primary">
+        {/* Native App Banner with Truthful Store State */}
+        <div className="bg-brand-surface p-4 rounded-2xl border border-brand-border text-left shadow-subtle space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-brand-text-primary">
               Frequent Cinema Patron?
-            </p>
-            <p className="text-[11px] text-brand-text-secondary">
-              Open the PottyPlay Customer App for one-tap breaks without re-scanning.
-            </p>
+            </span>
+            <span className="text-[10px] uppercase font-bold text-neutral-400 bg-brand-bg px-2 py-0.5 rounded border border-brand-border">
+              {process.env.NEXT_PUBLIC_APP_STORE_URL || process.env.NEXT_PUBLIC_PLAY_STORE_URL ? "Download App" : "Store Release Pending"}
+            </span>
           </div>
-          <Link
-            href="/app"
-            className="py-2 px-3.5 rounded-xl font-bold text-xs bg-brand-primary text-brand-accent hover:bg-brand-secondary transition-all shadow-subtle flex-shrink-0"
-          >
-            Launch App
-          </Link>
+          <p className="text-[11px] text-brand-text-secondary leading-relaxed">
+            {process.env.NEXT_PUBLIC_APP_STORE_URL || process.env.NEXT_PUBLIC_PLAY_STORE_URL ? (
+              "Get our official mobile app for one-tap breaks and screening alerts without scanning auditorium QR codes."
+            ) : (
+              "The official iOS and Android native containers are currently in partner trial. Patrons can continue using this web companion player without app installation."
+            )}
+          </p>
+          <div className="pt-1 flex items-center justify-between">
+            {process.env.NEXT_PUBLIC_APP_STORE_URL || process.env.NEXT_PUBLIC_PLAY_STORE_URL ? (
+              <a
+                href={process.env.NEXT_PUBLIC_APP_STORE_URL || process.env.NEXT_PUBLIC_PLAY_STORE_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="py-2 px-3.5 rounded-xl font-bold text-xs bg-brand-primary text-brand-accent hover:bg-brand-secondary transition-all shadow-subtle"
+              >
+                Get the App
+              </a>
+            ) : (
+              <Link
+                href="/app"
+                className="py-2 px-3.5 rounded-xl font-bold text-xs bg-brand-primary text-brand-accent hover:bg-brand-secondary transition-all shadow-subtle"
+              >
+                Open PWA App
+              </Link>
+            )}
+          </div>
         </div>
       </section>
 

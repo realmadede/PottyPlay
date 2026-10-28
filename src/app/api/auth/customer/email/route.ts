@@ -14,12 +14,20 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { mode, email, password, name } = emailAuthSchema.parse(body);
 
-    let result;
     if (mode === "register") {
-      result = await CustomerAuthService.registerWithEmail(email, password, name || "Patron");
-    } else {
-      result = await CustomerAuthService.loginWithEmail(email, password);
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Full registration with phone number and terms acceptance is mandatory. Please use /api/auth/customer/register.",
+        },
+        { status: 400 }
+      );
     }
+
+    const result = await CustomerAuthService.login({
+      identifier: email,
+      password,
+    });
 
     if (!result.success || !result.session) {
       return NextResponse.json(

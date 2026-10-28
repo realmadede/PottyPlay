@@ -170,19 +170,30 @@ model PartnerApplication {
 }
 
 model CustomerAccount {
-  id             String       @id @default(cuid())
-  phoneNumber    String?      @unique
-  email          String?      @unique
-  passwordHash   String?
-  name           String?
-  phoneVerified  Boolean      @default(false)
-  emailVerified  Boolean      @default(false)
-  authProvider   AuthProvider @default(PHONE)
-  sessionToken   String?      @unique
-  tokenExpiresAt DateTime?
-  onboardingDone Boolean      @default(false)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id                         String       @id @default(cuid())
+  phoneNumber                String?      @unique
+  email                      String?      @unique
+  passwordHash               String?
+  name                       String?
+  phoneVerified              Boolean      @default(false)
+  emailVerified              Boolean      @default(false)
+  authProvider               AuthProvider @default(EMAIL)
+  sessionToken               String?      @unique
+  tokenExpiresAt             DateTime?
+  onboardingDone             Boolean      @default(false)
+  status                     String       @default("PENDING_VERIFICATION") // PENDING_VERIFICATION, ACTIVE, SUSPENDED, DELETION_REQUESTED
+  termsAcceptedVersion       String?
+  privacyAcceptedVersion     String?
+  termsAcceptedAt            DateTime?
+  emailVerificationCode      String?
+  emailVerificationExpiresAt DateTime?
+  passwordResetToken         String?
+  passwordResetExpiresAt     DateTime?
+  themePreference            String       @default("SYSTEM") // LIGHT, DARK, SYSTEM
+  notificationPreferences    Json?
+  deletionRequestedAt        DateTime?
+  createdAt                  DateTime     @default(now())
+  updatedAt                  DateTime     @updatedAt
 
   reminders     ScreeningReminder[]
   breakSessions BreakSession[]

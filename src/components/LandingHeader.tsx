@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
-import { Menu, X, ArrowRight, ShieldCheck, ExternalLink } from "lucide-react";
+import { Menu, X, ArrowRight, ExternalLink } from "lucide-react";
 
 export function LandingHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -15,7 +15,7 @@ export function LandingHeader() {
         <BrandLogo size="md" variant="full" href="/" />
 
         {/* Public B2B Navigation */}
-        <nav className="hidden lg:flex items-center space-x-7 text-xs font-semibold text-brand-text-secondary">
+        <nav className="hidden lg:flex items-center space-x-6 xl:space-x-7 text-xs font-semibold text-brand-text-secondary">
           <a
             href="#proposition"
             className="hover:text-brand-text-primary transition-colors duration-150"
@@ -62,12 +62,12 @@ export function LandingHeader() {
 
         {/* Action CTAs */}
         <div className="hidden sm:flex items-center space-x-3">
-          <Link
-            href="/operator"
-            className="py-2.5 px-4 rounded-xl text-xs font-semibold text-brand-text-primary hover:bg-neutral-100 transition-colors duration-150 border border-brand-border flex items-center space-x-1.5"
+          <a
+            href="#how-it-works"
+            className="py-2.5 px-4 rounded-xl text-xs font-semibold text-brand-text-primary hover:bg-neutral-100 transition-colors duration-150 border border-brand-border flex items-center"
           >
-            <span>Operator Workspace</span>
-          </Link>
+            <span>Platform Overview</span>
+          </a>
           <a
             href="#register"
             className="py-2.5 px-4 rounded-xl text-xs font-bold bg-brand-primary text-brand-accent hover:bg-brand-secondary transition-colors duration-150 shadow-subtle flex items-center space-x-1.5"
@@ -81,7 +81,7 @@ export function LandingHeader() {
         <button
           type="button"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="lg:hidden p-2.5 rounded-xl border border-brand-border text-brand-text-primary hover:bg-white"
+          className="lg:hidden p-2.5 rounded-xl border border-brand-border text-brand-text-primary hover:bg-white touch-manipulation"
           aria-label="Toggle navigation menu"
         >
           {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -90,8 +90,8 @@ export function LandingHeader() {
 
       {/* Mobile drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-b border-brand-border bg-brand-bg px-4 py-5 space-y-3">
-          <nav className="flex flex-col space-y-2.5 text-sm font-semibold text-brand-text-secondary">
+        <div className="lg:hidden border-b border-brand-border bg-brand-bg px-4 py-5 space-y-3 shadow-lg">
+          <nav className="flex flex-col space-y-2 text-sm font-semibold text-brand-text-secondary">
             <a
               href="#proposition"
               onClick={() => setMobileMenuOpen(false)}
@@ -144,20 +144,14 @@ export function LandingHeader() {
             </Link>
           </nav>
 
-          <div className="pt-3 border-t border-brand-border flex flex-col space-y-2">
-            <Link
-              href="/operator"
-              onClick={() => setMobileMenuOpen(false)}
-              className="w-full text-center py-2.5 px-4 rounded-xl text-xs font-semibold bg-white border border-brand-border text-brand-text-primary"
-            >
-              Cinema Operator Workspace
-            </Link>
+          <div className="pt-3 border-t border-brand-border flex flex-col space-y-2 pb-[env(safe-area-inset-bottom)]">
             <a
               href="#register"
               onClick={() => setMobileMenuOpen(false)}
-              className="w-full text-center py-2.5 px-4 rounded-xl text-xs font-bold bg-brand-primary text-brand-accent hover:bg-brand-secondary shadow-subtle"
+              className="w-full text-center py-3 px-4 rounded-xl text-xs font-bold bg-brand-primary text-brand-accent hover:bg-brand-secondary shadow-subtle flex items-center justify-center space-x-1.5"
             >
-              Register Cinema Partner
+              <span>Register Cinema Partner</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </a>
           </div>
         </div>

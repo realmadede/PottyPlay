@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { CustomerAuthService } from "@/features/auth/customer-auth-service";
 import { OtpService } from "@/features/messaging/otp-service";
+import { prisma } from "@/lib/db";
+import { normalizePhoneNumber } from "@/lib/phone";
 import { z } from "zod";
 
 const requestPhoneSchema = z.object({
@@ -40,35 +42,49 @@ export async function POST(req: NextRequest) {
     }
 
     // Mode 2: Verify code and login / register
-    const { phoneNumber, code, name } = verifyPhoneSchema.parse(body);
-    const authResult = await CustomerAuthService.authenticateWithPhone(
-      phoneNumber,
-      code,
-      name
-    );
+    const { phoneNumber, code } = verifyPhoneSchema.parse(body);
+    const challenge = await prisma.otpChallenge.findFirst({
+      where: {
+        phoneNumber: normalizePhoneNumber(phoneNumber),
+        isUsed: false,
+        expiresAt: { gt: new Date() },
+      },
+      orderBy: { createdAt: "desc" },
+    });
 
-    if (!authResult.success) {
+    if (!challenge) {
       return NextResponse.json(
-        { success: false, error: authResult.error },
+        { success: false, error: "No active verification challenge found." },
         { status: 400 }
       );
     }
 
-    const response = NextResponse.json({
+    const verifyResult = await OtpService.verifyOtp(challenge.id, code);
+    if (!verifyResult.success) {
+      return NextResponse.json(
+        { success: false, error: verifyResult.error || "Invalid code." },
+        { status: 400 }
+      );
+    }
+
+    const customer = await prisma.customerAccount.findUnique({
+      where: { phoneNumber: normalizePhoneNumber(phoneNumber) },
+    });
+
+    if (!customer) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "No account registered for this phone number. Please complete registration.",
+        },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json({
       success: true,
-      session: authResult.session,
+      message: "Phone verification successful.",
     });
-
-    // Set secure persistent cookie
-    response.cookies.set("pp_cust_token", authResult.session!.sessionToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 30 * 24 * 60 * 60, // 30 days
-      path: "/",
-    });
-
-    return response;
   } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(

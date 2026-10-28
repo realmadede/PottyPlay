@@ -223,10 +223,10 @@ export default function OperatorPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-screen bg-brand-bg text-brand-text-primary">
+    <div className="flex-1 flex flex-col min-h-screen bg-brand-bg text-brand-text-primary overflow-x-clip">
       <NavigationHeader />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6 min-w-0">
         {/* Workspace Title & Venue Switcher */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-brand-border">
           <div className="flex items-center space-x-3">
@@ -374,7 +374,7 @@ export default function OperatorPage() {
         {/* TAB 1: Live Sessions */}
         {activeTab === "sessions" && (
           <div className="space-y-4">
-            <div className="bg-white rounded-2xl border border-brand-border overflow-hidden shadow-subtle">
+            <div className="bg-white rounded-2xl border border-brand-border overflow-hidden shadow-subtle min-w-0 w-full">
               <div className="p-4 border-b border-brand-border flex justify-between items-center">
                 <span className="font-bold text-xs uppercase tracking-wider text-brand-text-secondary">
                   Auditorium Companion Sessions ({data?.sessions.length ?? 0})
@@ -384,8 +384,8 @@ export default function OperatorPage() {
                 </span>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
+              <div className="overflow-x-auto w-full min-w-0">
+                <table className="w-full text-left text-xs min-w-[560px]">
                   <thead className="bg-brand-bg text-brand-text-secondary border-b border-brand-border text-[11px] font-bold uppercase">
                     <tr>
                       <th className="p-3">Patron & Seat</th>
@@ -672,8 +672,8 @@ export default function OperatorPage() {
                 </div>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
+              <div className="overflow-x-auto w-full min-w-0">
+                <table className="w-full text-left text-xs min-w-[560px]">
                   <thead className="bg-brand-bg text-brand-text-secondary border-b border-brand-border text-[11px] font-bold uppercase">
                     <tr>
                       <th className="p-3">Ticket</th>
@@ -714,8 +714,8 @@ export default function OperatorPage() {
                 Africa&apos;s Talking Delivery Log ({data?.smsAttempts.length ?? 0})
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
+              <div className="overflow-x-auto w-full min-w-0">
+                <table className="w-full text-left text-xs min-w-[560px]">
                   <thead className="bg-brand-bg text-brand-text-secondary border-b border-brand-border text-[11px] font-bold uppercase">
                     <tr>
                       <th className="p-3">Phone</th>
@@ -764,8 +764,8 @@ export default function OperatorPage() {
                 Audited System Operations ({data?.auditEvents.length ?? 0})
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
+              <div className="overflow-x-auto w-full min-w-0">
+                <table className="w-full text-left text-xs min-w-[560px]">
                   <thead className="bg-brand-bg text-brand-text-secondary border-b border-brand-border text-[11px] font-bold uppercase">
                     <tr>
                       <th className="p-3">Event Type</th>

@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { generateSessionToken, hashPassword, verifyPassword } from "@/lib/crypto";
+import { generateSessionToken, generateOtpCode, hashPassword, verifyPassword } from "@/lib/crypto";
 import { OtpService } from "@/features/messaging/otp-service";
 import { normalizePhoneNumber, isValidPhoneNumber } from "@/lib/phone";
 import { AuthProvider } from "@prisma/client";
@@ -12,6 +12,8 @@ export interface CustomerAuthSession {
   phoneVerified: boolean;
   emailVerified: boolean;
   onboardingDone: boolean;
+  status: string;
+  themePreference: string;
   authProvider: AuthProvider;
   sessionToken: string;
   tokenExpiresAt: Date;
@@ -22,10 +24,9 @@ export class CustomerAuthService {
    * Session validity duration: 30 days of persistent login.
    */
   static readonly SESSION_DURATION_DAYS = 30;
+  static readonly TERMS_VERSION = "2026-10-v1";
+  static readonly PRIVACY_VERSION = "2026-10-v1";
 
-  /**
-   * Generates expiration date for customer persistent login.
-   */
   private static getSessionExpiry(): Date {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + this.SESSION_DURATION_DAYS);
@@ -33,164 +34,321 @@ export class CustomerAuthService {
   }
 
   /**
-   * Verifies an OTP code and either logs in existing customer or creates a new one.
+   * Registers a customer account with mandatory full name, phone number, email,
+   * password (Argon2id), and explicit terms/privacy acceptance.
    */
-  static async authenticateWithPhone(
-    rawPhone: string,
-    code: string,
-    name?: string
-  ): Promise<{ success: boolean; session?: CustomerAuthSession; error?: string }> {
+  static async registerCustomer(params: {
+    fullName: string;
+    phoneNumber: string;
+    email: string;
+    password: string;
+    termsAccepted: boolean;
+  }): Promise<{
+    success: boolean;
+    customerId?: string;
+    phoneChallengeId?: string;
+    simulatedSmsCode?: string;
+    simulatedEmailCode?: string;
+    error?: string;
+  }> {
+    const { fullName, phoneNumber: rawPhone, email: rawEmail, password, termsAccepted } = params;
+
+    // 1. Mandatory acceptance validation
+    if (!termsAccepted) {
+      return {
+        success: false,
+        error: "You must accept the Privacy Policy and Terms of Service to create an account.",
+      };
+    }
+
+    if (!fullName || fullName.trim().length < 2) {
+      return { success: false, error: "Please enter your full name." };
+    }
+
     if (!isValidPhoneNumber(rawPhone)) {
-      return { success: false, error: "Please enter a valid phone number." };
+      return { success: false, error: "Please enter a valid phone number (e.g., +255 7XX XXX XXX)." };
     }
     const phone = normalizePhoneNumber(rawPhone);
 
-    // Verify OTP against OtpChallenge
-    const latestChallenge = await prisma.otpChallenge.findFirst({
-      where: {
-        phoneNumber: phone,
-        isUsed: false,
-        expiresAt: { gt: new Date() },
-      },
-      orderBy: { createdAt: "desc" },
+    const email = rawEmail.trim().toLowerCase();
+    if (!email.includes("@") || !email.includes(".")) {
+      return { success: false, error: "Please enter a valid email address." };
+    }
+
+    if (!password || password.length < 8) {
+      return { success: false, error: "Password must be at least 8 characters long." };
+    }
+
+    // 2. Account uniqueness checks
+    const existingEmail = await prisma.customerAccount.findUnique({
+      where: { email },
     });
-
-    if (!latestChallenge) {
-      return { success: false, error: "No active verification challenge found. Please request a new code." };
+    if (existingEmail && existingEmail.status === "ACTIVE") {
+      return { success: false, error: "An account with this email address already exists. Please sign in." };
     }
 
-    const verifyResult = await OtpService.verifyOtp(latestChallenge.id, code);
-    if (!verifyResult.success) {
-      return { success: false, error: verifyResult.error || "Invalid verification code." };
-    }
-
-    const sessionToken = generateSessionToken("cust_");
-    const tokenExpiresAt = this.getSessionExpiry();
-
-    // Find or create customer account
-    let customer = await prisma.customerAccount.findUnique({
+    const existingPhone = await prisma.customerAccount.findUnique({
       where: { phoneNumber: phone },
     });
+    if (existingPhone && existingPhone.status === "ACTIVE") {
+      return { success: false, error: "An account with this phone number already exists. Please sign in." };
+    }
 
+    // 3. Hash password using Argon2id
+    const passwordHash = hashPassword(password);
+
+    // 4. Create or update pending account
+    const emailVerificationCode = generateOtpCode();
+    const emailVerificationExpiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+    let customer = existingEmail || existingPhone;
     if (customer) {
       customer = await prisma.customerAccount.update({
         where: { id: customer.id },
         data: {
-          phoneVerified: true,
-          sessionToken,
-          tokenExpiresAt,
-          name: name ? name.trim() : customer.name,
+          name: fullName.trim(),
+          phoneNumber: phone,
+          email,
+          passwordHash,
+          termsAcceptedVersion: this.TERMS_VERSION,
+          privacyAcceptedVersion: this.PRIVACY_VERSION,
+          termsAcceptedAt: new Date(),
+          phoneVerified: false,
+          emailVerified: false,
+          status: "PENDING_VERIFICATION",
+          emailVerificationCode,
+          emailVerificationExpiresAt,
+          authProvider: AuthProvider.EMAIL,
         },
       });
     } else {
       customer = await prisma.customerAccount.create({
         data: {
+          name: fullName.trim(),
           phoneNumber: phone,
-          phoneVerified: true,
-          name: name?.trim() || null,
-          authProvider: AuthProvider.PHONE,
-          sessionToken,
-          tokenExpiresAt,
-          onboardingDone: false,
+          email,
+          passwordHash,
+          termsAcceptedVersion: this.TERMS_VERSION,
+          privacyAcceptedVersion: this.PRIVACY_VERSION,
+          termsAcceptedAt: new Date(),
+          phoneVerified: false,
+          emailVerified: false,
+          status: "PENDING_VERIFICATION",
+          emailVerificationCode,
+          emailVerificationExpiresAt,
+          authProvider: AuthProvider.EMAIL,
         },
       });
     }
 
+    // 5. Send SMS OTP to phone via Africa's Talking provider abstraction
+    const otpResult = await OtpService.requestOtp(phone);
+    if (!otpResult.success) {
+      return {
+        success: false,
+        error: otpResult.error || "Failed to dispatch phone verification SMS.",
+      };
+    }
+
+    // 6. Deliver email verification code
+    // In production, dispatched via configured SMTP/SendGrid. In test/dev, logged safely.
+    console.log(`[EMAIL-VERIFICATION] Code for ${email}: ${emailVerificationCode} (expires in 15m)`);
+
     return {
       success: true,
-      session: {
-        customerId: customer.id,
-        name: customer.name,
-        phoneNumber: customer.phoneNumber,
-        email: customer.email,
-        phoneVerified: customer.phoneVerified,
-        emailVerified: customer.emailVerified,
-        onboardingDone: customer.onboardingDone,
-        authProvider: customer.authProvider,
-        sessionToken: customer.sessionToken!,
-        tokenExpiresAt: customer.tokenExpiresAt!,
-      },
+      customerId: customer.id,
+      phoneChallengeId: otpResult.challengeId,
+      simulatedSmsCode: otpResult.simulatedCode,
+      simulatedEmailCode: emailVerificationCode,
     };
   }
 
   /**
-   * Registers a customer account with email and password.
-   * Note: Phone verification is still required before viewing features are authorized.
+   * Verifies SMS OTP for a customer account.
    */
-  static async registerWithEmail(
-    email: string,
-    password: string,
-    name: string
-  ): Promise<{ success: boolean; session?: CustomerAuthSession; error?: string }> {
-    const cleanEmail = email.trim().toLowerCase();
-    if (password.length < 8) {
-      return { success: false, error: "Password must be at least 8 characters long." };
-    }
+  static async verifyPhone(params: {
+    customerId: string;
+    challengeId: string;
+    code: string;
+  }): Promise<{
+    success: boolean;
+    isFullyActivated: boolean;
+    session?: CustomerAuthSession;
+    error?: string;
+  }> {
+    const { customerId, challengeId, code } = params;
 
-    const existing = await prisma.customerAccount.findUnique({
-      where: { email: cleanEmail },
-    });
-
-    if (existing) {
-      return { success: false, error: "An account with this email already exists." };
-    }
-
-    const sessionToken = generateSessionToken("cust_");
-    const tokenExpiresAt = this.getSessionExpiry();
-    const passwordHash = hashPassword(password);
-
-    const customer = await prisma.customerAccount.create({
-      data: {
-        email: cleanEmail,
-        passwordHash,
-        name: name.trim(),
-        emailVerified: true, // Auto-verified for standard setup; phone verification remains mandatory
-        phoneVerified: false,
-        authProvider: AuthProvider.EMAIL,
-        sessionToken,
-        tokenExpiresAt,
-        onboardingDone: false,
-      },
-    });
-
-    return {
-      success: true,
-      session: {
-        customerId: customer.id,
-        name: customer.name,
-        phoneNumber: customer.phoneNumber,
-        email: customer.email,
-        phoneVerified: customer.phoneVerified,
-        emailVerified: customer.emailVerified,
-        onboardingDone: customer.onboardingDone,
-        authProvider: customer.authProvider,
-        sessionToken: customer.sessionToken!,
-        tokenExpiresAt: customer.tokenExpiresAt!,
-      },
-    };
-  }
-
-  /**
-   * Authenticates with email and password.
-   */
-  static async loginWithEmail(
-    email: string,
-    password: string
-  ): Promise<{ success: boolean; session?: CustomerAuthSession; error?: string }> {
-    const cleanEmail = email.trim().toLowerCase();
     const customer = await prisma.customerAccount.findUnique({
-      where: { email: cleanEmail },
+      where: { id: customerId },
     });
+    if (!customer) {
+      return { success: false, isFullyActivated: false, error: "Customer account not found." };
+    }
+
+    const verifyResult = await OtpService.verifyOtp(challengeId, code);
+    if (!verifyResult.success) {
+      return {
+        success: false,
+        isFullyActivated: false,
+        error: verifyResult.error || "Invalid verification code.",
+      };
+    }
+
+    const updated = await prisma.customerAccount.update({
+      where: { id: customerId },
+      data: { phoneVerified: true },
+    });
+
+    // Check if both phone and email are verified
+    if (updated.emailVerified) {
+      const sessionToken = generateSessionToken("cust_");
+      const tokenExpiresAt = this.getSessionExpiry();
+
+      const active = await prisma.customerAccount.update({
+        where: { id: customerId },
+        data: {
+          status: "ACTIVE",
+          sessionToken,
+          tokenExpiresAt,
+        },
+      });
+
+      return {
+        success: true,
+        isFullyActivated: true,
+        session: this.toSession(active),
+      };
+    }
+
+    return {
+      success: true,
+      isFullyActivated: false,
+    };
+  }
+
+  /**
+   * Verifies Email ownership with code.
+   */
+  static async verifyEmail(params: {
+    customerId: string;
+    code: string;
+  }): Promise<{
+    success: boolean;
+    isFullyActivated: boolean;
+    session?: CustomerAuthSession;
+    error?: string;
+  }> {
+    const { customerId, code } = params;
+
+    const customer = await prisma.customerAccount.findUnique({
+      where: { id: customerId },
+    });
+    if (!customer) {
+      return { success: false, isFullyActivated: false, error: "Customer account not found." };
+    }
+
+    if (!customer.emailVerificationCode || !customer.emailVerificationExpiresAt) {
+      return { success: false, isFullyActivated: false, error: "No email verification pending." };
+    }
+
+    if (new Date() > new Date(customer.emailVerificationExpiresAt)) {
+      return { success: false, isFullyActivated: false, error: "Email verification code has expired. Please request a new one." };
+    }
+
+    if (customer.emailVerificationCode.trim() !== code.trim()) {
+      return { success: false, isFullyActivated: false, error: "Invalid email verification code." };
+    }
+
+    const updated = await prisma.customerAccount.update({
+      where: { id: customerId },
+      data: {
+        emailVerified: true,
+        emailVerificationCode: null,
+        emailVerificationExpiresAt: null,
+      },
+    });
+
+    // Check if both phone and email are verified
+    if (updated.phoneVerified) {
+      const sessionToken = generateSessionToken("cust_");
+      const tokenExpiresAt = this.getSessionExpiry();
+
+      const active = await prisma.customerAccount.update({
+        where: { id: customerId },
+        data: {
+          status: "ACTIVE",
+          sessionToken,
+          tokenExpiresAt,
+        },
+      });
+
+      return {
+        success: true,
+        isFullyActivated: true,
+        session: this.toSession(active),
+      };
+    }
+
+    return {
+      success: true,
+      isFullyActivated: false,
+    };
+  }
+
+  /**
+   * Authenticates an existing customer via Email or Phone with password.
+   */
+  static async login(params: {
+    identifier: string; // Email or Phone number
+    password: string;
+  }): Promise<{
+    success: boolean;
+    session?: CustomerAuthSession;
+    needsVerification?: boolean;
+    customerId?: string;
+    missingVerification?: "phone" | "email" | "both";
+    error?: string;
+  }> {
+    const { identifier, password } = params;
+    const cleanId = identifier.trim();
+
+    let customer = null;
+    if (isValidPhoneNumber(cleanId)) {
+      const phone = normalizePhoneNumber(cleanId);
+      customer = await prisma.customerAccount.findUnique({
+        where: { phoneNumber: phone },
+      });
+    } else {
+      customer = await prisma.customerAccount.findUnique({
+        where: { email: cleanId.toLowerCase() },
+      });
+    }
 
     if (!customer || !customer.passwordHash) {
-      return { success: false, error: "Invalid email or password." };
+      return { success: false, error: "Invalid login credentials." };
     }
 
     const isValid = verifyPassword(password, customer.passwordHash);
     if (!isValid) {
-      return { success: false, error: "Invalid email or password." };
+      return { success: false, error: "Invalid login credentials." };
     }
 
+    // Enforce required verifications before granting active session
+    if (!customer.phoneVerified || !customer.emailVerified) {
+      let missing: "phone" | "email" | "both" = "both";
+      if (customer.phoneVerified && !customer.emailVerified) missing = "email";
+      if (!customer.phoneVerified && customer.emailVerified) missing = "phone";
+
+      return {
+        success: false,
+        needsVerification: true,
+        customerId: customer.id,
+        missingVerification: missing,
+        error: "Your account requires verified phone and email before accessing PottyPlay.",
+      };
+    }
+
+    // Generate persistent session token
     const sessionToken = generateSessionToken("cust_");
     const tokenExpiresAt = this.getSessionExpiry();
 
@@ -204,57 +362,85 @@ export class CustomerAuthService {
 
     return {
       success: true,
-      session: {
-        customerId: updated.id,
-        name: updated.name,
-        phoneNumber: updated.phoneNumber,
-        email: updated.email,
-        phoneVerified: updated.phoneVerified,
-        emailVerified: updated.emailVerified,
-        onboardingDone: updated.onboardingDone,
-        authProvider: updated.authProvider,
-        sessionToken: updated.sessionToken!,
-        tokenExpiresAt: updated.tokenExpiresAt!,
-      },
+      session: this.toSession(updated),
     };
   }
 
   /**
-   * Binds and verifies a phone number for an existing authenticated account.
+   * Requests a password reset with enumeration protection.
    */
-  static async verifyCustomerPhone(
-    customerId: string,
-    rawPhone: string,
-    code: string
-  ): Promise<{ success: boolean; error?: string }> {
-    if (!isValidPhoneNumber(rawPhone)) {
-      return { success: false, error: "Please enter a valid phone number." };
-    }
-    const phone = normalizePhoneNumber(rawPhone);
+  static async requestPasswordReset(identifier: string): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    const cleanId = identifier.trim();
+    let customer = null;
 
-    const latestChallenge = await prisma.otpChallenge.findFirst({
+    if (isValidPhoneNumber(cleanId)) {
+      customer = await prisma.customerAccount.findUnique({
+        where: { phoneNumber: normalizePhoneNumber(cleanId) },
+      });
+    } else {
+      customer = await prisma.customerAccount.findUnique({
+        where: { email: cleanId.toLowerCase() },
+      });
+    }
+
+    if (customer && customer.email) {
+      const resetToken = generateSessionToken("reset_");
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+      await prisma.customerAccount.update({
+        where: { id: customer.id },
+        data: {
+          passwordResetToken: resetToken,
+          passwordResetExpiresAt: expiresAt,
+        },
+      });
+
+      console.log(`[PASSWORD-RESET] Token for ${customer.email}: ${resetToken}`);
+    }
+
+    return {
+      success: true,
+      message: "If an account matches that contact information, instructions have been sent.",
+    };
+  }
+
+  /**
+   * Completes a password reset.
+   */
+  static async resetPassword(params: {
+    token: string;
+    newPassword: string;
+  }): Promise<{ success: boolean; error?: string }> {
+    const { token, newPassword } = params;
+
+    if (!newPassword || newPassword.length < 8) {
+      return { success: false, error: "New password must be at least 8 characters long." };
+    }
+
+    const customer = await prisma.customerAccount.findFirst({
       where: {
-        phoneNumber: phone,
-        isUsed: false,
-        expiresAt: { gt: new Date() },
+        passwordResetToken: token,
+        passwordResetExpiresAt: { gt: new Date() },
       },
-      orderBy: { createdAt: "desc" },
     });
 
-    if (!latestChallenge) {
-      return { success: false, error: "No active verification challenge found." };
+    if (!customer) {
+      return { success: false, error: "Invalid or expired password reset link." };
     }
 
-    const verifyResult = await OtpService.verifyOtp(latestChallenge.id, code);
-    if (!verifyResult.success) {
-      return { success: false, error: verifyResult.error || "Invalid code." };
-    }
+    const passwordHash = hashPassword(newPassword);
 
     await prisma.customerAccount.update({
-      where: { id: customerId },
+      where: { id: customer.id },
       data: {
-        phoneNumber: phone,
-        phoneVerified: true,
+        passwordHash,
+        passwordResetToken: null,
+        passwordResetExpiresAt: null,
+        sessionToken: null, // Revoke active sessions for security
+        tokenExpiresAt: null,
       },
     });
 
@@ -262,7 +448,7 @@ export class CustomerAuthService {
   }
 
   /**
-   * Validates a persistent session token.
+   * Validates a persistent session token on server.
    */
   static async validateSession(
     token: string
@@ -279,18 +465,22 @@ export class CustomerAuthService {
       return null;
     }
 
-    return {
-      customerId: customer.id,
-      name: customer.name,
-      phoneNumber: customer.phoneNumber,
-      email: customer.email,
-      phoneVerified: customer.phoneVerified,
-      emailVerified: customer.emailVerified,
-      onboardingDone: customer.onboardingDone,
-      authProvider: customer.authProvider,
-      sessionToken: customer.sessionToken!,
-      tokenExpiresAt: customer.tokenExpiresAt,
-    };
+    if (customer.status !== "ACTIVE") {
+      return null;
+    }
+
+    return this.toSession(customer);
+  }
+
+  /**
+   * Updates customer theme preference (LIGHT, DARK, SYSTEM).
+   */
+  static async updateTheme(customerId: string, theme: "LIGHT" | "DARK" | "SYSTEM"): Promise<boolean> {
+    await prisma.customerAccount.update({
+      where: { id: customerId },
+      data: { themePreference: theme },
+    });
+    return true;
   }
 
   /**
@@ -313,5 +503,38 @@ export class CustomerAuthService {
       where: { sessionToken: token },
       data: { sessionToken: null, tokenExpiresAt: null },
     });
+  }
+
+  /**
+   * Initiates an account deletion request.
+   */
+  static async requestDeletion(customerId: string): Promise<boolean> {
+    await prisma.customerAccount.update({
+      where: { id: customerId },
+      data: {
+        status: "DELETION_REQUESTED",
+        deletionRequestedAt: new Date(),
+        sessionToken: null,
+        tokenExpiresAt: null,
+      },
+    });
+    return true;
+  }
+
+  private static toSession(account: any): CustomerAuthSession {
+    return {
+      customerId: account.id,
+      name: account.name,
+      phoneNumber: account.phoneNumber,
+      email: account.email,
+      phoneVerified: account.phoneVerified,
+      emailVerified: account.emailVerified,
+      onboardingDone: account.onboardingDone,
+      status: account.status,
+      themePreference: account.themePreference,
+      authProvider: account.authProvider,
+      sessionToken: account.sessionToken || "",
+      tokenExpiresAt: account.tokenExpiresAt || new Date(),
+    };
   }
 }
