@@ -27,3 +27,37 @@
   - The current server timestamp exceeds `expiresAt`.
   - The screening has concluded or is cancelled.
   - The cinema venue lacks active studio rights authorization for the content asset.
+
+## 4. Anti-Screenshot & Anti-Screen-Recording Protections
+
+PottyPlay incorporates multi-layered technical barriers to prevent unauthorized recording, content extraction, and pirated distribution of synchronized companion streams:
+
+### 4.1 Native Mobile Protections (`@capacitor-community/privacy-screen`)
+- **Android `FLAG_SECURE` Enforced**: Automatically sets window flag `WindowManager.LayoutParams.FLAG_SECURE` on native Android builds. The operating system actively disables screenshot captures, and screen-recording tools record only black video frames.
+- **iOS App Switcher Blanking**: Blanks the application canvas when the app moves to the background or the iOS App Switcher is engaged.
+
+### 4.2 Web Companion Protections (`CinemaCanvasPlayer.tsx`)
+- **Dynamic Floating Watermark**: Renders a drifting forensic watermark across the canvas continuously displaying:
+  `LICENSED PATRON: [phone/ID] • SESSION ID: [ID] • TC: [timecode]`. Any unauthorized recording immediately identifies the leaking ticket and device.
+- **Active Capture Interception**: Intercepts keyboard capture shortcuts (`PrintScreen`, Mac `Cmd+Shift+3/4/5`, Windows Snipping Tool `Win+Shift+S`, `Ctrl+P`).
+- **Focus Loss Stream Blanking**: Listens to `window.blur` and `document.visibilitychange`. If the patron switches tabs or activates an external capture utility, the canvas blanks instantly and displays a studio DRM protection warning overlay.
+- **Clipboard Clearing**: Automatically wipes the system clipboard on `PrintScreen` release (`navigator.clipboard.writeText("")`).
+- **Context Menu & Selection Disabled**: Browser right-click inspection and text dragging are suppressed (`onContextMenu` blocked, `user-select: none`).
+
+## 5. Mandatory Patron Identity Registration Gate (`/watch`)
+
+To satisfy studio exhibition requirements, anonymous viewing of companion break streams is strictly forbidden:
+- Patrons scanning a seat QR code or entering a ticket barcode must register and verify their telephone number via Africa's Talking SMS OTP prior to receiving an active session token.
+- Unregistered patrons are blocked by an authentication modal barrier; streams cannot be initiated anonymously.
+
+## 6. Partner Application Security & Bot Honeypot Defenses
+
+The public cinema partnership application endpoint (`/api/partner/register`):
+- **Honeypot Trap**: Employs a hidden form field (`website_url_hp`) that is invisible to human operators. Automated scrapers filling this field are silently rejected with status 400.
+- **Origin Telemetry**: Records client IP address (`ipAddress`) and HTTP user-agent (`userAgent`) on `PartnerApplication` records to verify venue geographic origin and detect bot farms.
+
+## 7. Expiring One-Time Registration Invitation Workflow
+
+Cinema venue registration is restricted to invite-only administration:
+- **Expiring Links**: Registration invitation links dispatched to verified circuits expire after 48 hours or immediately upon receipt of credentials in the database (single-use token enforcement).
+- **No Public Self-Registration**: The operator portal (`/operator`) provides strictly sign-in and password recovery flows; all cinema tenant provisioning is governed through platform administration (`/x`).

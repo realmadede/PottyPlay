@@ -2,7 +2,7 @@
 
 PottyPlay is an enterprise cinema companion-viewing technology platform designed for theatrical exhibitors, cinema circuits, and film festival organizers.
 
-The platform enables authenticated cinema patrons to temporarily follow an ongoing theatrical screening on their personal mobile devices during a brief intermission (restroom break, concession run) without losing their place in the film. It strictly enforces a maximum session duration of 15 minutes (900 seconds), a limit of two breaks per ticket, server-authoritative projection synchronization, carrier-grade Africa's Talking SMS verification, and idempotent usage billing.
+The platform enables authenticated cinema patrons to temporarily follow an ongoing theatrical screening on their personal mobile devices during a brief intermission (restroom break, concession run) without losing their place in the film. It strictly enforces a maximum session duration of 15 minutes (900 seconds), a limit of two breaks per ticket, server-authoritative projection synchronization, carrier-grade Africa's Talking SMS verification, studio anti-piracy screen capture restrictions, and idempotent usage billing.
 
 ---
 
@@ -10,51 +10,65 @@ The platform enables authenticated cinema patrons to temporarily follow an ongoi
 
 ### 1.1 Public Exhibitor Marketing Website (`/`)
 - Marketed specifically to cinema owners, exhibitors, and technical decision-makers.
-- Distinctive, animated, automatically transitioning hero carousel highlighting 4 core messages:
+- Animated, automatically transitioning hero carousel highlighting 4 core messages:
   1. *Never lose your place.*
   2. *A better cinema experience.*
   3. *The story continues.*
   4. *Built for cinema operators.*
-- 12 comprehensive landing page sections including product proposition, theater benefits, screening synchronization, ticketing interoperability, security perimeters, and direct partner registration.
+- 12 comprehensive landing page sections including product proposition, theater benefits, screening synchronization, ticketing interoperability, security perimeters, and direct partner inquiry dispatching.
+- **Bot Defense & Origin Logging:** Automated scrapers are trapped by hidden form honeypot fields (`website_url_hp`); inquiring circuits have IP addresses and HTTP User-Agent signatures recorded for fraud auditing.
 
 ### 1.2 Customer Application (`/app`)
-- Single shared React/TypeScript codebase supporting Web, Android, and iOS through Capacitor.
-- First-launch welcoming animated introduction with sliding onboarding panels and persistent completion flag.
-- Mandatory Customer Registration & Authentication:
+- Single shared React/TypeScript codebase supporting native iOS and Android publication via Capacitor.
+- **Native Screen Security:** Integrates `@capacitor-community/privacy-screen` to enforce OS-level `FLAG_SECURE` on Android (rendering screenshots and screen recordings completely black) and privacy snapshot blanking on iOS when the App Switcher is engaged.
+- **iOS 26 Optical Refractive Glass UI:** Surfaces, header bars, and floating docks utilize real optical glass styling (`glass-ios26`, `glass-ios26-rim`, `glass-ios26-glint`) featuring SVG lens displacement refraction, caustic edge rims, and motion-tracked specular glints.
+- **Mandatory Customer Registration & Authentication:**
   - Streamlined registration form requiring Full Name, Phone Number (+255 E.164), Email, and Password (hashed with Argon2id).
   - Explicit single checkbox requiring affirmative consent to Terms of Service and Privacy Policy (recording exact version and timestamp).
   - Two-stage verification: Africa's Talking SMS OTP plus 6-digit email confirmation code prior to account activation.
   - Strict unauthenticated gating: unauthenticated users cannot access customer tabs or session controls.
-- 5 Core Tabs:
-  1. **Cinema Discovery**: Truthful zero-partner state until venues are formally reviewed and approved by platform administrators.
-  2. **Ticket-Linked Reminders**: Configurable reminders (24 hours, 1 hour, 30 minutes before showtime) linked to verified tickets.
-  3. **Bathroom Mode**: One-tap activation without repeated QR code scanning or SMS OTP challenges. Displays 2-break allowance and live 900-second countdown.
-  4. **Viewing History**: Cursor-based paginated history of past sessions with cinema details and outcomes.
-  5. **Customer Settings**: Profile overview, Light/Dark/System theme switching without startup flash, notification preferences, legal policies, support contact, truthful app rating state, secure session sign-out, and account deletion request.
+- **5 Core Tabs:**
+  1. **Cinema Discovery:** Truthful zero-partner state until venues are formally reviewed and approved by platform administrators.
+  2. **Ticket-Linked Reminders:** Configurable reminders (24 hours, 1 hour, 30 minutes before showtime) linked to verified tickets.
+  3. **Bathroom Mode:** One-tap activation without repeated QR code scanning or SMS OTP challenges. Displays 2-break allowance and live 900-second countdown.
+  4. **Viewing History:** Cursor-based paginated history of past sessions with cinema details and outcomes.
+  5. **Customer Settings:** Profile overview, Light/Dark/System theme switching without startup flash, notification preferences, legal policies, support contact, truthful app rating state, secure session sign-out, and account deletion request.
 
 ### 1.3 QR Browser Companion for Non-App Patrons (`/watch`)
-- Direct web-based journey for customers scanning an auditorium QR code without the app.
-- Validates ticket barcodes and claim tokens, provisions a 900-second browser session, and displays a truthful store availability status ("Store Release Pending / Partner Pilot") without dead store links.
+- Direct web-based journey for customers scanning an auditorium QR code without the native app.
+- **Mandatory Patron Phone Registration Barrier:** To comply with studio anti-piracy licensing, anonymous stream activation is blocked; patrons must verify their mobile telephone identity via Africa's Talking SMS OTP before authorization.
+- **Web Anti-Piracy Protections (`CinemaCanvasPlayer.tsx`):**
+  - Continuous dynamic floating forensic watermark rendering: `LICENSED PATRON: [phone/ID] • SESSION ID: [ID] • TC: [timecode]`.
+  - Active capture interception: blocks `PrintScreen`, Mac `Cmd+Shift+3/4/5`, Windows Snipping Tool `Win+Shift+S`, and `Ctrl+P`.
+  - Focus loss blanking: listens to `window.blur` and `document.visibilitychange` to immediately black out the video stream with a studio DRM advisory overlay whenever tab switching or screen capture tools engage.
+  - Clipboard clearing: wipes the system clipboard upon `PrintScreen` release.
+  - Context menu and drag selection suppressed.
 
 ### 1.4 Cinema Operator Workspace (`/operator` / `operations.pottyplay.domain`)
-- Secure, tenant-isolated workspace for cinema staff.
-- Screen and screening management, live break counters, manual usher revocations with required rationale, and audit history.
+- Secure, tenant-isolated workspace for authorized cinema staff.
+- Dedicated operator authentication with password recovery workflow (no public self-registration).
+- Real-time auditorium telemetry, active break session tracking, manual usher revocations with required rationale, and audit ledgers.
 - Cinema-specific commercial pricing configuration (per-session rates, currency, status) preserving historical billing records.
 
 ### 1.5 Private Platform Administration (`/x` / `setapart.<domain>`)
 - Restricted administration portal with rate-limited authentication, session management, and audit logging.
 - Global operational oversight: partner review and approval workflow, global usage ledger, approved cinemas, active sessions, and security events.
+- **Expiring Circuit Invitation System:** Dispatches one-time onboarding links to verified cinema applicants that expire after 48 hours or immediately upon receipt of credentials in the database.
 - Strictly isolated by domain routing: the public marketing domain blocks `/x` and unmapped `/admin` routes.
 
 ### 1.6 Developer Portal (`/developers`)
 - Complete integration documentation for cinema IT teams, POS vendors (Vista, Veezi, RTS), and TMS projection servers.
-- OpenAPI 3.1 schema specification (`/api/openapi.json`), webhook specifications, idempotency headers, and rate limits.
+- **OpenAPI 3.1 Specification (`/api/openapi.json`):** Canonical, machine-readable REST API schema ready for direct import into Postman, Insomnia, or client SDK generators.
 
-### 1.7 Controlled Presentation Experience (`/presentation`)
-- Separate, controlled demonstration route for prospective partners.
-- Features a simulated auditorium projection feed and a live QR verification code linking to real test fixtures.
+### 1.7 Theater Projection Console (`/cinema`)
+- Authoritative master projection timeline and synchronization engine for development, testing, and partner demonstrations.
+- Simulates in-theater projection servers (e.g., Dolby IMS3000, Christie TMS), displaying live movie playback, play/pause controls, timeline scrubbing, SMPTE timecode drift controls, and active restroom viewers.
 
-### 1.8 Tanzanian Legal & Privacy Pages (`/terms`, `/privacy`)
+### 1.8 Controlled Presentation Experience (`/presentation`)
+- Controlled demonstration route for prospective exhibition partners.
+- Features simulated auditorium projection playback and live QR codes linking to verified test fixtures.
+
+### 1.9 Tanzanian Legal & Privacy Pages (`/terms`, `/privacy`)
 - Grounded in Tanzania's Personal Data Protection Act 2022 (PDPA 2022), the Electronic Transactions Act 2015, and TCRA communications frameworks.
 - Transparent data collection declarations: zero geolocation tracking, zero biometric harvesting, 90-day retention policies, and clear user rights (access, rectification, erasure).
 
@@ -76,10 +90,10 @@ Africa's Talking SMS infrastructure powers patron authentication and security fa
 - **Language:** TypeScript 5 (Strict Mode enabled)
 - **Typography:** Familjen Grotesk
 - **Cryptography:** Argon2id (`@node-rs/argon2`) for credentials, SHA-256 for OTP hashes and signatures
-- **Design Tokens:** Atmospheric cinematic palette (Heather `#7A5A8E` / `#BFA2D0`, Amber `#F5C451`, Ink `#15191B` / `#E6EAE8`, Mist `#E7EAE8` / `#121517`)
-- **Mobile Container:** Capacitor 8 (`@capacitor/core`, `@capacitor/android`, `@capacitor/ios`)
+- **Optical Glass Engine:** Custom iOS 26 refractive glass styling with SVG lens displacement (`#ios26-lens`), multi-layer specular radial gradients, and pointer-tracked glint sweeps
+- **Mobile Container:** Capacitor 8 (`@capacitor/core`, `@capacitor/android`, `@capacitor/ios`) with `@capacitor-community/privacy-screen`
 - **Database & Transactions:** PostgreSQL 16 with Prisma ORM
-- **Testing:** Vitest automated test suite (23 integration and invariant tests)
+- **Testing:** Vitest automated test suite (32 comprehensive integration and invariant tests)
 - **Containerization:** Multi-stage Dockerfile and Docker Compose
 
 ---
@@ -145,7 +159,7 @@ Africa's Talking SMS infrastructure powers patron authentication and security fa
 
 ## 6. Testing and Verification
 
-Run the automated test suite:
+Run the automated test suite (32 tests):
 ```bash
 npm test
 ```

@@ -45,7 +45,7 @@ However, the platform currently exhibits several architectural and design shortc
   - Font: `Plus Jakarta Sans`
 
 ### Ticket Entitlement & Authentication
-- `src/features/tickets/ticket-service.ts`: Ticket verification currently only supports manual entry of ticket numbers (`CC-MLM-7821-A12`). Needs support for:
+- `src/features/tickets/ticket-service.ts`: Ticket verification currently only supports manual entry of ticket numbers (e.g. `TK-XXXX-YYYY`). Needs support for:
   - Cryptographic Claim Tokens (unpredictable token from QR/barcode)
   - Device/Session authentication caching for returning patrons (bypassing redundant SMS OTP challenges)
   - SMS OTP reserved for account registration, recovery, and security fallback.

@@ -27,13 +27,13 @@ The entitlement engine enforces four core invariants:
     (Patron Returns to Auditorium Seat)
 ```
 
-## 3. Claim Tokens & Deep-Linking
+## 3. Claim Tokens, Deep-Linking & Identity Verification
 
 To enable instant mobile scanning from auditorium seat armrests without requiring patrons to manually type alphanumeric codes:
-- Every demonstration ticket is assigned a unique `claimToken` (e.g., `CLM-MLM-A12-8821`).
+- Every demonstration ticket is assigned a unique `claimToken` (e.g., `CLM-DEMO-8821`).
 - Physical QR codes encode the deep link:
-  `https://pottyplay.com/watch?claim=CLM-MLM-A12-8821`
-- When scanned, the customer application parses the query parameter, automatically performs ticket validation, and displays the single-tap activation screen.
+  `https://pottyplay.com/watch?claim=CLM-DEMO-8821`
+- When scanned, the customer application parses the query parameter, validates ticket entitlement, and requests mandatory telephone verification before activating the companion stream. Direct anonymous access without patron identity registration is prohibited under studio licensing requirements.
 
 ## 4. Concurrency Protection & Transaction Boundaries
 

@@ -51,6 +51,6 @@ Under `/operator` > **Billing Ledger**:
 
 | Issue | Resolution |
 | --- | --- |
-| Patron cannot scan QR code | Staff can enter the patron ticket number (e.g. `CC-MLM-7821-A12`) directly at `/watch`. |
+| Patron cannot scan QR code | Staff can enter the patron ticket number (e.g. `TK-8821-DEMO`) directly at `/watch`. |
 | Patron device battery dies | Once device recharges, patron navigates to `/watch` and enters their ticket code or phone number to resume active session. |
 | 15-minute limit reached | Stream automatically terminates with guidance to return to auditorium. No extension is permitted under studio exhibition rules. |

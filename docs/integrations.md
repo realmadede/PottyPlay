@@ -40,7 +40,7 @@ Validates that a ticket barcode or claim token corresponds to a valid admission 
 ```json
 // Request
 {
-  "ticketNumber": "TK-8821-A12",
+  "ticketNumber": "TK-8821-DEMO",
   "screeningId": "screening_auditorium_01"
 }
 
@@ -49,8 +49,8 @@ Validates that a ticket barcode or claim token corresponds to a valid admission 
   "isEligible": true,
   "status": "ELIGIBLE",
   "ticket": {
-    "ticketNumber": "TK-8821-A12",
-    "seatNumber": "A12",
+    "ticketNumber": "TK-8821-DEMO",
+    "seatNumber": "D04",
     "customerName": "Patron Name"
   },
   "screening": {
@@ -73,7 +73,7 @@ Atomically activates a 900-second session. Enforces the strict 2-break limit per
 ```json
 // Request
 {
-  "ticketNumber": "TK-8821-A12",
+  "ticketNumber": "TK-8821-DEMO",
   "deviceInfo": "Safari on iOS 18 (Mobile)"
 }
 
@@ -122,12 +122,23 @@ X-PottyPlay-Signature: sha256=...
   "event": "ticket.admitted",
   "cinemaId": "cinema_circuit_01",
   "screeningId": "screening_auditorium_01",
-  "ticketNumber": "TK-8821-A12",
-  "seatNumber": "A12",
+  "ticketNumber": "TK-8821-DEMO",
+  "seatNumber": "D04",
   "customerName": "Patron Name",
   "customerPhone": "+255714000111",
-  "claimToken": "CLM-A12-9901",
+  "claimToken": "CLM-DEMO-9901",
   "maxBreaks": 2,
   "maxSessionSeconds": 900
 }
 ```
+
+---
+
+## 5. OpenAPI 3.1 Specification
+
+PottyPlay publishes a formal, machine-readable OpenAPI 3.1 contract at `/api/openapi.json`. 
+
+- **Canonical Endpoint**: `GET /api/openapi.json`
+- **Specification Version**: OpenAPI 3.1.0
+- **Purpose**: Enables cinema engineering teams, POS vendors (Vista, Veezi, NCR Voyix), and Theater Management System (TMS) integrators to import endpoints directly into Postman, Insomnia, or automated SDK generators (TypeScript, Python, C#, Go).
+- **Interactive Documentation**: Available on the [Developer Portal](/developers).
