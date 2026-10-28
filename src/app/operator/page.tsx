@@ -223,26 +223,26 @@ export default function OperatorPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-screen bg-brand-bg text-brand-text-primary overflow-x-clip">
+    <div className="flex-1 flex flex-col min-h-screen bg-bg text-ink overflow-x-clip">
       <NavigationHeader />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6 min-w-0">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6 min-w-0 text-left">
         {/* Workspace Title & Venue Switcher */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-brand-border">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-line">
           <div className="flex items-center space-x-3">
-            <div className="p-2.5 rounded-2xl bg-brand-primary/20 border border-brand-primary/40 text-brand-accent">
+            <div className="p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
               <Sliders className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <h1 className="text-xl sm:text-2xl font-extrabold text-brand-text-primary tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-black text-ink tracking-tight">
                   Cinema Operator Workspace
                 </h1>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold">
                   TENANT ISOLATED
                 </span>
               </div>
-              <p className="text-xs text-brand-text-secondary">
+              <p className="text-xs text-muted">
                 Auditorium screen synchronization, active bathroom breaks, and commercial pricing.
               </p>
             </div>
@@ -250,20 +250,20 @@ export default function OperatorPage() {
 
           {/* Cinema Venue Switcher */}
           <div className="flex items-center space-x-2">
-            <label className="text-xs font-bold text-brand-text-secondary uppercase">
+            <label className="text-xs font-bold text-muted uppercase">
               Venue:
             </label>
             <select
               value={cinemaId}
               onChange={(e) => setCinemaId(e.target.value)}
-              className="px-3 py-2 rounded-xl border border-brand-border bg-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-primary"
+              className="px-3 py-2 rounded-xl border border-line bg-bg text-ink text-xs font-semibold focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
             >
-              <option value="cinema_mlimani_01">Century Cinemax - Mlimani City</option>
-              <option value="cinema_oasis_02">Oasis Cinema - Masaki</option>
+              <option value="cinema_mlimani_01" className="bg-field text-ink">Century Cinemax - Mlimani City</option>
+              <option value="cinema_oasis_02" className="bg-field text-ink">Oasis Cinema - Masaki</option>
             </select>
             <button
               onClick={fetchData}
-              className="p-2 rounded-xl border border-brand-border bg-white hover:bg-neutral-50 text-brand-text-secondary"
+              className="p-2 rounded-xl border border-line bg-field hover:bg-field-raised text-muted hover:text-ink"
               title="Refresh Telemetry"
               aria-label="Refresh Telemetry"
             >
@@ -274,11 +274,11 @@ export default function OperatorPage() {
 
         {/* Action Notice */}
         {actionNotice && (
-          <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex justify-between items-center animate-fade-in">
+          <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs flex justify-between items-center animate-fade-in">
             <span>{actionNotice}</span>
             <button
               onClick={() => setActionNotice(null)}
-              className="font-bold underline text-amber-950 ml-4"
+              className="font-bold underline text-amber-400 ml-4"
             >
               Dismiss
             </button>
@@ -287,63 +287,63 @@ export default function OperatorPage() {
 
         {/* Operator Stats Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-          <div className="bg-white p-4 rounded-2xl border border-brand-border shadow-subtle">
-            <span className="text-[11px] font-semibold text-brand-text-secondary uppercase">
+          <div className="bg-field p-4 rounded-2xl border border-line shadow-card">
+            <span className="text-[11px] font-semibold text-muted uppercase">
               Active Breaks
             </span>
-            <div className="text-2xl sm:text-3xl font-extrabold text-brand-primary mt-1">
+            <div className="text-2xl sm:text-3xl font-black text-amber-400 mt-1">
               {data?.stats.activeSessions ?? 0}
             </div>
-            <span className="text-[10px] text-brand-text-secondary mt-1 block">
+            <span className="text-[10px] text-muted mt-1 block">
               15-minute cap active
             </span>
           </div>
 
-          <div className="bg-white p-4 rounded-2xl border border-brand-border shadow-subtle">
-            <span className="text-[11px] font-semibold text-brand-text-secondary uppercase">
+          <div className="bg-field p-4 rounded-2xl border border-line shadow-card">
+            <span className="text-[11px] font-semibold text-muted uppercase">
               Screens Connected
             </span>
-            <div className="text-2xl sm:text-3xl font-extrabold text-brand-text-primary mt-1">
+            <div className="text-2xl sm:text-3xl font-black text-ink mt-1">
               {data?.cinema.screens.length ?? 0}
             </div>
-            <span className="text-[10px] text-emerald-700 font-semibold mt-1 block">
+            <span className="text-[10px] text-emerald-400 font-semibold mt-1 block">
               {data?.cinema.screeningSystem}
             </span>
           </div>
 
-          <div className="bg-white p-4 rounded-2xl border border-brand-border shadow-subtle">
-            <span className="text-[11px] font-semibold text-brand-text-secondary uppercase">
+          <div className="bg-field p-4 rounded-2xl border border-line shadow-card">
+            <span className="text-[11px] font-semibold text-muted uppercase">
               Agreed Pricing
             </span>
-            <div className="text-xl sm:text-2xl font-extrabold text-brand-text-primary mt-1">
+            <div className="text-xl sm:text-2xl font-black text-ink mt-1">
               {data?.pricing.currentPrice ?? 500}{" "}
-              <span className="text-xs font-semibold text-brand-text-secondary">
+              <span className="text-xs font-semibold text-muted">
                 {data?.pricing.currency ?? "TZS"}
               </span>
             </div>
-            <span className="text-[10px] text-brand-text-secondary mt-1 block">
+            <span className="text-[10px] text-muted mt-1 block">
               Status: {data?.pricing.status}
             </span>
           </div>
 
-          <div className="bg-white p-4 rounded-2xl border border-brand-border shadow-subtle">
-            <span className="text-[11px] font-semibold text-brand-text-secondary uppercase">
+          <div className="bg-field p-4 rounded-2xl border border-line shadow-card">
+            <span className="text-[11px] font-semibold text-muted uppercase">
               Recorded Usage
             </span>
-            <div className="text-xl sm:text-2xl font-extrabold text-brand-text-primary mt-1">
+            <div className="text-xl sm:text-2xl font-black text-ink mt-1">
               {data?.stats.totalRecordedAmount.toLocaleString() ?? 0}{" "}
-              <span className="text-xs font-semibold text-brand-text-secondary">
+              <span className="text-xs font-semibold text-muted">
                 {data?.pricing.currency ?? "TZS"}
               </span>
             </div>
-            <span className="text-[10px] text-brand-text-secondary mt-1 block">
+            <span className="text-[10px] text-muted mt-1 block">
               {data?.stats.totalBillableActivations ?? 0} qualifying breaks
             </span>
           </div>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex flex-wrap gap-2 border-b border-brand-border pb-3">
+        <div className="flex flex-wrap gap-2 border-b border-line pb-3">
           {[
             { id: "sessions", label: "Live Sessions", icon: Users },
             { id: "screenings", label: "Screens & Schedules", icon: Film },
@@ -360,8 +360,8 @@ export default function OperatorPage() {
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`py-2 px-3.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-all ${
                   isActive
-                    ? "bg-brand-accent text-white shadow-subtle"
-                    : "bg-white text-brand-text-secondary border border-brand-border hover:text-brand-text-primary hover:bg-neutral-50"
+                    ? "bg-amber-500 text-neutral-950 font-black shadow-sm"
+                    : "bg-field text-muted border border-line hover:text-ink hover:bg-field-raised"
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
@@ -374,19 +374,19 @@ export default function OperatorPage() {
         {/* TAB 1: Live Sessions */}
         {activeTab === "sessions" && (
           <div className="space-y-4">
-            <div className="bg-white rounded-2xl border border-brand-border overflow-hidden shadow-subtle min-w-0 w-full">
-              <div className="p-4 border-b border-brand-border flex justify-between items-center">
-                <span className="font-bold text-xs uppercase tracking-wider text-brand-text-secondary">
+            <div className="bg-field rounded-2xl border border-line overflow-hidden shadow-card min-w-0 w-full">
+              <div className="p-4 border-b border-line flex justify-between items-center">
+                <span className="font-bold text-xs uppercase tracking-wider text-muted">
                   Auditorium Companion Sessions ({data?.sessions.length ?? 0})
                 </span>
-                <span className="text-[11px] text-brand-text-secondary">
+                <span className="text-[11px] text-muted">
                   Strict 900s server enforcement
                 </span>
               </div>
 
               <div className="overflow-x-auto w-full min-w-0">
                 <table className="w-full text-left text-xs min-w-[560px]">
-                  <thead className="bg-brand-bg text-brand-text-secondary border-b border-brand-border text-[11px] font-bold uppercase">
+                  <thead className="bg-bg text-muted border-b border-line text-[11px] font-bold uppercase">
                     <tr>
                       <th className="p-3">Patron & Seat</th>
                       <th className="p-3">Screening</th>
@@ -396,41 +396,41 @@ export default function OperatorPage() {
                       <th className="p-3 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-brand-border">
+                  <tbody className="divide-y divide-line">
                     {data?.sessions.map((session) => (
-                      <tr key={session.id} className="hover:bg-neutral-50">
+                      <tr key={session.id} className="hover:bg-field-raised/50 transition-colors">
                         <td className="p-3">
-                          <div className="font-bold text-brand-text-primary">
+                          <div className="font-bold text-ink">
                             {session.customerName || "Admitted Patron"}
                           </div>
-                          <div className="text-[11px] text-brand-text-secondary font-mono">
+                          <div className="text-[11px] text-muted font-mono">
                             Seat {session.seatNumber} &bull; {session.ticketNumber}
                           </div>
                         </td>
                         <td className="p-3">
-                          <div className="font-semibold text-brand-text-primary">
+                          <div className="font-semibold text-ink">
                             {session.screeningTitle}
                           </div>
-                          <div className="text-[11px] text-brand-text-secondary">
+                          <div className="text-[11px] text-muted">
                             {session.screenName}
                           </div>
                         </td>
                         <td className="p-3">
-                          <span className="px-2 py-0.5 rounded bg-brand-bg font-bold text-[11px] border border-brand-border">
+                          <span className="px-2 py-0.5 rounded bg-bg text-ink font-bold text-[11px] border border-line">
                             Break {session.breakNumber} of 2
                           </span>
                         </td>
-                        <td className="p-3 text-brand-text-secondary font-mono text-[11px]">
+                        <td className="p-3 text-muted font-mono text-[11px]">
                           {new Date(session.startedAt).toLocaleTimeString()}
                         </td>
                         <td className="p-3">
                           <span
                             className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
                               session.status === "ACTIVE"
-                                ? "bg-emerald-100 text-emerald-800 animate-pulse"
+                                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 animate-pulse"
                                 : session.status === "EXPIRED"
-                                ? "bg-amber-100 text-amber-800"
-                                : "bg-red-100 text-red-800"
+                                ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                                : "bg-red-500/10 text-red-400 border border-red-500/20"
                             }`}
                           >
                             {session.status}
@@ -440,7 +440,7 @@ export default function OperatorPage() {
                           {session.status === "ACTIVE" && (
                             <button
                               onClick={() => setRevokeSessionId(session.id)}
-                              className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 transition-colors"
+                              className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/30 transition-colors"
                             >
                               Revoke
                             </button>
@@ -457,13 +457,13 @@ export default function OperatorPage() {
             {revokeSessionId && (
               <form
                 onSubmit={handleRevoke}
-                className="p-5 rounded-2xl bg-red-50 border border-red-200 space-y-3"
+                className="p-5 rounded-2xl bg-red-950/20 border border-red-500/30 space-y-3"
               >
-                <div className="flex items-center space-x-2 text-red-800 font-bold text-sm">
+                <div className="flex items-center space-x-2 text-red-400 font-bold text-sm">
                   <AlertTriangle className="w-4 h-4" />
                   <span>Manual Usher Revocation</span>
                 </div>
-                <p className="text-xs text-red-700">
+                <p className="text-xs text-red-300">
                   Revoking this session will immediately disconnect patron companion playback and record an auditable event.
                 </p>
                 <input
@@ -471,20 +471,20 @@ export default function OperatorPage() {
                   required
                   value={revokeReason}
                   onChange={(e) => setRevokeReason(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-red-300 bg-white text-xs"
+                  className="w-full px-3 py-2 rounded-xl border border-red-500/30 bg-bg text-ink text-xs focus:outline-none focus:ring-1 focus:ring-red-500"
                 />
                 <div className="flex space-x-2">
                   <button
                     type="submit"
                     disabled={loading}
-                    className="px-4 py-2 rounded-xl bg-red-600 text-white font-bold text-xs hover:bg-red-700"
+                    className="px-4 py-2 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-xs transition-colors"
                   >
                     Confirm Disconnection
                   </button>
                   <button
                     type="button"
                     onClick={() => setRevokeSessionId(null)}
-                    className="px-4 py-2 rounded-xl bg-white border border-red-200 text-xs font-semibold text-red-800 hover:bg-neutral-50"
+                    className="px-4 py-2 rounded-xl bg-field border border-line text-xs font-semibold text-ink hover:bg-field-raised transition-colors"
                   >
                     Cancel
                   </button>
@@ -501,22 +501,22 @@ export default function OperatorPage() {
               {data?.screenings.map((sc) => (
                 <div
                   key={sc.id}
-                  className="p-5 rounded-2xl bg-white border border-brand-border shadow-subtle space-y-3"
+                  className="p-5 rounded-2xl bg-field border border-line shadow-card space-y-3"
                 >
-                  <div className="flex justify-between items-start pb-3 border-b border-brand-border">
+                  <div className="flex justify-between items-start pb-3 border-b border-line">
                     <div>
-                      <h3 className="font-extrabold text-base text-brand-text-primary">
+                      <h3 className="font-extrabold text-base text-ink">
                         {sc.title}
                       </h3>
-                      <div className="text-xs text-brand-text-secondary mt-0.5">
+                      <div className="text-xs text-muted mt-0.5">
                         {sc.screen.name} &bull; {sc.screen.totalSeats} Seats Capacity
                       </div>
                     </div>
                     <span
                       className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
                         sc.status === "PLAYING"
-                          ? "bg-emerald-100 text-emerald-800"
-                          : "bg-neutral-100 text-neutral-700"
+                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                          : "bg-field-raised text-muted border border-line"
                       }`}
                     >
                       {sc.status}
@@ -524,27 +524,27 @@ export default function OperatorPage() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="p-3 rounded-xl bg-brand-bg border border-brand-border">
-                      <span className="text-[10px] text-brand-text-secondary uppercase">
+                    <div className="p-3 rounded-xl bg-bg border border-line">
+                      <span className="text-[10px] text-muted uppercase">
                         Authoritative Timecode
                       </span>
-                      <div className="font-mono font-bold text-base text-brand-text-primary mt-0.5">
+                      <div className="font-mono font-bold text-base text-ink mt-0.5">
                         {formatSeconds(sc.currentPositionSeconds)}
                       </div>
                     </div>
-                    <div className="p-3 rounded-xl bg-brand-bg border border-brand-border">
-                      <span className="text-[10px] text-brand-text-secondary uppercase">
+                    <div className="p-3 rounded-xl bg-bg border border-line">
+                      <span className="text-[10px] text-muted uppercase">
                         Feature Runtime
                       </span>
-                      <div className="font-mono font-bold text-base text-brand-text-primary mt-0.5">
+                      <div className="font-mono font-bold text-base text-ink mt-0.5">
                         {formatSeconds(sc.contentAsset.durationSeconds)}
                       </div>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between text-xs pt-1">
-                    <span className="text-brand-text-secondary">Projection Pause State:</span>
-                    <span className="font-bold text-brand-text-primary">
+                    <span className="text-muted">Projection Pause State:</span>
+                    <span className="font-bold text-ink">
                       {sc.isPaused ? "Paused (Companion Frozen)" : "Normal Projection"}
                     </span>
                   </div>
@@ -557,24 +557,24 @@ export default function OperatorPage() {
         {/* TAB 3: Commercial Pricing */}
         {activeTab === "pricing" && (
           <div className="space-y-6">
-            <div className="p-6 rounded-3xl bg-white border border-brand-border shadow-card max-w-xl">
-              <div className="flex items-center space-x-2 border-b border-brand-border pb-4 mb-4">
-                <Tag className="w-5 h-5 text-brand-primary" />
-                <h3 className="font-extrabold text-base text-brand-text-primary">
+            <div className="p-6 rounded-3xl bg-field border border-line shadow-card max-w-xl">
+              <div className="flex items-center space-x-2 border-b border-line pb-4 mb-4">
+                <Tag className="w-5 h-5 text-amber-500" />
+                <h3 className="font-extrabold text-base text-ink">
                   Cinema Commercial Pricing Schedule
                 </h3>
               </div>
 
-              <div className="p-4 rounded-2xl bg-brand-bg border border-brand-border text-xs space-y-1 mb-5">
+              <div className="p-4 rounded-2xl bg-bg border border-line text-xs space-y-1 mb-5">
                 <div>
-                  <strong className="text-brand-text-primary">Current Active Price:</strong>{" "}
+                  <strong className="text-ink">Current Active Price:</strong>{" "}
                   {data?.pricing.currentPrice} {data?.pricing.currency} per qualifying break
                 </div>
                 <div>
-                  <strong className="text-brand-text-primary">Agreement Status:</strong>{" "}
-                  <span className="text-emerald-700 font-bold">{data?.pricing.status}</span>
+                  <strong className="text-ink">Agreement Status:</strong>{" "}
+                  <span className="text-emerald-400 font-bold">{data?.pricing.status}</span>
                 </div>
-                <p className="text-[11px] text-brand-text-secondary pt-1">
+                <p className="text-[11px] text-muted pt-1">
                   Historical transactions strictly preserve the terms applied when created. Past billing records are never mutated.
                 </p>
               </div>
@@ -582,7 +582,7 @@ export default function OperatorPage() {
               <form onSubmit={handleSavePricing} className="space-y-4 text-xs">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block font-bold text-brand-text-primary mb-1">
+                    <label className="block font-bold text-ink mb-1">
                       Per-Session Rate
                     </label>
                     <input
@@ -591,18 +591,18 @@ export default function OperatorPage() {
                       min={0}
                       value={newPrice}
                       onChange={(e) => setNewPrice(Number(e.target.value))}
-                      className="w-full px-3 py-2.5 rounded-xl border border-brand-border bg-white text-xs font-mono font-bold"
+                      className="w-full px-3 py-2.5 rounded-xl border border-line bg-bg text-ink text-xs font-mono font-bold focus:outline-none focus:ring-1 focus:ring-amber-500"
                     />
                   </div>
 
                   <div>
-                    <label className="block font-bold text-brand-text-primary mb-1">
+                    <label className="block font-bold text-ink mb-1">
                       Currency
                     </label>
                     <select
                       value={newCurrency}
                       onChange={(e) => setNewCurrency(e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-xl border border-brand-border bg-white text-xs"
+                      className="w-full px-3 py-2.5 rounded-xl border border-line bg-bg text-ink text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
                     >
                       <option value="TZS">TZS (Tanzanian Shillings)</option>
                       <option value="KES">KES (Kenyan Shillings)</option>
@@ -612,13 +612,13 @@ export default function OperatorPage() {
                 </div>
 
                 <div>
-                  <label className="block font-bold text-brand-text-primary mb-1">
+                  <label className="block font-bold text-ink mb-1">
                     Pricing Status
                   </label>
                   <select
                     value={newPricingStatus}
                     onChange={(e) => setNewPricingStatus(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl border border-brand-border bg-white text-xs"
+                    className="w-full px-3 py-2.5 rounded-xl border border-line bg-bg text-ink text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
                   >
                     <option value="ACTIVE">ACTIVE (Agreed Commercial Terms)</option>
                     <option value="PENDING_AGREEMENT">PENDING_AGREEMENT (Under Review)</option>
@@ -626,7 +626,7 @@ export default function OperatorPage() {
                 </div>
 
                 <div>
-                  <label className="block font-bold text-brand-text-primary mb-1">
+                  <label className="block font-bold text-ink mb-1">
                     Schedule Notes / Contract Reference
                   </label>
                   <input
@@ -634,14 +634,14 @@ export default function OperatorPage() {
                     placeholder="e.g. Exhibitor Agreement 2026 Q4 Schedule A"
                     value={pricingNotes}
                     onChange={(e) => setPricingNotes(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl border border-brand-border bg-white text-xs"
+                    className="w-full px-3 py-2.5 rounded-xl border border-line bg-bg text-ink text-xs focus:outline-none focus:ring-1 focus:ring-amber-500 placeholder:text-muted/60"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={savingPrice}
-                  className="w-full py-3 px-4 rounded-xl font-bold text-xs bg-brand-primary text-brand-accent hover:bg-brand-secondary transition-all shadow-subtle flex items-center justify-center space-x-2 disabled:opacity-50"
+                  className="w-full py-3 px-4 rounded-xl font-bold text-xs bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-all shadow-sm flex items-center justify-center space-x-2 disabled:opacity-50"
                 >
                   {savingPrice ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -660,13 +660,13 @@ export default function OperatorPage() {
         {/* TAB 4: Usage Ledger */}
         {activeTab === "billing" && (
           <div className="space-y-4">
-            <div className="bg-white rounded-2xl border border-brand-border overflow-hidden shadow-subtle">
-              <div className="p-4 border-b border-brand-border flex justify-between items-center text-xs">
+            <div className="bg-field rounded-2xl border border-line overflow-hidden shadow-card">
+              <div className="p-4 border-b border-line flex justify-between items-center text-xs">
                 <div>
-                  <span className="font-bold uppercase tracking-wider text-brand-text-secondary">
+                  <span className="font-bold uppercase tracking-wider text-muted">
                     Audited Qualifying Events ({data?.billing.totalBillableActivations ?? 0})
                   </span>
-                  <div className="text-[11px] text-brand-text-secondary mt-0.5">
+                  <div className="text-[11px] text-muted mt-0.5">
                     {data?.billing.disclaimer}
                   </div>
                 </div>
@@ -674,7 +674,7 @@ export default function OperatorPage() {
 
               <div className="overflow-x-auto w-full min-w-0">
                 <table className="w-full text-left text-xs min-w-[560px]">
-                  <thead className="bg-brand-bg text-brand-text-secondary border-b border-brand-border text-[11px] font-bold uppercase">
+                  <thead className="bg-bg text-muted border-b border-line text-[11px] font-bold uppercase">
                     <tr>
                       <th className="p-3">Ticket</th>
                       <th className="p-3">Session ID</th>
@@ -682,19 +682,19 @@ export default function OperatorPage() {
                       <th className="p-3">Timestamp</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-brand-border">
+                  <tbody className="divide-y divide-line">
                     {data?.billing.recentBillingEvents.map((event) => (
-                      <tr key={event.id} className="hover:bg-neutral-50">
-                        <td className="p-3 font-mono font-bold text-brand-text-primary">
+                      <tr key={event.id} className="hover:bg-field-raised/50 transition-colors">
+                        <td className="p-3 font-mono font-bold text-ink">
                           {event.ticketNumber}
                         </td>
-                        <td className="p-3 font-mono text-[11px] text-brand-text-secondary">
+                        <td className="p-3 font-mono text-[11px] text-muted">
                           {event.sessionId}
                         </td>
-                        <td className="p-3 font-mono font-bold text-brand-text-primary">
+                        <td className="p-3 font-mono font-bold text-amber-400">
                           {event.priceTzs} {event.currency}
                         </td>
-                        <td className="p-3 text-brand-text-secondary font-mono text-[11px]">
+                        <td className="p-3 text-muted font-mono text-[11px]">
                           {new Date(event.createdAt).toLocaleString()}
                         </td>
                       </tr>
@@ -709,14 +709,14 @@ export default function OperatorPage() {
         {/* TAB 5: SMS Carrier Logs */}
         {activeTab === "sms" && (
           <div className="space-y-4">
-            <div className="bg-white rounded-2xl border border-brand-border overflow-hidden shadow-subtle">
-              <div className="p-4 border-b border-brand-border text-xs font-bold uppercase tracking-wider text-brand-text-secondary">
+            <div className="bg-field rounded-2xl border border-line overflow-hidden shadow-card">
+              <div className="p-4 border-b border-line text-xs font-bold uppercase tracking-wider text-muted">
                 Africa&apos;s Talking Delivery Log ({data?.smsAttempts.length ?? 0})
               </div>
 
               <div className="overflow-x-auto w-full min-w-0">
                 <table className="w-full text-left text-xs min-w-[560px]">
-                  <thead className="bg-brand-bg text-brand-text-secondary border-b border-brand-border text-[11px] font-bold uppercase">
+                  <thead className="bg-bg text-muted border-b border-line text-[11px] font-bold uppercase">
                     <tr>
                       <th className="p-3">Phone</th>
                       <th className="p-3">Provider</th>
@@ -724,27 +724,27 @@ export default function OperatorPage() {
                       <th className="p-3">Created</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-brand-border">
+                  <tbody className="divide-y divide-line">
                     {data?.smsAttempts.map((attempt) => (
-                      <tr key={attempt.id} className="hover:bg-neutral-50">
-                        <td className="p-3 font-mono font-semibold text-brand-text-primary">
+                      <tr key={attempt.id} className="hover:bg-field-raised/50 transition-colors">
+                        <td className="p-3 font-mono font-semibold text-ink">
                           {attempt.phoneNumber}
                         </td>
-                        <td className="p-3 text-[11px] text-brand-text-secondary">
+                        <td className="p-3 text-[11px] text-muted">
                           {attempt.provider}
                         </td>
                         <td className="p-3">
                           <span
                             className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                               attempt.status === "SENT" || attempt.status === "DELIVERED"
-                                ? "bg-emerald-100 text-emerald-800"
-                                : "bg-red-100 text-red-800"
+                                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                : "bg-red-500/10 text-red-400 border border-red-500/20"
                             }`}
                           >
                             {attempt.status}
                           </span>
                         </td>
-                        <td className="p-3 text-brand-text-secondary font-mono text-[11px]">
+                        <td className="p-3 text-muted font-mono text-[11px]">
                           {new Date(attempt.createdAt).toLocaleTimeString()}
                         </td>
                       </tr>
@@ -759,14 +759,14 @@ export default function OperatorPage() {
         {/* TAB 6: Audit History */}
         {activeTab === "audit" && (
           <div className="space-y-4">
-            <div className="bg-white rounded-2xl border border-brand-border overflow-hidden shadow-subtle">
-              <div className="p-4 border-b border-brand-border text-xs font-bold uppercase tracking-wider text-brand-text-secondary">
+            <div className="bg-field rounded-2xl border border-line overflow-hidden shadow-card">
+              <div className="p-4 border-b border-line text-xs font-bold uppercase tracking-wider text-muted">
                 Audited System Operations ({data?.auditEvents.length ?? 0})
               </div>
 
               <div className="overflow-x-auto w-full min-w-0">
                 <table className="w-full text-left text-xs min-w-[560px]">
-                  <thead className="bg-brand-bg text-brand-text-secondary border-b border-brand-border text-[11px] font-bold uppercase">
+                  <thead className="bg-bg text-muted border-b border-line text-[11px] font-bold uppercase">
                     <tr>
                       <th className="p-3">Event Type</th>
                       <th className="p-3">Actor</th>
@@ -774,19 +774,19 @@ export default function OperatorPage() {
                       <th className="p-3">Timestamp</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-brand-border">
+                  <tbody className="divide-y divide-line">
                     {data?.auditEvents.map((a) => (
-                      <tr key={a.id} className="hover:bg-neutral-50">
-                        <td className="p-3 font-mono font-bold text-brand-primary">
+                      <tr key={a.id} className="hover:bg-field-raised/50 transition-colors">
+                        <td className="p-3 font-mono font-bold text-amber-400">
                           {a.eventType}
                         </td>
-                        <td className="p-3 font-semibold text-brand-text-primary">
+                        <td className="p-3 font-semibold text-ink">
                           {a.actor}
                         </td>
-                        <td className="p-3 font-mono text-[11px] text-neutral-600 max-w-xs truncate">
+                        <td className="p-3 font-mono text-[11px] text-muted max-w-xs truncate">
                           {a.details}
                         </td>
-                        <td className="p-3 text-brand-text-secondary font-mono text-[11px]">
+                        <td className="p-3 text-muted font-mono text-[11px]">
                           {new Date(a.createdAt).toLocaleString()}
                         </td>
                       </tr>

@@ -31,7 +31,7 @@ export function NavigationHeader() {
               <span className="font-extrabold text-sm sm:text-base text-ink tracking-tight">
                 PottyPlay
               </span>
-              <span className="text-[9px] sm:text-[10px] font-bold tracking-wider uppercase px-1.5 sm:px-2 py-0.5 rounded-full bg-heather/20 text-ink border border-heather/40 flex-shrink-0">
+              <span className="text-[9px] sm:text-[10px] font-bold tracking-wider uppercase px-1.5 sm:px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/25 flex-shrink-0">
                 Console
               </span>
             </div>
@@ -52,7 +52,7 @@ export function NavigationHeader() {
                 href={item.href}
                 className={`flex items-center space-x-1 sm:space-x-1.5 px-2 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-colors flex-shrink-0 ${
                   isActive
-                    ? "bg-ink text-bg shadow-sm"
+                    ? "bg-amber-500 text-neutral-950 font-black shadow-sm"
                     : "text-muted hover:text-ink hover:bg-bg"
                 }`}
               >

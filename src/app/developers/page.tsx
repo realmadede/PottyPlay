@@ -117,20 +117,20 @@ export default function DevelopersPortalPage() {
   const endpoint = endpoints[selectedEndpoint];
 
   return (
-    <div className="flex-1 flex flex-col bg-brand-bg text-brand-text-primary">
+    <div className="flex-1 flex flex-col bg-bg text-ink">
       <LandingHeader />
 
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-12 text-left">
         {/* Title Header */}
-        <div className="pb-8 border-b border-brand-border">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white border border-brand-border text-xs font-semibold text-brand-text-secondary mb-4 shadow-subtle">
-            <Code className="w-3.5 h-3.5 text-brand-primary" />
+        <div className="pb-8 border-b border-line">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-field border border-line text-xs font-semibold text-muted mb-4 shadow-subtle">
+            <Code className="w-3.5 h-3.5 text-amber-400" />
             <span>Exhibitor Technology Gateway</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-brand-text-primary tracking-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-ink tracking-tight">
             Developer Integration Portal
           </h1>
-          <p className="mt-3 text-sm sm:text-base text-brand-text-secondary max-w-3xl leading-relaxed">
+          <p className="mt-3 text-sm sm:text-base text-muted max-w-3xl leading-relaxed">
             Technical guides, OpenAPI specifications, and webhook contracts for cinema IT architects, ticketing developers, and projection engineers.
           </p>
 
@@ -138,14 +138,15 @@ export default function DevelopersPortalPage() {
             <a
               href="/api/openapi.json"
               target="_blank"
-              className="py-2.5 px-4 rounded-xl text-xs font-bold bg-brand-primary text-brand-accent hover:bg-brand-secondary transition-all shadow-subtle flex items-center space-x-2"
+              rel="noreferrer"
+              className="py-2.5 px-4 rounded-xl text-xs font-black bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-all shadow-sm flex items-center space-x-2"
             >
               <span>Download OpenAPI 3.1 Spec</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
             <a
               href="#webhooks"
-              className="py-2.5 px-4 rounded-xl text-xs font-semibold bg-white border border-brand-border text-brand-text-primary hover:bg-neutral-50 transition-colors"
+              className="py-2.5 px-4 rounded-xl text-xs font-semibold bg-field border border-line text-ink hover:bg-field-raised transition-colors"
             >
               POS Webhook Contracts
             </a>
@@ -154,38 +155,38 @@ export default function DevelopersPortalPage() {
 
         {/* Core Architecture Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-6 rounded-2xl bg-white border border-brand-border shadow-subtle">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 text-brand-primary flex items-center justify-center mb-4">
+          <div className="p-6 rounded-2xl bg-field border border-line shadow-card hover:border-amber-500/30 transition-all">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mb-4">
               <Key className="w-5 h-5" />
             </div>
-            <h3 className="font-bold text-base text-brand-text-primary">
+            <h3 className="font-bold text-base text-ink">
               Authentication & Tokens
             </h3>
-            <p className="mt-2 text-xs text-brand-text-secondary leading-relaxed">
+            <p className="mt-2 text-xs text-muted leading-relaxed">
               Cinema partner API keys authenticate server-to-server POS requests. Companion client requests utilize short-lived session tokens (`pstk_`).
             </p>
           </div>
 
-          <div className="p-6 rounded-2xl bg-white border border-brand-border shadow-subtle">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 text-brand-primary flex items-center justify-center mb-4">
+          <div className="p-6 rounded-2xl bg-field border border-line shadow-card hover:border-amber-500/30 transition-all">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mb-4">
               <Zap className="w-5 h-5" />
             </div>
-            <h3 className="font-bold text-base text-brand-text-primary">
+            <h3 className="font-bold text-base text-ink">
               Idempotency & Safe Retries
             </h3>
-            <p className="mt-2 text-xs text-brand-text-secondary leading-relaxed">
+            <p className="mt-2 text-xs text-muted leading-relaxed">
               Pass `Idempotency-Key` headers on session activation calls. Network retries will never trigger duplicate billing events or exhaust ticket break allowances.
             </p>
           </div>
 
-          <div className="p-6 rounded-2xl bg-white border border-brand-border shadow-subtle">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 text-brand-primary flex items-center justify-center mb-4">
+          <div className="p-6 rounded-2xl bg-field border border-line shadow-card hover:border-amber-500/30 transition-all">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mb-4">
               <ShieldCheck className="w-5 h-5" />
             </div>
-            <h3 className="font-bold text-base text-brand-text-primary">
+            <h3 className="font-bold text-base text-ink">
               Strict 900s Hard Ceiling
             </h3>
-            <p className="mt-2 text-xs text-brand-text-secondary leading-relaxed">
+            <p className="mt-2 text-xs text-muted leading-relaxed">
               Sessions are terminated server-side precisely at 900 seconds. Streams cannot be extended or replayed without fresh authorization.
             </p>
           </div>
@@ -194,10 +195,10 @@ export default function DevelopersPortalPage() {
         {/* Interactive Endpoint Explorer */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-extrabold text-brand-text-primary tracking-tight">
+            <h2 className="text-xl font-extrabold text-ink tracking-tight">
               API Endpoint Reference
             </h2>
-            <span className="text-xs text-brand-text-secondary font-mono">v1.0.0 STABLE</span>
+            <span className="text-xs text-muted font-mono">v1.0.0 STABLE</span>
           </div>
 
           {/* Endpoint selector pills */}
@@ -213,8 +214,8 @@ export default function DevelopersPortalPage() {
                 onClick={() => setSelectedEndpoint(p.id as any)}
                 className={`py-2 px-3.5 rounded-xl text-xs font-mono font-bold transition-all ${
                   selectedEndpoint === p.id
-                    ? "bg-brand-accent text-white shadow-subtle"
-                    : "bg-white text-brand-text-secondary border border-brand-border hover:text-brand-text-primary"
+                    ? "bg-amber-500 text-neutral-950 shadow-sm"
+                    : "bg-field text-muted border border-line hover:text-ink hover:bg-field-raised"
                 }`}
               >
                 {p.label}
@@ -223,35 +224,35 @@ export default function DevelopersPortalPage() {
           </div>
 
           {/* Code Viewer Panel */}
-          <div className="bg-neutral-900 text-white rounded-3xl p-6 sm:p-8 border border-neutral-800 shadow-elevated space-y-6">
+          <div className="bg-field text-ink rounded-3xl p-6 sm:p-8 border border-line shadow-elevated space-y-6">
             <div>
               <div className="flex items-center space-x-2 text-xs">
-                <span className="px-2 py-0.5 rounded font-mono font-bold bg-brand-primary text-black">
+                <span className="px-2 py-0.5 rounded font-mono font-bold bg-amber-500 text-neutral-950">
                   {endpoint.method}
                 </span>
-                <span className="font-mono text-neutral-300">{endpoint.path}</span>
+                <span className="font-mono text-muted">{endpoint.path}</span>
               </div>
-              <h3 className="text-lg font-bold text-white mt-2">{endpoint.title}</h3>
-              <p className="text-xs text-neutral-400 mt-1">{endpoint.desc}</p>
+              <h3 className="text-lg font-bold text-ink mt-2">{endpoint.title}</h3>
+              <p className="text-xs text-muted mt-1">{endpoint.desc}</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Request */}
               <div className="space-y-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 font-mono">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-muted font-mono">
                   Example cURL Request
                 </span>
-                <pre className="p-4 rounded-2xl bg-neutral-950 border border-neutral-800 text-[11px] font-mono text-emerald-400 overflow-x-auto leading-relaxed">
+                <pre className="p-4 rounded-2xl bg-bg border border-line text-[11px] font-mono text-emerald-400 overflow-x-auto leading-relaxed">
                   {endpoint.curl}
                 </pre>
               </div>
 
               {/* Response */}
               <div className="space-y-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 font-mono">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-muted font-mono">
                   Response (200 OK)
                 </span>
-                <pre className="p-4 rounded-2xl bg-neutral-950 border border-neutral-800 text-[11px] font-mono text-neutral-300 overflow-x-auto leading-relaxed">
+                <pre className="p-4 rounded-2xl bg-bg border border-line text-[11px] font-mono text-muted overflow-x-auto leading-relaxed">
                   {endpoint.response}
                 </pre>
               </div>
@@ -260,36 +261,36 @@ export default function DevelopersPortalPage() {
         </div>
 
         {/* Webhooks Section */}
-        <section id="webhooks" className="p-8 rounded-3xl bg-white border border-brand-border shadow-card space-y-4">
+        <section id="webhooks" className="p-8 rounded-3xl bg-field border border-line shadow-card space-y-4">
           <div className="flex items-center space-x-2.5">
-            <div className="p-2 rounded-xl bg-amber-50 text-brand-primary">
+            <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
               <Webhook className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-extrabold text-brand-text-primary">
+              <h3 className="text-lg font-extrabold text-ink">
                 Ticketing POS Webhook Integration
               </h3>
-              <p className="text-xs text-brand-text-secondary">
+              <p className="text-xs text-muted">
                 Configure your Vista or Veezi POS to notify PottyPlay upon ticket sales or cancellations.
               </p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-2">
-            <div className="p-4 rounded-2xl bg-brand-bg border border-brand-border">
-              <strong className="text-brand-text-primary block mb-1">
+            <div className="p-4 rounded-2xl bg-bg border border-line">
+              <strong className="text-ink block mb-1">
                 Event: ticket.admitted
               </strong>
-              <p className="text-brand-text-secondary leading-relaxed">
+              <p className="text-muted leading-relaxed">
                 Triggered when a patron scans their ticket at the cinema turnstile. Provisions admission entitlement and assigns claim token.
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-brand-bg border border-brand-border">
-              <strong className="text-brand-text-primary block mb-1">
+            <div className="p-4 rounded-2xl bg-bg border border-line">
+              <strong className="text-ink block mb-1">
                 Event: ticket.refunded
               </strong>
-              <p className="text-brand-text-secondary leading-relaxed">
+              <p className="text-muted leading-relaxed">
                 Immediately revokes any active companion viewing credentials if a ticket is refunded or cancelled at the box office.
               </p>
             </div>

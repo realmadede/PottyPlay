@@ -1,99 +1,77 @@
-@import url("https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700;800;900&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Light (default). Values are space-separated RGB channels. */
+/* Theatrical Cinematic Dark Canvas (Default) */
 :root {
-  --bg: 231 234 232;          /* #E7EAE8 */
-  --ink: 21 25 27;            /* #15191B */
-  --muted: 89 99 106;         /* #59636A */
-  --field: 245 247 246;       /* #F5F7F6 */
-  --heather: 122 90 142;      /* #7A5A8E */
-  --error: 184 56 47;         /* #B8382F */
-  --hill-far: 210 216 213;    /* #D2D8D5 */
-  --hill-mid: 186 195 192;    /* #BAC3C0 */
-  --hill-near: 165 151 172;   /* #A597AC */
-  --line: rgba(21, 25, 27, 0.14);
-  --heather-soft: rgba(122, 90, 142, 0.14);
-  --notch-ring: transparent;
+  --bg: 13 15 18;             /* #0D0F12 - Deep Cinematic Obsidian */
+  --ink: 243 244 246;         /* #F3F4F6 - Pearl White */
+  --muted: 156 163 175;       /* #9CA3AF - Cinema Silver */
+  --field: 22 25 30;          /* #16191E - Console Surface */
+  --field-raised: 28 32 38;   /* #1C2026 - Elevated Panel */
+  --heather: 245 158 11;      /* Warm Projector Arc Lamp Gold */
+  --amber: 245 158 11;        /* #F59E0B */
+  --amber-light: 251 191 36;  /* #FBBF24 */
+  --error: 239 68 68;         /* #EF4444 */
+  --success: 16 185 129;      /* #10B981 */
+  --hill-far: 22 25 30;
+  --hill-mid: 28 32 38;
+  --hill-near: 36 41 49;
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.16);
+  --line-amber: rgba(245, 158, 11, 0.25);
+  --heather-soft: rgba(245, 158, 11, 0.14);
+  --notch-ring: rgba(255, 255, 255, 0.1);
 
-  /* Aliased semantic variables for backwards and cross-component compatibility */
-  --brand-primary: #7A5A8E;
-  --brand-secondary: #F5C451;
-  --brand-accent: #15191B;
-  --brand-bg: #E7EAE8;
-  --brand-surface: #F5F7F6;
-  --brand-border: rgba(21, 25, 27, 0.14);
-  --brand-text-primary: #15191B;
-  --brand-text-secondary: #59636A;
-  --brand-success: #34A853;
-  --brand-error: #B8382F;
-  --brand-warning: #F5C451;
+  /* Semantic Brand Tokens */
+  --brand-primary: #F59E0B;
+  --brand-secondary: #FBBF24;
+  --brand-accent: #0D0F12;
+  --brand-bg: #0D0F12;
+  --brand-surface: #16191E;
+  --brand-border: rgba(255, 255, 255, 0.08);
+  --brand-text-primary: #F3F4F6;
+  --brand-text-secondary: #9CA3AF;
+  --brand-success: #10B981;
+  --brand-error: #EF4444;
+  --brand-warning: #F59E0B;
 
   --background: var(--brand-bg);
   --foreground: var(--brand-text-primary);
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-/* Dark: follows the OS unless the user forced light */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: 18 21 23;           /* #121517 */
-    --ink: 230 234 232;       /* #E6EAE8 */
-    --muted: 154 164 168;     /* #9AA4A8 */
-    --field: 27 31 34;        /* #1B1F22 */
-    --heather: 191 162 208;   /* #BFA2D0 */
-    --error: 240 138 128;     /* #F08A80 */
-    --hill-far: 26 31 34;     /* #1A1F22 */
-    --hill-mid: 34 41 44;     /* #22292C */
-    --hill-near: 58 49 69;    /* #3A3145 */
-    --line: rgba(230, 234, 232, 0.14);
-    --heather-soft: rgba(191, 162, 208, 0.16);
-    --notch-ring: rgba(255, 255, 255, 0.1);
+/* Optional Light Mode for Users Who Explicitly Request It in Settings */
+[data-theme="light"] {
+  --bg: 248 249 250;          /* #F8F9FA */
+  --ink: 17 24 39;            /* #111827 */
+  --muted: 107 114 128;       /* #6B7280 */
+  --field: 255 255 255;       /* #FFFFFF */
+  --field-raised: 243 244 246;/* #F3F4F6 */
+  --heather: 217 119 6;       /* #D97706 */
+  --amber: 217 119 6;
+  --amber-light: 245 158 11;
+  --error: 220 38 38;
+  --success: 16 185 129;
+  --line: rgba(0, 0, 0, 0.08);
+  --line-strong: rgba(0, 0, 0, 0.16);
+  --line-amber: rgba(217, 119, 6, 0.25);
+  --heather-soft: rgba(217, 119, 6, 0.1);
+  --notch-ring: transparent;
 
-    --brand-primary: #BFA2D0;
-    --brand-secondary: #F5C451;
-    --brand-accent: #E6EAE8;
-    --brand-bg: #121517;
-    --brand-surface: #1B1F22;
-    --brand-border: rgba(230, 234, 232, 0.14);
-    --brand-text-primary: #E6EAE8;
-    --brand-text-secondary: #9AA4A8;
-    --brand-success: #34A853;
-    --brand-error: #F08A80;
-    --brand-warning: #F5C451;
-  }
-}
-
-/* Dark: forced via data-theme="dark" on <html> or .dark class */
-:root[data-theme="dark"],
-.dark {
-  --bg: 18 21 23;
-  --ink: 230 234 232;
-  --muted: 154 164 168;
-  --field: 27 31 34;
-  --heather: 191 162 208;
-  --error: 240 138 128;
-  --hill-far: 26 31 34;
-  --hill-mid: 34 41 44;
-  --hill-near: 58 49 69;
-  --line: rgba(230, 234, 232, 0.14);
-  --heather-soft: rgba(191, 162, 208, 0.16);
-  --notch-ring: rgba(255, 255, 255, 0.1);
-
-  --brand-primary: #BFA2D0;
-  --brand-secondary: #F5C451;
-  --brand-accent: #E6EAE8;
-  --brand-bg: #121517;
-  --brand-surface: #1B1F22;
-  --brand-border: rgba(230, 234, 232, 0.14);
-  --brand-text-primary: #E6EAE8;
-  --brand-text-secondary: #9AA4A8;
-  --brand-success: #34A853;
-  --brand-error: #F08A80;
-  --brand-warning: #F5C451;
+  --brand-primary: #D97706;
+  --brand-secondary: #B45309;
+  --brand-accent: #111827;
+  --brand-bg: #F8F9FA;
+  --brand-surface: #FFFFFF;
+  --brand-border: rgba(0, 0, 0, 0.08);
+  --brand-text-primary: #111827;
+  --brand-text-secondary: #6B7280;
+  --brand-success: #10B981;
+  --brand-error: #DC2626;
+  --brand-warning: #D97706;
 }
 
 @layer base {

@@ -166,9 +166,9 @@ export default function CustomerApplication() {
 
   if (loadingProfile) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center min-h-[100dvh] bg-brand-bg text-brand-text-primary p-6">
-        <Loader2 className="w-8 h-8 text-brand-primary animate-spin mb-3" />
-        <span className="text-xs font-bold uppercase tracking-wider text-brand-text-secondary">
+      <div className="flex-1 flex flex-col items-center justify-center min-h-[100dvh] bg-bg text-ink p-6 selection:bg-amber-500 selection:text-neutral-950">
+        <Loader2 className="w-8 h-8 text-amber-500 animate-spin mb-3" />
+        <span className="text-xs font-bold uppercase tracking-wider text-muted">
           Initializing Secure Session...
         </span>
       </div>
@@ -176,7 +176,7 @@ export default function CustomerApplication() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-brand-bg text-brand-text-primary min-h-[100dvh]">
+    <div className="flex-1 flex flex-col bg-bg text-ink min-h-[100dvh] selection:bg-amber-500 selection:text-neutral-950">
       {/* First-Launch Onboarding Carousel */}
       {showOnboarding && <OnboardingCarousel onComplete={handleOnboardingComplete} />}
 
@@ -195,21 +195,21 @@ export default function CustomerApplication() {
       />
 
       {/* Top Application Bar */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-brand-border px-4 sm:px-6 h-16 flex items-center justify-between">
+      <header className="sticky top-0 z-40 bg-bg/90 backdrop-blur-md border-b border-line px-4 sm:px-6 h-16 flex items-center justify-between">
         <BrandLogo size="sm" variant="full" href="/app" />
 
         <div className="flex items-center space-x-3">
           {customer && (
             <div className="flex items-center space-x-2">
               <div className="text-right hidden sm:block">
-                <div className="text-xs font-bold text-brand-text-primary">
+                <div className="text-xs font-bold text-ink">
                   {customer.name || customer.phoneNumber || customer.email}
                 </div>
-                <div className="text-[10px] text-brand-text-secondary flex items-center justify-end space-x-1">
+                <div className="text-[10px] text-muted flex items-center justify-end space-x-1">
                   {customer.phoneVerified && customer.emailVerified ? (
-                    <span className="text-emerald-700 font-semibold">Account Verified</span>
+                    <span className="text-emerald-400 font-semibold">Account Verified</span>
                   ) : (
-                    <span className="text-amber-700 font-semibold">Pending Verification</span>
+                    <span className="text-amber-400 font-semibold">Pending Verification</span>
                   )}
                 </div>
               </div>
@@ -237,19 +237,19 @@ export default function CustomerApplication() {
       ) : (
         /* Gated State: Unauthenticated user view is strictly blocked until sign-in/registration succeeds */
         <main className="flex-1 flex flex-col items-center justify-center p-8 text-center max-w-md mx-auto">
-          <div className="w-14 h-14 rounded-2xl bg-brand-primary/20 text-brand-primary flex items-center justify-center mb-4">
-            <Lock className="w-6 h-6 text-brand-accent" />
+          <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mb-4">
+            <Lock className="w-6 h-6 text-amber-400" />
           </div>
-          <h2 className="text-xl font-black text-brand-text-primary tracking-tight">
+          <h2 className="text-xl font-black text-ink tracking-tight">
             Account Required
           </h2>
-          <p className="mt-2 text-xs text-brand-text-secondary leading-relaxed">
+          <p className="mt-2 text-xs text-muted leading-relaxed">
             PottyPlay companion viewing is restricted to authenticated patrons with verified phone numbers. Please complete registration or sign in to continue.
           </p>
           <button
             type="button"
             onClick={() => setAuthModalOpen(true)}
-            className="mt-6 py-3 px-6 rounded-xl font-bold text-xs bg-brand-primary text-brand-accent hover:bg-brand-secondary shadow-subtle transition-colors"
+            className="mt-6 py-3 px-6 rounded-xl font-black text-xs bg-amber-500 text-neutral-950 hover:bg-amber-400 shadow-sm transition-colors"
           >
             Open Registration & Sign In
           </button>
@@ -260,7 +260,7 @@ export default function CustomerApplication() {
       {customer && (
         <nav
           aria-label="Main customer navigation"
-          className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-brand-border px-1.5 py-1.5 flex items-center justify-around pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+          className="fixed bottom-0 left-0 right-0 z-40 bg-bg/90 backdrop-blur-md border-t border-line px-1.5 py-1.5 flex items-center justify-around pb-[max(0.5rem,env(safe-area-inset-bottom))]"
         >
           {/* Tab 1: Cinemas */}
           <button
@@ -268,11 +268,11 @@ export default function CustomerApplication() {
             onClick={() => setActiveTab("discovery")}
             className={`flex flex-col items-center py-1 px-2.5 rounded-xl transition-all ${
               activeTab === "discovery"
-                ? "text-brand-text-primary font-bold"
-                : "text-brand-text-secondary hover:text-brand-text-primary"
+                ? "text-ink font-bold"
+                : "text-muted hover:text-ink"
             }`}
           >
-            <Building2 className={`w-5 h-5 ${activeTab === "discovery" ? "text-brand-primary" : ""}`} />
+            <Building2 className={`w-5 h-5 ${activeTab === "discovery" ? "text-amber-400" : ""}`} />
             <span className="text-[10px] mt-0.5">Cinemas</span>
           </button>
 
@@ -282,11 +282,11 @@ export default function CustomerApplication() {
             onClick={() => setActiveTab("reminders")}
             className={`flex flex-col items-center py-1 px-2.5 rounded-xl transition-all ${
               activeTab === "reminders"
-                ? "text-brand-text-primary font-bold"
-                : "text-brand-text-secondary hover:text-brand-text-primary"
+                ? "text-ink font-bold"
+                : "text-muted hover:text-ink"
             }`}
           >
-            <Bell className={`w-5 h-5 ${activeTab === "reminders" ? "text-brand-primary" : ""}`} />
+            <Bell className={`w-5 h-5 ${activeTab === "reminders" ? "text-amber-400" : ""}`} />
             <span className="text-[10px] mt-0.5">Reminders</span>
           </button>
 
@@ -296,8 +296,8 @@ export default function CustomerApplication() {
             onClick={() => setActiveTab("bathroom")}
             className={`flex flex-col items-center py-1.5 px-3.5 rounded-2xl transition-all ${
               activeTab === "bathroom"
-                ? "bg-brand-primary text-brand-accent shadow-subtle font-extrabold"
-                : "text-brand-text-secondary hover:text-brand-text-primary"
+                ? "bg-amber-500 text-neutral-950 shadow-sm font-black"
+                : "text-muted hover:text-ink"
             }`}
           >
             <Film className="w-5 h-5" />
@@ -310,11 +310,11 @@ export default function CustomerApplication() {
             onClick={() => setActiveTab("history")}
             className={`flex flex-col items-center py-1 px-2.5 rounded-xl transition-all ${
               activeTab === "history"
-                ? "text-brand-text-primary font-bold"
-                : "text-brand-text-secondary hover:text-brand-text-primary"
+                ? "text-ink font-bold"
+                : "text-muted hover:text-ink"
             }`}
           >
-            <History className={`w-5 h-5 ${activeTab === "history" ? "text-brand-primary" : ""}`} />
+            <History className={`w-5 h-5 ${activeTab === "history" ? "text-amber-400" : ""}`} />
             <span className="text-[10px] mt-0.5">History</span>
           </button>
 
@@ -324,11 +324,11 @@ export default function CustomerApplication() {
             onClick={() => setActiveTab("settings")}
             className={`flex flex-col items-center py-1 px-2.5 rounded-xl transition-all ${
               activeTab === "settings"
-                ? "text-brand-text-primary font-bold"
-                : "text-brand-text-secondary hover:text-brand-text-primary"
+                ? "text-ink font-bold"
+                : "text-muted hover:text-ink"
             }`}
           >
-            <Settings className={`w-5 h-5 ${activeTab === "settings" ? "text-brand-primary" : ""}`} />
+            <Settings className={`w-5 h-5 ${activeTab === "settings" ? "text-amber-400" : ""}`} />
             <span className="text-[10px] mt-0.5">Settings</span>
           </button>
         </nav>

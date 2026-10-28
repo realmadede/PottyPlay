@@ -57,16 +57,16 @@ export function OnboardingCarousel({ onComplete }: OnboardingCarouselProps) {
   const Icon = slide.icon;
 
   return (
-    <div className="fixed inset-0 z-50 bg-brand-bg/95 backdrop-blur-md flex flex-col justify-between p-6 sm:p-10 select-none">
+    <div className="fixed inset-0 z-50 bg-bg/95 backdrop-blur-md flex flex-col justify-between p-6 sm:p-10 select-none text-ink">
       {/* Top Header with Skip Button */}
       <div className="flex items-center justify-between">
-        <span className="text-xs font-mono font-bold text-brand-text-secondary tracking-wider uppercase">
+        <span className="text-xs font-mono font-bold text-muted tracking-wider uppercase">
           Welcome to PottyPlay
         </span>
         <button
           type="button"
           onClick={onComplete}
-          className="text-xs font-semibold text-brand-text-secondary hover:text-brand-text-primary px-3 py-1.5 rounded-lg border border-brand-border/60 hover:bg-white transition-colors"
+          className="text-xs font-semibold text-muted hover:text-ink px-3 py-1.5 rounded-lg border border-line hover:bg-field transition-colors"
         >
           Skip Intro
         </button>
@@ -75,28 +75,28 @@ export function OnboardingCarousel({ onComplete }: OnboardingCarouselProps) {
       {/* Center Animated Slide Panel */}
       <div className="max-w-md mx-auto w-full text-center flex flex-col items-center my-auto">
         {/* Animated Icon Housing */}
-        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-brand-accent text-brand-primary flex items-center justify-center shadow-card border border-neutral-800 mb-8 transition-transform duration-300">
+        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-field text-amber-400 flex items-center justify-center shadow-card border border-line mb-8 transition-transform duration-300">
           <Icon className="w-10 h-10 sm:w-12 sm:h-12" />
         </div>
 
         {/* Badge */}
-        <span className="px-3 py-1 rounded-full bg-brand-primary/20 text-brand-text-primary text-[11px] font-bold uppercase tracking-wider mb-4 border border-brand-primary/30">
+        <span className="px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 text-[11px] font-bold uppercase tracking-wider mb-4 border border-amber-500/20">
           {slide.badge}
         </span>
 
         {/* Title */}
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-brand-text-primary tracking-tight leading-snug">
+        <h2 className="text-2xl sm:text-3xl font-black text-ink tracking-tight leading-snug">
           {slide.title}
         </h2>
 
         {/* Description */}
-        <p className="mt-4 text-sm text-brand-text-secondary leading-relaxed max-w-sm">
+        <p className="mt-4 text-sm text-muted leading-relaxed max-w-sm">
           {slide.description}
         </p>
       </div>
 
       {/* Bottom Navigation & Progress Dots */}
-      <div className="max-w-md mx-auto w-full flex items-center justify-between pt-6 border-t border-brand-border">
+      <div className="max-w-md mx-auto w-full flex items-center justify-between pt-6 border-t border-line">
         {/* Progress Indicator Dots */}
         <div className="flex items-center space-x-2">
           {slides.map((s, idx) => (
@@ -105,7 +105,7 @@ export function OnboardingCarousel({ onComplete }: OnboardingCarouselProps) {
               type="button"
               onClick={() => setCurrentSlide(idx)}
               className={`h-2 rounded-full transition-all duration-300 ${
-                currentSlide === idx ? "w-8 bg-brand-primary" : "w-2 bg-neutral-300"
+                currentSlide === idx ? "w-8 bg-amber-500" : "w-2 bg-neutral-800"
               }`}
               aria-label={`Slide ${idx + 1}`}
             />
@@ -116,7 +116,7 @@ export function OnboardingCarousel({ onComplete }: OnboardingCarouselProps) {
         <button
           type="button"
           onClick={handleNext}
-          className="py-3 px-6 rounded-xl font-bold text-xs bg-brand-primary text-brand-accent hover:bg-brand-secondary transition-all shadow-subtle flex items-center space-x-2"
+          className="py-3 px-6 rounded-xl font-black text-xs bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-all shadow-sm flex items-center space-x-2"
         >
           {currentSlide === slides.length - 1 ? (
             <>

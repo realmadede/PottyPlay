@@ -277,14 +277,14 @@ export function CustomerAuthModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-accent/80 backdrop-blur-sm overflow-y-auto">
-      <div className="relative w-full max-w-md my-8 rounded-3xl bg-brand-surface border border-brand-border shadow-elevated p-6 sm:p-8 text-left text-brand-text-primary">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+      <div className="relative w-full max-w-md my-8 rounded-3xl bg-field border border-line shadow-elevated p-6 sm:p-8 text-left text-ink">
         {/* Close Button (if non-mandatory) */}
         {!mandatory && onClose && (
           <button
             type="button"
             onClick={onClose}
-            className="absolute top-5 right-5 p-2 rounded-full text-brand-text-secondary hover:text-brand-text-primary hover:bg-neutral-100 transition-colors"
+            className="absolute top-5 right-5 p-2 rounded-full text-muted hover:text-ink hover:bg-field-raised transition-colors"
             aria-label="Close dialog"
           >
             <X className="w-5 h-5" />
@@ -296,13 +296,13 @@ export function CustomerAuthModal({
           <div className="flex justify-center mb-3">
             <BrandLogo size="md" variant="icon" href="" />
           </div>
-          <h2 className="text-xl sm:text-2xl font-black text-brand-text-primary tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-black text-ink tracking-tight">
             {view === "register" && "Create Your Account"}
             {view === "login" && "Sign In to PottyPlay"}
             {view === "verify" && "Verify Your Account"}
             {view === "forgot" && "Reset Password"}
           </h2>
-          <p className="mt-1 text-xs sm:text-sm text-brand-text-secondary">
+          <p className="mt-1 text-xs sm:text-sm text-muted">
             {view === "register" && "Mandatory verification required for companion viewing."}
             {view === "login" && "Access your saved tickets, screening alerts, and breaks."}
             {view === "verify" && "Confirm your phone and email to activate viewing access."}
@@ -312,8 +312,8 @@ export function CustomerAuthModal({
 
         {/* Error Banner */}
         {errorMessage && (
-          <div className="mb-4 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs flex items-start space-x-2.5">
-            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-600" />
+          <div className="mb-4 p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-start space-x-2.5">
+            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-400" />
             <span className="font-medium leading-relaxed">{errorMessage}</span>
           </div>
         )}
@@ -324,65 +324,65 @@ export function CustomerAuthModal({
         {view === "register" && (
           <form onSubmit={handleRegister} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-brand-text-primary uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-ink uppercase tracking-wider mb-1">
                 Full Name *
               </label>
               <div className="relative">
-                <User className="absolute left-3.5 top-3 w-4 h-4 text-neutral-400" />
+                <User className="absolute left-3.5 top-3 w-4 h-4 text-muted" />
                 <input
                   type="text"
                   required
                   placeholder="e.g. Amani Mwamba"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-sm text-brand-text-primary focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-line bg-bg text-sm text-ink placeholder-muted focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-brand-text-primary uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-ink uppercase tracking-wider mb-1">
                 Phone Number *
               </label>
               <div className="relative">
-                <Smartphone className="absolute left-3.5 top-3 w-4 h-4 text-neutral-400" />
+                <Smartphone className="absolute left-3.5 top-3 w-4 h-4 text-muted" />
                 <input
                   type="tel"
                   required
                   placeholder="+255 7XX XXX XXX"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-sm text-brand-text-primary focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-line bg-bg text-sm text-ink placeholder-muted focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
                 />
               </div>
-              <span className="text-[10px] text-brand-text-secondary mt-0.5 block">
+              <span className="text-[10px] text-muted mt-0.5 block">
                 SMS verification OTP will be sent to this number.
               </span>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-brand-text-primary uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-ink uppercase tracking-wider mb-1">
                 Email Address *
               </label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-3 w-4 h-4 text-neutral-400" />
+                <Mail className="absolute left-3.5 top-3 w-4 h-4 text-muted" />
                 <input
                   type="email"
                   required
                   placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-sm text-brand-text-primary focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-line bg-bg text-sm text-ink placeholder-muted focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-brand-text-primary uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-ink uppercase tracking-wider mb-1">
                 Password *
               </label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-3 w-4 h-4 text-neutral-400" />
+                <Lock className="absolute left-3.5 top-3 w-4 h-4 text-muted" />
                 <input
                   type="password"
                   required
@@ -390,7 +390,7 @@ export function CustomerAuthModal({
                   placeholder="Minimum 8 characters"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-sm text-brand-text-primary focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-line bg-bg text-sm text-ink placeholder-muted focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
                 />
               </div>
             </div>
@@ -403,14 +403,14 @@ export function CustomerAuthModal({
                   required
                   checked={termsAccepted}
                   onChange={(e) => setTermsAccepted(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded border-brand-border text-brand-primary focus:ring-brand-primary cursor-pointer"
+                  className="mt-0.5 h-4 w-4 rounded border-line text-amber-500 focus:ring-amber-500 cursor-pointer bg-bg"
                 />
-                <span className="text-xs text-brand-text-secondary leading-snug">
+                <span className="text-xs text-muted leading-snug">
                   I agree to the{" "}
                   <Link
                     href="/terms"
                     target="_blank"
-                    className="font-bold text-brand-text-primary underline hover:text-brand-secondary"
+                    className="font-bold text-ink underline hover:text-amber-400"
                   >
                     Terms of Service
                   </Link>{" "}
@@ -418,7 +418,7 @@ export function CustomerAuthModal({
                   <Link
                     href="/privacy"
                     target="_blank"
-                    className="font-bold text-brand-text-primary underline hover:text-brand-secondary"
+                    className="font-bold text-ink underline hover:text-amber-400"
                   >
                     Privacy Policy
                   </Link>
@@ -430,7 +430,7 @@ export function CustomerAuthModal({
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-4 py-3 rounded-xl font-bold text-xs sm:text-sm bg-brand-primary text-brand-accent hover:bg-brand-secondary transition-colors duration-150 shadow-subtle flex items-center justify-center space-x-2 disabled:opacity-50"
+              className="w-full mt-4 py-3 rounded-xl font-black text-xs sm:text-sm bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-colors duration-150 shadow-sm flex items-center justify-center space-x-2 disabled:opacity-50"
             >
               {loading ? (
                 <>
@@ -445,7 +445,7 @@ export function CustomerAuthModal({
               )}
             </button>
 
-            <div className="pt-4 border-t border-brand-border text-center text-xs text-brand-text-secondary">
+            <div className="pt-4 border-t border-line text-center text-xs text-muted">
               Already have an account?{" "}
               <button
                 type="button"
@@ -453,7 +453,7 @@ export function CustomerAuthModal({
                   setView("login");
                   setErrorMessage(null);
                 }}
-                className="font-bold text-brand-text-primary hover:underline"
+                className="font-bold text-ink hover:underline"
               >
                 Sign In
               </button>
@@ -468,31 +468,31 @@ export function CustomerAuthModal({
           <div className="space-y-5">
             {/* Simulation Helpers for Evaluation in Dev */}
             {(simulatedSms || simulatedEmail) && (
-              <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-[11px] space-y-1">
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[11px] space-y-1">
                 <div className="font-bold uppercase tracking-wider text-[10px]">Verification Codes Dispatched</div>
                 {simulatedSms && (
-                  <div>SMS OTP: <span className="font-mono font-bold">{simulatedSms}</span></div>
+                  <div>SMS OTP: <span className="font-mono font-bold text-amber-400">{simulatedSms}</span></div>
                 )}
                 {simulatedEmail && (
-                  <div>Email Code: <span className="font-mono font-bold">{simulatedEmail}</span></div>
+                  <div>Email Code: <span className="font-mono font-bold text-amber-400">{simulatedEmail}</span></div>
                 )}
               </div>
             )}
 
             {/* Stage 1: Phone SMS Verification */}
-            <form onSubmit={handleVerifyPhone} className="p-4 rounded-2xl bg-brand-bg border border-brand-border space-y-3">
+            <form onSubmit={handleVerifyPhone} className="p-4 rounded-2xl bg-field border border-line space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-brand-text-primary flex items-center space-x-1.5">
-                  <Smartphone className="w-3.5 h-3.5 text-brand-primary" />
+                <span className="text-xs font-bold text-ink flex items-center space-x-1.5">
+                  <Smartphone className="w-3.5 h-3.5 text-amber-400" />
                   <span>1. Phone SMS OTP</span>
                 </span>
                 {phoneVerified ? (
-                  <span className="text-[11px] font-bold text-emerald-600 flex items-center space-x-1">
+                  <span className="text-[11px] font-bold text-emerald-400 flex items-center space-x-1">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     <span>Verified</span>
                   </span>
                 ) : (
-                  <span className="text-[10px] text-neutral-400 font-mono">6-digit code</span>
+                  <span className="text-[10px] text-muted font-mono">6-digit code</span>
                 )}
               </div>
 
@@ -505,35 +505,35 @@ export function CustomerAuthModal({
                     placeholder="Enter 6-digit SMS code"
                     value={phoneCode}
                     onChange={(e) => setPhoneCode(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl border border-brand-border bg-white text-sm font-mono tracking-widest text-center"
+                    className="w-full px-3.5 py-2 rounded-xl border border-line bg-bg text-ink placeholder-muted text-sm font-mono tracking-widest text-center focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
                   />
                   <button
                     type="submit"
                     disabled={loading || phoneCode.length !== 6}
-                    className="w-full py-2 rounded-lg text-xs font-bold bg-brand-primary text-brand-accent hover:bg-brand-secondary transition-colors disabled:opacity-50"
+                    className="w-full py-2 rounded-lg text-xs font-black bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-colors disabled:opacity-50"
                   >
                     Confirm Phone Code
                   </button>
                 </div>
               ) : (
-                <div className="text-xs text-neutral-500">Phone ownership successfully validated.</div>
+                <div className="text-xs text-muted">Phone ownership successfully validated.</div>
               )}
             </form>
 
             {/* Stage 2: Email Verification */}
-            <form onSubmit={handleVerifyEmail} className="p-4 rounded-2xl bg-brand-bg border border-brand-border space-y-3">
+            <form onSubmit={handleVerifyEmail} className="p-4 rounded-2xl bg-field border border-line space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-brand-text-primary flex items-center space-x-1.5">
-                  <Mail className="w-3.5 h-3.5 text-brand-primary" />
+                <span className="text-xs font-bold text-ink flex items-center space-x-1.5">
+                  <Mail className="w-3.5 h-3.5 text-amber-400" />
                   <span>2. Email Ownership Code</span>
                 </span>
                 {emailVerified ? (
-                  <span className="text-[11px] font-bold text-emerald-600 flex items-center space-x-1">
+                  <span className="text-[11px] font-bold text-emerald-400 flex items-center space-x-1">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     <span>Verified</span>
                   </span>
                 ) : (
-                  <span className="text-[10px] text-neutral-400 font-mono">6-digit code</span>
+                  <span className="text-[10px] text-muted font-mono">6-digit code</span>
                 )}
               </div>
 
@@ -546,22 +546,22 @@ export function CustomerAuthModal({
                     placeholder="Enter 6-digit email code"
                     value={emailCode}
                     onChange={(e) => setEmailCode(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl border border-brand-border bg-white text-sm font-mono tracking-widest text-center"
+                    className="w-full px-3.5 py-2 rounded-xl border border-line bg-bg text-ink placeholder-muted text-sm font-mono tracking-widest text-center focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
                   />
                   <button
                     type="submit"
                     disabled={loading || emailCode.length !== 6}
-                    className="w-full py-2 rounded-lg text-xs font-bold bg-brand-primary text-brand-accent hover:bg-brand-secondary transition-colors disabled:opacity-50"
+                    className="w-full py-2 rounded-lg text-xs font-black bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-colors disabled:opacity-50"
                   >
                     Confirm Email Code
                   </button>
                 </div>
               ) : (
-                <div className="text-xs text-neutral-500">Email ownership successfully validated.</div>
+                <div className="text-xs text-muted">Email ownership successfully validated.</div>
               )}
             </form>
 
-            <div className="text-center text-xs text-brand-text-secondary">
+            <div className="text-center text-xs text-muted">
               Both verifications are strictly mandatory before viewing authorization is granted.
             </div>
           </div>
@@ -573,25 +573,25 @@ export function CustomerAuthModal({
         {view === "login" && (
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-brand-text-primary uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-ink uppercase tracking-wider mb-1">
                 Email or Phone Number *
               </label>
               <div className="relative">
-                <User className="absolute left-3.5 top-3 w-4 h-4 text-neutral-400" />
+                <User className="absolute left-3.5 top-3 w-4 h-4 text-muted" />
                 <input
                   type="text"
                   required
                   placeholder="you@example.com or +255 7XX XXX XXX"
                   value={loginIdentifier}
                   onChange={(e) => setLoginIdentifier(e.target.value)}
-                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-sm text-brand-text-primary focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-line bg-bg text-sm text-ink placeholder-muted focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
                 />
               </div>
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-xs font-bold text-brand-text-primary uppercase tracking-wider">
+                <label className="text-xs font-bold text-ink uppercase tracking-wider">
                   Password *
                 </label>
                 <button
@@ -600,20 +600,20 @@ export function CustomerAuthModal({
                     setView("forgot");
                     setErrorMessage(null);
                   }}
-                  className="text-xs text-brand-secondary hover:underline"
+                  className="text-xs text-amber-400 hover:underline"
                 >
                   Forgot password?
                 </button>
               </div>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-3 w-4 h-4 text-neutral-400" />
+                <Lock className="absolute left-3.5 top-3 w-4 h-4 text-muted" />
                 <input
                   type="password"
                   required
                   placeholder="Enter your account password"
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
-                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-sm text-brand-text-primary focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-line bg-bg text-sm text-ink placeholder-muted focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
                 />
               </div>
             </div>
@@ -621,7 +621,7 @@ export function CustomerAuthModal({
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-4 py-3 rounded-xl font-bold text-xs sm:text-sm bg-brand-primary text-brand-accent hover:bg-brand-secondary transition-colors duration-150 shadow-subtle flex items-center justify-center space-x-2 disabled:opacity-50"
+              className="w-full mt-4 py-3 rounded-xl font-black text-xs sm:text-sm bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-colors duration-150 shadow-sm flex items-center justify-center space-x-2 disabled:opacity-50"
             >
               {loading ? (
                 <>
@@ -636,7 +636,7 @@ export function CustomerAuthModal({
               )}
             </button>
 
-            <div className="pt-4 border-t border-brand-border text-center text-xs text-brand-text-secondary">
+            <div className="pt-4 border-t border-line text-center text-xs text-muted">
               Don&apos;t have an account yet?{" "}
               <button
                 type="button"
@@ -644,7 +644,7 @@ export function CustomerAuthModal({
                   setView("register");
                   setErrorMessage(null);
                 }}
-                className="font-bold text-brand-text-primary hover:underline"
+                className="font-bold text-ink hover:underline"
               >
                 Create Account
               </button>
@@ -658,8 +658,8 @@ export function CustomerAuthModal({
         {view === "forgot" && (
           <div className="space-y-4">
             {forgotSuccessMessage && (
-              <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-start space-x-2">
-                <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5 text-emerald-600" />
+              <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-start space-x-2">
+                <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5 text-emerald-400" />
                 <span>{forgotSuccessMessage}</span>
               </div>
             )}
@@ -667,7 +667,7 @@ export function CustomerAuthModal({
             {forgotStep === "request" ? (
               <form onSubmit={handleForgotRequest} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-brand-text-primary uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-bold text-ink uppercase tracking-wider mb-1">
                     Account Email or Phone Number *
                   </label>
                   <input
@@ -676,14 +676,14 @@ export function CustomerAuthModal({
                     placeholder="you@example.com or +255 7XX XXX XXX"
                     value={forgotIdentifier}
                     onChange={(e) => setForgotIdentifier(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-sm text-brand-text-primary focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-line bg-bg text-sm text-ink placeholder-muted focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 rounded-xl font-bold text-xs sm:text-sm bg-brand-primary text-brand-accent hover:bg-brand-secondary transition-colors disabled:opacity-50"
+                  className="w-full py-3 rounded-xl font-black text-xs sm:text-sm bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-colors disabled:opacity-50 shadow-sm"
                 >
                   {loading ? "Sending..." : "Send Reset Instructions"}
                 </button>
@@ -691,7 +691,7 @@ export function CustomerAuthModal({
             ) : (
               <form onSubmit={handleResetSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-brand-text-primary uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-bold text-ink uppercase tracking-wider mb-1">
                     Reset Token / Code *
                   </label>
                   <input
@@ -700,12 +700,12 @@ export function CustomerAuthModal({
                     placeholder="Enter reset token"
                     value={resetToken}
                     onChange={(e) => setResetToken(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-sm font-mono text-brand-text-primary focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-line bg-bg text-sm font-mono text-ink placeholder-muted focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-brand-text-primary uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-bold text-ink uppercase tracking-wider mb-1">
                     New Password *
                   </label>
                   <input
@@ -715,21 +715,21 @@ export function CustomerAuthModal({
                     placeholder="Minimum 8 characters"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-sm text-brand-text-primary focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-line bg-bg text-sm text-ink placeholder-muted focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 rounded-xl font-bold text-xs sm:text-sm bg-brand-primary text-brand-accent hover:bg-brand-secondary transition-colors disabled:opacity-50"
+                  className="w-full py-3 rounded-xl font-black text-xs sm:text-sm bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-colors disabled:opacity-50 shadow-sm"
                 >
                   {loading ? "Resetting..." : "Set New Password"}
                 </button>
               </form>
             )}
 
-            <div className="pt-4 border-t border-brand-border text-center text-xs">
+            <div className="pt-4 border-t border-line text-center text-xs">
               <button
                 type="button"
                 onClick={() => {
@@ -738,7 +738,7 @@ export function CustomerAuthModal({
                   setForgotStep("request");
                   setForgotSuccessMessage(null);
                 }}
-                className="font-bold text-brand-text-primary hover:underline"
+                className="font-bold text-ink hover:underline"
               >
                 Back to Sign In
               </button>

@@ -349,9 +349,9 @@ function WatchExperience() {
     const isUrgent = secondsRemaining <= 60;
 
     return (
-      <main className="min-h-screen bg-brand-bg text-brand-text-primary flex flex-col justify-between">
+      <main className="min-h-screen bg-bg text-ink flex flex-col justify-between selection:bg-amber-500 selection:text-neutral-950">
         {/* Top Session Bar */}
-        <header className="sticky top-0 z-30 bg-brand-surface/95 backdrop-blur-md border-b border-brand-border px-4 py-3">
+        <header className="sticky top-0 z-30 bg-field/90 backdrop-blur-md border-b border-line px-4 py-3">
           <div className="max-w-2xl mx-auto flex items-center justify-between">
             <div className="flex items-center space-x-2.5">
               <Image
@@ -362,10 +362,10 @@ function WatchExperience() {
                 className="w-8 h-8 rounded-lg shadow-sm"
               />
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-brand-text-secondary">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted">
                   Companion Stream
                 </p>
-                <p className="text-sm font-bold text-brand-text-primary leading-tight">
+                <p className="text-sm font-bold text-ink leading-tight">
                   Seat {activeSession.seatNumber} &middot; {activeSession.screening.screenName}
                 </p>
               </div>
@@ -375,10 +375,10 @@ function WatchExperience() {
             <div
               className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
                 isUrgent
-                  ? "bg-red-500/10 text-red-500 border border-red-500/30 animate-pulse"
+                  ? "bg-red-500/10 text-red-400 border border-red-500/30 animate-pulse"
                   : isWarning
-                  ? "bg-amber-500/10 text-amber-500 border border-amber-500/30"
-                  : "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+                  ? "bg-amber-500/10 text-amber-400 border border-amber-500/30"
+                  : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
               }`}
             >
               <Clock className="w-3.5 h-3.5" />
@@ -391,7 +391,7 @@ function WatchExperience() {
 
         {/* Video Player & Synchronized Film Canvas */}
         <section className="flex-1 max-w-2xl w-full mx-auto p-4 flex flex-col justify-center space-y-4">
-          <div className="rounded-2xl overflow-hidden shadow-lg border border-brand-border">
+          <div className="rounded-2xl overflow-hidden shadow-card border border-line">
             <CinemaCanvasPlayer
               positionSeconds={activeSession.screening.playbackPositionSeconds}
               durationSeconds={activeSession.screening.durationSeconds}
@@ -403,25 +403,25 @@ function WatchExperience() {
           </div>
 
           {/* Sync & Theater Advisory Card */}
-          <div className="bg-brand-surface rounded-xl p-4 border border-brand-border shadow-sm flex items-start justify-between space-x-3">
+          <div className="bg-field rounded-2xl p-4 border border-line shadow-card flex items-start justify-between space-x-3">
             <div className="space-y-1">
               <div className="flex items-center space-x-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                <p className="text-xs font-bold uppercase tracking-wider text-emerald-600">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                <p className="text-xs font-bold uppercase tracking-wider text-emerald-400">
                   Frame-Synchronized with Auditorium
                 </p>
               </div>
-              <h2 className="text-sm font-bold text-brand-text-primary">
+              <h2 className="text-sm font-bold text-ink">
                 {activeSession.screening.title}
               </h2>
-              <p className="text-xs text-brand-text-secondary">
+              <p className="text-xs text-muted">
                 {activeSession.screening.cinemaName} &middot; Maximum break limit: 15 minutes
               </p>
             </div>
             <button
               onClick={() => syncExistingSession(activeSession.sessionToken)}
               disabled={isSyncing}
-              className="p-2 rounded-lg border border-brand-border hover:bg-brand-bg text-brand-text-secondary transition-colors"
+              className="p-2 rounded-xl border border-line hover:bg-field-raised text-muted hover:text-ink transition-colors"
               title="Force timeline resync"
             >
               <RefreshCw className={`w-4 h-4 ${isSyncing ? "animate-spin" : ""}`} />
@@ -429,16 +429,16 @@ function WatchExperience() {
           </div>
 
           {/* Re-entry Guidance */}
-          <div className="bg-brand-bg border border-brand-primary/40 rounded-xl p-3.5 flex items-center justify-between text-xs">
+          <div className="bg-field border border-line rounded-2xl p-3.5 flex items-center justify-between text-xs shadow-card">
             <div className="flex items-center space-x-2.5">
-              <ShieldCheck className="w-4 h-4 text-brand-secondary flex-shrink-0" />
-              <p className="text-brand-text-primary leading-tight">
+              <ShieldCheck className="w-4 h-4 text-amber-400 flex-shrink-0" />
+              <p className="text-ink leading-tight">
                 Return to <strong>Seat {activeSession.seatNumber}</strong> when ready. Playback stays in sync.
               </p>
             </div>
             <button
               onClick={handleLeaveSession}
-              className="flex items-center space-x-1 text-xs font-semibold text-[#DC2626] hover:underline flex-shrink-0 ml-2"
+              className="flex items-center space-x-1 text-xs font-semibold text-red-400 hover:text-red-300 hover:underline flex-shrink-0 ml-2"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span>End Break</span>
@@ -447,7 +447,7 @@ function WatchExperience() {
         </section>
 
         {/* Footer */}
-        <footer className="text-center py-3 text-[11px] text-[#6B7280] border-t border-[#E5E7EB] bg-white">
+        <footer className="text-center py-3 text-[11px] text-muted border-t border-line bg-bg">
           PottyPlay Authorized Cinema Companion Viewing &middot; Protected Feed
         </footer>
       </main>
@@ -459,23 +459,23 @@ function WatchExperience() {
   // ==========================================
   if (sessionExpiredReason) {
     return (
-      <main className="min-h-screen bg-brand-bg text-brand-text-primary flex flex-col justify-center items-center p-4">
-        <div className="max-w-md w-full bg-brand-surface rounded-2xl border border-brand-border p-6 shadow-sm text-center space-y-4">
-          <div className="w-12 h-12 rounded-full bg-brand-primary/20 text-brand-primary flex items-center justify-center mx-auto">
+      <main className="min-h-screen bg-bg text-ink flex flex-col justify-center items-center p-4 selection:bg-amber-500 selection:text-neutral-950">
+        <div className="max-w-md w-full bg-field rounded-3xl border border-line p-6 shadow-card text-center space-y-4">
+          <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mx-auto">
             <Clock className="w-6 h-6" />
           </div>
 
           <div className="space-y-1.5">
-            <h1 className="text-xl font-bold text-brand-text-primary">
+            <h1 className="text-xl font-extrabold text-ink">
               Viewing Break Concluded
             </h1>
-            <p className="text-sm text-brand-text-secondary">
+            <p className="text-sm text-muted">
               {sessionExpiredReason}
             </p>
           </div>
 
-          <div className="p-3 bg-brand-bg border border-brand-border rounded-xl text-xs text-brand-text-secondary text-left space-y-1">
-            <p className="font-semibold text-brand-text-primary">Auditorium Re-entry</p>
+          <div className="p-3.5 bg-bg border border-line rounded-2xl text-xs text-muted text-left space-y-1">
+            <p className="font-bold text-ink">Auditorium Re-entry</p>
             <p>
               Please return to your assigned auditorium seat to continue enjoying the theatrical screening.
             </p>
@@ -487,7 +487,7 @@ function WatchExperience() {
               setVerifiedTicket(null);
               setTicketInput("");
             }}
-            className="w-full py-2.5 px-4 rounded-xl bg-brand-accent text-brand-bg font-semibold text-sm hover:opacity-90 transition-opacity"
+            className="w-full py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-black text-sm transition-colors shadow-sm"
           >
             Start New Break Session
           </button>
@@ -500,9 +500,9 @@ function WatchExperience() {
   // VIEW 3: ONBOARDING & TICKET VERIFICATION
   // ==========================================
   return (
-    <main className="min-h-screen bg-brand-bg text-brand-text-primary flex flex-col justify-between">
+    <main className="min-h-screen bg-bg text-ink flex flex-col justify-between selection:bg-amber-500 selection:text-neutral-950">
       {/* Header */}
-      <header className="border-b border-brand-border bg-brand-surface/95 px-4 py-3 sticky top-0 z-20">
+      <header className="border-b border-line bg-field/90 backdrop-blur-md px-4 py-3 sticky top-0 z-20">
         <div className="max-w-md mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center space-x-2">
             <Image
@@ -512,11 +512,11 @@ function WatchExperience() {
               height={28}
               className="rounded-lg shadow-sm"
             />
-            <span className="font-bold text-base tracking-tight text-brand-text-primary">
+            <span className="font-extrabold text-base tracking-tight text-ink">
               PottyPlay
             </span>
           </Link>
-          <span className="text-xs font-medium text-brand-text-secondary bg-brand-bg px-2.5 py-1 rounded-full border border-brand-border">
+          <span className="text-xs font-mono font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
             Patron Companion
           </span>
         </div>
@@ -525,10 +525,10 @@ function WatchExperience() {
       {/* Main Container */}
       <section className="flex-1 max-w-md w-full mx-auto p-4 flex flex-col justify-center space-y-5">
         <div className="space-y-1 text-center">
-          <h1 className="text-2xl font-bold tracking-tight text-brand-text-primary">
+          <h1 className="text-2xl font-black tracking-tight text-ink">
             Cinema Companion Break
           </h1>
-          <p className="text-xs text-brand-text-secondary">
+          <p className="text-xs text-muted">
             Continue watching your screening during a short personal break without losing your place.
           </p>
         </div>
@@ -543,11 +543,11 @@ function WatchExperience() {
 
         {/* STEP 1: Enter Ticket or Claim Code (if not verified yet) */}
         {!verifiedTicket && (
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
+          <div className="bg-field rounded-2xl border border-line p-5 shadow-card space-y-4">
             <div className="space-y-2">
               <label
                 htmlFor="ticketCode"
-                className="block text-xs font-bold uppercase tracking-wider text-[#6B7280]"
+                className="block text-xs font-bold uppercase tracking-wider text-muted"
               >
                 Ticket or QR Claim Code
               </label>
@@ -558,11 +558,11 @@ function WatchExperience() {
                   placeholder="e.g. TK-8821-A12 or CLM-..."
                   value={ticketInput}
                   onChange={(e) => setTicketInput(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent bg-brand-surface text-brand-text-primary"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-line text-sm font-mono uppercase focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20 bg-bg text-ink placeholder-muted"
                 />
-                <Ticket className="w-4 h-4 absolute right-3.5 top-3 text-brand-text-secondary" />
+                <Ticket className="w-4 h-4 absolute right-3.5 top-3 text-muted" />
               </div>
-              <p className="text-[11px] text-brand-text-secondary">
+              <p className="text-[11px] text-muted">
                 Located on your printed cinema ticket, digital pass, or seat QR code.
               </p>
             </div>
@@ -570,7 +570,7 @@ function WatchExperience() {
             <button
               onClick={() => verifyEntitlement()}
               disabled={loading || !ticketInput.trim()}
-              className="w-full py-2.5 px-4 rounded-xl bg-brand-primary hover:bg-brand-secondary text-white font-bold text-sm transition-colors flex items-center justify-center space-x-1.5 disabled:opacity-50 shadow-subtle"
+              className="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-black text-sm transition-colors flex items-center justify-center space-x-1.5 disabled:opacity-50 shadow-sm"
             >
               {loading ? (
                 <RefreshCw className="w-4 h-4 animate-spin" />
@@ -586,26 +586,26 @@ function WatchExperience() {
 
         {/* STEP 2: Entitlement Confirmed & Ready to Activate */}
         {verifiedTicket && (
-          <div className="bg-brand-surface rounded-2xl border border-brand-border p-5 shadow-sm space-y-4">
+          <div className="bg-field rounded-2xl border border-line p-5 shadow-card space-y-4">
             {/* Ticket Summary Card */}
-            <div className="bg-brand-bg border border-brand-primary/40 rounded-xl p-3.5 space-y-2">
+            <div className="bg-bg border border-amber-500/30 rounded-xl p-3.5 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
                   Entitlement Verified
                 </span>
-                <span className="text-xs font-mono font-bold text-brand-text-primary">
+                <span className="text-xs font-mono font-bold text-ink">
                   Seat {verifiedTicket.seatNumber}
                 </span>
               </div>
               <div>
-                <h3 className="text-sm font-bold text-brand-text-primary">
+                <h3 className="text-sm font-bold text-ink">
                   {verifiedTicket.screening.title}
                 </h3>
-                <p className="text-xs text-brand-text-secondary">
+                <p className="text-xs text-muted">
                   {verifiedTicket.screening.cinemaName} &middot; {verifiedTicket.screening.screenName}
                 </p>
               </div>
-              <div className="pt-1 border-t border-brand-border flex items-center justify-between text-[11px] text-brand-text-secondary">
+              <div className="pt-1 border-t border-line flex items-center justify-between text-[11px] text-muted">
                 <span>Patron: {verifiedTicket.customerName}</span>
                 <span>Max: {Math.round(verifiedTicket.rights.maxSessionDurationSeconds / 60)} min</span>
               </div>
@@ -617,7 +617,7 @@ function WatchExperience() {
                 <button
                   onClick={handleDirectActivate}
                   disabled={loading}
-                  className="w-full py-3 px-4 rounded-xl bg-[#FFB800] hover:bg-[#F59E0B] text-[#111111] font-bold text-sm transition-colors flex items-center justify-center space-x-2 shadow-sm disabled:opacity-50"
+                  className="w-full py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-black text-sm transition-colors flex items-center justify-center space-x-2 shadow-sm disabled:opacity-50"
                 >
                   {loading ? (
                     <RefreshCw className="w-4 h-4 animate-spin" />
@@ -635,15 +635,15 @@ function WatchExperience() {
                     <button
                       type="button"
                       onClick={() => setShowPhoneOptional(true)}
-                      className="w-full text-center text-xs text-[#6B7280] hover:text-[#111111] hover:underline"
+                      className="w-full text-center text-xs text-muted hover:text-ink hover:underline"
                     >
                       Want SMS confirmation & device recovery? (Optional)
                     </button>
                   ) : (
-                    <div className="space-y-2 pt-2 border-t border-[#E5E7EB]">
+                    <div className="space-y-2 pt-2 border-t border-line">
                       <label
                         htmlFor="phoneNumber"
-                        className="block text-xs font-semibold text-[#6B7280]"
+                        className="block text-xs font-semibold text-muted"
                       >
                         Phone number for Africa&apos;s Talking SMS alerts:
                       </label>
@@ -654,18 +654,18 @@ function WatchExperience() {
                           placeholder="+255 7..."
                           value={phoneInput}
                           onChange={(e) => setPhoneInput(e.target.value)}
-                          className="flex-1 px-3 py-2 rounded-xl border border-[#E5E7EB] text-xs focus:outline-none focus:ring-2 focus:ring-[#FFB800] bg-white"
+                          className="flex-1 px-3 py-2 rounded-xl border border-line text-xs focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20 bg-bg text-ink placeholder-muted"
                         />
                         <button
                           type="button"
                           onClick={handleRequestOtp}
                           disabled={loading || !phoneInput.trim()}
-                          className="px-3 py-2 bg-[#171717] text-white text-xs font-semibold rounded-xl hover:bg-black disabled:opacity-50 transition-colors"
+                          className="px-3 py-2 bg-field text-ink text-xs font-semibold rounded-xl hover:bg-field-raised border border-line disabled:opacity-50 transition-colors"
                         >
                           Send OTP
                         </button>
                       </div>
-                      <p className="text-[10px] text-[#6B7280]">
+                      <p className="text-[10px] text-muted">
                         Secured via Africa&apos;s Talking SMS Gateway.
                       </p>
                     </div>
@@ -676,16 +676,16 @@ function WatchExperience() {
 
             {/* OTP Verification Step if patron requested SMS */}
             {otpSent && (
-              <div className="space-y-3 pt-2 border-t border-[#E5E7EB]">
+              <div className="space-y-3 pt-2 border-t border-line">
                 <div className="space-y-1">
-                  <p className="text-xs font-bold text-[#111111]">
+                  <p className="text-xs font-bold text-ink">
                     Enter SMS Verification Code
                   </p>
-                  <p className="text-[11px] text-[#6B7280]">
+                  <p className="text-[11px] text-muted">
                     Sent to {phoneInput}.
                   </p>
                   {simulatedOtpNotice && (
-                    <p className="text-[11px] font-mono text-[#D97706] bg-[#D97706]/10 p-1.5 rounded-lg">
+                    <p className="text-[11px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 p-1.5 rounded-lg">
                       {simulatedOtpNotice}
                     </p>
                   )}
@@ -698,12 +698,12 @@ function WatchExperience() {
                     placeholder="6-digit code"
                     value={otpCode}
                     onChange={(e) => setOtpCode(e.target.value)}
-                    className="flex-1 px-3 py-2 rounded-xl border border-[#E5E7EB] text-sm font-mono tracking-widest text-center focus:outline-none focus:ring-2 focus:ring-[#FFB800] bg-white"
+                    className="flex-1 px-3 py-2 rounded-xl border border-line text-sm font-mono tracking-widest text-center focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20 bg-bg text-ink placeholder-muted"
                   />
                   <button
                     onClick={handleVerifyOtp}
                     disabled={loading || otpCode.length < 6}
-                    className="px-4 py-2 bg-[#FFB800] hover:bg-[#F59E0B] text-[#111111] text-xs font-bold rounded-xl disabled:opacity-50 transition-colors"
+                    className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-black rounded-xl disabled:opacity-50 transition-colors shadow-sm"
                   >
                     Confirm & Start
                   </button>
@@ -717,7 +717,7 @@ function WatchExperience() {
                 setOtpSent(false);
                 setShowPhoneOptional(false);
               }}
-              className="w-full text-center text-xs text-[#6B7280] hover:underline"
+              className="w-full text-center text-xs text-muted hover:underline"
             >
               Use a different ticket
             </button>
@@ -726,32 +726,32 @@ function WatchExperience() {
 
         {/* Feature Highlights */}
         <div className="grid grid-cols-2 gap-3 text-left">
-          <div className="bg-white p-3 rounded-xl border border-[#E5E7EB] space-y-1">
-            <Clock className="w-4 h-4 text-[#FFB800]" />
-            <p className="text-xs font-bold text-[#111111]">15-Minute Limit</p>
-            <p className="text-[11px] text-[#6B7280]">
+          <div className="bg-field p-3 rounded-xl border border-line space-y-1">
+            <Clock className="w-4 h-4 text-amber-400" />
+            <p className="text-xs font-bold text-ink">15-Minute Limit</p>
+            <p className="text-[11px] text-muted">
               Strict maximum viewing window to encourage returning to your seat.
             </p>
           </div>
-          <div className="bg-white p-3 rounded-xl border border-[#E5E7EB] space-y-1">
-            <ShieldCheck className="w-4 h-4 text-[#16A34A]" />
-            <p className="text-xs font-bold text-[#111111]">Auditorium Sync</p>
-            <p className="text-[11px] text-[#6B7280]">
+          <div className="bg-field p-3 rounded-xl border border-line space-y-1">
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <p className="text-xs font-bold text-ink">Auditorium Sync</p>
+            <p className="text-[11px] text-muted">
               Playback is matched directly with the main cinema projector.
             </p>
           </div>
         </div>
         {/* Native App Banner with Truthful Store State */}
-        <div className="bg-brand-surface p-4 rounded-2xl border border-brand-border text-left shadow-subtle space-y-2">
+        <div className="bg-field p-4 rounded-2xl border border-line text-left shadow-card space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-brand-text-primary">
+            <span className="text-xs font-bold text-ink">
               Frequent Cinema Patron?
             </span>
-            <span className="text-[10px] uppercase font-bold text-neutral-400 bg-brand-bg px-2 py-0.5 rounded border border-brand-border">
+            <span className="text-[10px] uppercase font-bold text-muted bg-bg px-2 py-0.5 rounded border border-line">
               {process.env.NEXT_PUBLIC_APP_STORE_URL || process.env.NEXT_PUBLIC_PLAY_STORE_URL ? "Download App" : "Store Release Pending"}
             </span>
           </div>
-          <p className="text-[11px] text-brand-text-secondary leading-relaxed">
+          <p className="text-[11px] text-muted leading-relaxed">
             {process.env.NEXT_PUBLIC_APP_STORE_URL || process.env.NEXT_PUBLIC_PLAY_STORE_URL ? (
               "Get our official mobile app for one-tap breaks and screening alerts without scanning auditorium QR codes."
             ) : (
@@ -764,14 +764,14 @@ function WatchExperience() {
                 href={process.env.NEXT_PUBLIC_APP_STORE_URL || process.env.NEXT_PUBLIC_PLAY_STORE_URL}
                 target="_blank"
                 rel="noreferrer"
-                className="py-2 px-3.5 rounded-xl font-bold text-xs bg-brand-primary text-brand-accent hover:bg-brand-secondary transition-all shadow-subtle"
+                className="py-2 px-3.5 rounded-xl font-black text-xs bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-all shadow-sm"
               >
                 Get the App
               </a>
             ) : (
               <Link
                 href="/app"
-                className="py-2 px-3.5 rounded-xl font-bold text-xs bg-brand-primary text-brand-accent hover:bg-brand-secondary transition-all shadow-subtle"
+                className="py-2 px-3.5 rounded-xl font-black text-xs bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-all shadow-sm"
               >
                 Open PWA App
               </Link>
@@ -781,7 +781,7 @@ function WatchExperience() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-brand-border bg-brand-surface py-3 px-4 text-center text-[11px] text-brand-text-secondary">
+      <footer className="border-t border-line bg-bg py-3 px-4 text-center text-[11px] text-muted">
         PottyPlay Cinema Companion &middot; Authorized Patrons Only
       </footer>
     </main>
@@ -792,7 +792,7 @@ export default function WatchPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-brand-bg flex items-center justify-center text-xs text-brand-text-secondary">
+        <div className="min-h-screen bg-bg flex items-center justify-center text-xs text-muted">
           Loading companion stream...
         </div>
       }

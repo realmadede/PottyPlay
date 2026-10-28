@@ -18,10 +18,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   interactiveWidget: "resizes-content",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#E7EAE8" },
-    { media: "(prefers-color-scheme: dark)", color: "#121517" },
-  ],
+  themeColor: "#0D0F12",
 };
 
 export default function RootLayout({
@@ -33,7 +30,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         suppressHydrationWarning
-        className="bg-brand-bg text-brand-text-primary min-h-[100dvh] flex flex-col selection:bg-brand-primary/30 selection:text-brand-text-primary font-sans antialiased"
+        className="bg-bg text-ink min-h-[100dvh] flex flex-col selection:bg-amber-500 selection:text-neutral-950 font-sans antialiased"
       >
         {children}
       </body>

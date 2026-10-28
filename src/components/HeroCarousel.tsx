@@ -142,54 +142,54 @@ export function HeroCarousel() {
             aria-hidden="true"
           />
 
-          <div className="relative rounded-[28px] bg-brand-surface border border-brand-border p-5 sm:p-6 shadow-elevated text-brand-text-primary">
+          <div className="relative rounded-[28px] bg-field border border-line p-5 sm:p-6 shadow-elevated text-ink">
             {/* Theatrical Hospitality Badge */}
-            <div className="flex items-center justify-between pb-3.5 border-b border-brand-border text-xs">
+            <div className="flex items-center justify-between pb-3.5 border-b border-line text-xs">
               <div className="flex items-center space-x-2">
-                <Sparkles className="w-4 h-4 text-brand-secondary" />
-                <span className="font-bold text-brand-text-primary text-[11px] sm:text-xs">
+                <Sparkles className="w-4 h-4 text-amber-400" />
+                <span className="font-bold text-ink text-[11px] sm:text-xs">
                   Patron Companion Window
                 </span>
               </div>
-              <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-semibold text-[10px] sm:text-[11px] border border-emerald-200">
+              <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-semibold text-[10px] sm:text-[11px] border border-emerald-500/20">
                 ACTIVE BREAK
               </span>
             </div>
 
             {/* Visual Continuity Arc */}
-            <div className="mt-4 p-4 rounded-2xl bg-brand-bg border border-brand-border text-center space-y-3">
-              <div className="text-xs font-semibold text-brand-text-secondary">
+            <div className="mt-4 p-4 rounded-2xl bg-field-raised border border-line text-center space-y-3">
+              <div className="text-xs font-semibold text-muted">
                 Auditorium to Corridors &bull; Seamless Hand-off
               </div>
 
               {/* Visual Split: Cinema Hall to Mobile */}
               <div className="grid grid-cols-2 gap-2 text-left">
-                <div className="p-3 rounded-xl bg-white border border-brand-border">
-                  <div className="text-[10px] uppercase font-bold text-neutral-400">Main Screen</div>
-                  <div className="text-xs font-extrabold text-brand-text-primary mt-1">Screen 1 Hall</div>
-                  <div className="text-[11px] text-emerald-600 font-mono mt-0.5">Projecting Live</div>
+                <div className="p-3 rounded-xl bg-field border border-line">
+                  <div className="text-[10px] uppercase font-bold text-muted">Main Screen</div>
+                  <div className="text-xs font-extrabold text-ink mt-1">Screen 1 Hall</div>
+                  <div className="text-[11px] text-emerald-400 font-mono mt-0.5">Projecting Live</div>
                 </div>
-                <div className="p-3 rounded-xl bg-brand-accent text-white border border-neutral-800">
-                  <div className="text-[10px] uppercase font-bold text-brand-primary">Companion</div>
-                  <div className="text-xs font-extrabold text-white mt-1">Patron Mobile</div>
-                  <div className="text-[11px] text-neutral-300 font-mono mt-0.5">Synced Stream</div>
+                <div className="p-3 rounded-xl bg-bg text-ink border border-amber-500/30">
+                  <div className="text-[10px] uppercase font-bold text-amber-400">Companion</div>
+                  <div className="text-xs font-extrabold text-ink mt-1">Patron Mobile</div>
+                  <div className="text-[11px] text-muted font-mono mt-0.5">Synced Stream</div>
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-white border border-brand-border text-left">
-                <div className="flex items-center justify-between text-xs font-bold text-brand-text-primary">
+              <div className="p-3 rounded-xl bg-field border border-line text-left">
+                <div className="flex items-center justify-between text-xs font-bold text-ink">
                   <span>Re-entry Confidence</span>
-                  <span className="text-emerald-600 font-mono">100% Timeline Match</span>
+                  <span className="text-emerald-400 font-mono">100% Timeline Match</span>
                 </div>
-                <p className="text-[11px] text-brand-text-secondary mt-1">
+                <p className="text-[11px] text-muted mt-1">
                   Patrons walk back to their exact seat without asking companions what happened.
                 </p>
               </div>
             </div>
 
-            <div className="mt-3.5 pt-3.5 border-t border-brand-border flex items-center justify-between text-xs text-brand-text-secondary">
+            <div className="mt-3.5 pt-3.5 border-t border-line flex items-center justify-between text-xs text-muted">
               <span>Auditorium Ambience:</span>
-              <span className="font-bold text-brand-text-primary">Zero Flash &bull; Dark Mode UI</span>
+              <span className="font-bold text-ink">Zero Flash &bull; Dark Mode UI</span>
             </div>
           </div>
         </div>
@@ -280,66 +280,66 @@ export function HeroCarousel() {
             aria-hidden="true"
           />
 
-          <div className="relative rounded-[28px] bg-brand-surface rounded-3xl p-5 sm:p-6 shadow-elevated border border-brand-border text-brand-text-primary">
+          <div className="relative rounded-[28px] bg-field p-5 sm:p-6 shadow-elevated border border-line text-ink">
             {/* Operator Telemetry Header */}
-            <div className="flex items-center justify-between pb-3.5 border-b border-brand-border text-xs">
+            <div className="flex items-center justify-between pb-3.5 border-b border-line text-xs">
               <div className="flex items-center space-x-2">
-                <Sliders className="w-4 h-4 text-brand-secondary" />
-                <span className="font-bold text-brand-text-primary text-[11px] sm:text-xs">
+                <Sliders className="w-4 h-4 text-amber-400" />
+                <span className="font-bold text-ink text-[11px] sm:text-xs">
                   Exhibitor Operations HUD
                 </span>
               </div>
-              <span className="font-mono text-[10px] sm:text-[11px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">
+              <span className="font-mono text-[10px] sm:text-[11px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/20">
                 TMS CONNECTED
               </span>
             </div>
 
             {/* Telemetry Metrics */}
             <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-              <div className="p-2.5 rounded-xl bg-brand-bg border border-brand-border">
-                <div className="text-[10px] text-brand-text-secondary font-bold uppercase">
+              <div className="p-2.5 rounded-xl bg-field-raised border border-line">
+                <div className="text-[10px] text-muted font-bold uppercase">
                   Screens
                 </div>
-                <div className="text-base sm:text-lg font-black text-brand-text-primary mt-0.5">
+                <div className="text-base sm:text-lg font-black text-ink mt-0.5">
                   8 / 8
                 </div>
               </div>
-              <div className="p-2.5 rounded-xl bg-brand-bg border border-brand-border">
-                <div className="text-[10px] text-brand-text-secondary font-bold uppercase">
+              <div className="p-2.5 rounded-xl bg-field-raised border border-line">
+                <div className="text-[10px] text-muted font-bold uppercase">
                   Breaks
                 </div>
-                <div className="text-base sm:text-lg font-black text-brand-primary mt-0.5">
+                <div className="text-base sm:text-lg font-black text-amber-400 mt-0.5">
                   14
                 </div>
               </div>
-              <div className="p-2.5 rounded-xl bg-brand-bg border border-brand-border">
-                <div className="text-[10px] text-brand-text-secondary font-bold uppercase">
+              <div className="p-2.5 rounded-xl bg-field-raised border border-line">
+                <div className="text-[10px] text-muted font-bold uppercase">
                   Avg Time
                 </div>
-                <div className="text-base sm:text-lg font-black text-brand-text-primary mt-0.5">
+                <div className="text-base sm:text-lg font-black text-ink mt-0.5">
                   6.4m
                 </div>
               </div>
             </div>
 
             {/* Screen Monitor Strip */}
-            <div className="mt-3 p-3 rounded-2xl bg-brand-accent text-white text-xs space-y-1.5">
-              <div className="flex justify-between items-center text-[10px] sm:text-[11px] text-neutral-300">
+            <div className="mt-3 p-3 rounded-2xl bg-bg border border-line text-ink text-xs space-y-1.5">
+              <div className="flex justify-between items-center text-[10px] sm:text-[11px] text-muted">
                 <span>Auditorium 1: Live Feed</span>
                 <span className="font-mono text-emerald-400 font-bold">ZERO DRIFT</span>
               </div>
               <div className="w-full bg-neutral-800 h-1.5 rounded-full overflow-hidden">
-                <div className="bg-brand-primary h-full w-[65%]" />
+                <div className="bg-amber-500 h-full w-[65%]" />
               </div>
-              <div className="flex justify-between text-[10px] text-neutral-400">
+              <div className="flex justify-between text-[10px] text-muted">
                 <span>Projection: 01:14:20</span>
                 <span>Active Companions: 3</span>
               </div>
             </div>
 
-            <div className="mt-3.5 pt-3.5 border-t border-brand-border flex items-center justify-between text-[11px] text-brand-text-secondary">
+            <div className="mt-3.5 pt-3.5 border-t border-line flex items-center justify-between text-[11px] text-muted">
               <span>Commercial Terms:</span>
-              <span className="font-bold text-brand-text-primary">Per-Session Agreement</span>
+              <span className="font-bold text-ink">Per-Session Agreement</span>
             </div>
           </div>
         </div>
@@ -404,18 +404,18 @@ export function HeroCarousel() {
                   }`}
                 >
                   {/* Badge */}
-                  <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white border border-brand-border text-xs font-semibold text-brand-text-secondary mb-4 sm:mb-5 shadow-subtle w-fit">
-                    <span className="w-2 h-2 rounded-full bg-brand-primary animate-pulse flex-shrink-0" />
+                  <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-field border border-line text-xs font-semibold text-muted mb-4 sm:mb-5 shadow-subtle w-fit">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse flex-shrink-0" />
                     <span className="truncate">{s.badge}</span>
                   </div>
 
                   {/* Expressive Headline */}
-                  <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-brand-text-primary leading-[1.12]">
+                  <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-ink leading-[1.12]">
                     {s.headlinePrefix}{" "}
-                    <span className="relative inline-block text-brand-primary whitespace-nowrap">
+                    <span className="relative inline-block text-amber-400 whitespace-nowrap">
                       <span>{s.headlineHighlight}</span>
                       <svg
-                        className="absolute left-0 -bottom-1 w-full h-2.5 text-brand-primary/40 -z-10"
+                        className="absolute left-0 -bottom-1 w-full h-2.5 text-amber-500/40 -z-10"
                         viewBox="0 0 100 12"
                         preserveAspectRatio="none"
                         fill="none"
@@ -433,7 +433,7 @@ export function HeroCarousel() {
                   </h1>
 
                   {/* Subheadline */}
-                  <p className="mt-3.5 sm:mt-5 text-sm sm:text-base md:text-lg text-brand-text-secondary leading-relaxed max-w-xl">
+                  <p className="mt-3.5 sm:mt-5 text-sm sm:text-base md:text-lg text-muted leading-relaxed max-w-xl">
                     {s.subheadline}
                   </p>
                 </div>
@@ -456,7 +456,7 @@ export function HeroCarousel() {
                 >
                   <a
                     href={s.ctaHref}
-                    className="py-2.5 px-4 sm:px-5 rounded-xl font-bold text-xs sm:text-sm bg-brand-primary text-brand-accent hover:bg-brand-secondary transition-colors duration-150 shadow-subtle inline-flex items-center space-x-1.5"
+                    className="py-2.5 px-4 sm:px-5 rounded-xl font-black text-xs sm:text-sm bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-colors duration-150 shadow-sm inline-flex items-center space-x-1.5"
                   >
                     <span>{s.ctaText}</span>
                     <ArrowRight className="w-3.5 h-3.5 flex-shrink-0" />
@@ -464,7 +464,7 @@ export function HeroCarousel() {
 
                   <a
                     href={s.secondaryCtaHref}
-                    className="py-2.5 px-4 sm:px-5 rounded-xl font-semibold text-xs sm:text-sm bg-white text-brand-text-primary hover:bg-neutral-50 border border-brand-border transition-colors duration-150 inline-flex items-center"
+                    className="py-2.5 px-4 sm:px-5 rounded-xl font-semibold text-xs sm:text-sm bg-field text-ink hover:bg-field-raised border border-line transition-colors duration-150 inline-flex items-center"
                   >
                     <span>{s.secondaryCtaText}</span>
                   </a>
@@ -474,7 +474,7 @@ export function HeroCarousel() {
           </div>
 
           {/* Carousel Interactive Controls & Slide Progress */}
-          <div className="mt-7 pt-4 border-t border-brand-border/80 flex items-center justify-between">
+          <div className="mt-7 pt-4 border-t border-line flex items-center justify-between">
             {/* Slide Navigation Dots with Progress */}
             <div className="flex items-center space-x-2">
               {slides.map((s, idx) => (
@@ -486,10 +486,10 @@ export function HeroCarousel() {
                   style={{ width: currentSlide === idx ? "40px" : "14px" }}
                   aria-label={`Go to slide ${idx + 1}`}
                 >
-                  <div className="w-full h-full bg-neutral-300 group-hover:bg-neutral-400 rounded-full" />
+                  <div className="w-full h-full bg-neutral-800 group-hover:bg-neutral-700 rounded-full" />
                   {currentSlide === idx && (
                     <div
-                      className="absolute top-0 left-0 h-full bg-brand-primary rounded-full transition-all duration-75"
+                      className="absolute top-0 left-0 h-full bg-amber-500 rounded-full transition-all duration-75"
                       style={{ width: `${progress}%` }}
                     />
                   )}
@@ -502,7 +502,7 @@ export function HeroCarousel() {
               <button
                 type="button"
                 onClick={() => setIsPlaying(!isPlaying)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg border border-brand-border text-brand-text-secondary hover:text-brand-text-primary hover:bg-white transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-lg border border-line text-muted hover:text-ink hover:bg-field transition-colors"
                 aria-label={isPlaying ? "Pause carousel auto-advance" : "Resume carousel"}
               >
                 {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
@@ -510,7 +510,7 @@ export function HeroCarousel() {
               <button
                 type="button"
                 onClick={handlePrev}
-                className="w-8 h-8 flex items-center justify-center rounded-lg border border-brand-border text-brand-text-secondary hover:text-brand-text-primary hover:bg-white transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-lg border border-line text-muted hover:text-ink hover:bg-field transition-colors"
                 aria-label="Previous slide"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
@@ -518,7 +518,7 @@ export function HeroCarousel() {
               <button
                 type="button"
                 onClick={handleNext}
-                className="w-8 h-8 flex items-center justify-center rounded-lg border border-brand-border text-brand-text-secondary hover:text-brand-text-primary hover:bg-white transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-lg border border-line text-muted hover:text-ink hover:bg-field transition-colors"
                 aria-label="Next slide"
               >
                 <ChevronRight className="w-3.5 h-3.5" />
