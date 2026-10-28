@@ -6,10 +6,13 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  ACTIONS_RUNNER_FORCE_NODE24: "true"
+
 jobs:
   code-assurance:
     name: Code Analysis and Assurance (CA)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -23,7 +26,7 @@ jobs:
 
       - name: Verify zero emojis in project files
         run: |
-          if grep -rnP '[\x{1F300}-\x{1F9FF}\x{2600}-\x{26FF}\x{2700}-\x{27BF}]' src/ docs/ tests/ prisma/ README.md package.json; then
+          if grep -rnP '[\x{1F300}-\x{1F9FF}\x{2600}-\x{26FF}\x{2700}-\x{27BF}]' src/ docs/ tests/ prisma/ README.md package.json LICENSE; then
             echo "Error: Emoji character detected in project files. Emojis are disallowed."
             exit 1
           fi
@@ -45,7 +48,7 @@ jobs:
 
   continuous-integration:
     name: Continuous Integration (CI)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: code-assurance
     services:
       postgres:
