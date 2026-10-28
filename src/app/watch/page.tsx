@@ -24,6 +24,7 @@ interface SessionData {
   remainingSeconds: number;
   seatNumber: string;
   customerName?: string;
+  phoneNumber?: string;
   ticketNumber: string;
   screening: {
     id: string;
@@ -239,6 +240,7 @@ function WatchExperience() {
           remainingSeconds: data.durationSeconds || 900,
           seatNumber: data.seatNumber,
           customerName: data.customerName,
+          phoneNumber: data.phoneNumber || phoneInput,
           ticketNumber: data.ticketNumber,
           screening: {
             id: data.screeningId,
@@ -399,6 +401,7 @@ function WatchExperience() {
               title={activeSession.screening.title}
               cinemaName={activeSession.screening.cinemaName}
               seatNumber={activeSession.seatNumber}
+              patronIdentity={activeSession.phoneNumber || activeSession.customerName || activeSession.ticketNumber}
             />
           </div>
 
@@ -555,7 +558,7 @@ function WatchExperience() {
                 <input
                   id="ticketCode"
                   type="text"
-                  placeholder="e.g. TK-8821-A12 or CLM-..."
+                  placeholder="e.g. TK-8821-XXXX or CLM-..."
                   value={ticketInput}
                   onChange={(e) => setTicketInput(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-line text-sm font-mono uppercase focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20 bg-bg text-ink placeholder-muted"
@@ -611,116 +614,115 @@ function WatchExperience() {
               </div>
             </div>
 
-            {/* Direct Activation Button */}
-            {!otpSent && (
-              <div className="space-y-3">
-                <button
-                  onClick={handleDirectActivate}
-                  disabled={loading}
-                  className="w-full py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-black text-sm transition-colors flex items-center justify-center space-x-2 shadow-sm disabled:opacity-50"
-                >
-                  {loading ? (
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <>
-                      <Film className="w-4 h-4" />
-                      <span>Start Companion Break Now</span>
-                    </>
-                  )}
-                </button>
+            {/* Mandatory Identity Verification Barrier */}
+            <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 space-y-1 text-left">
+              <div className="flex items-center space-x-1.5 font-bold text-amber-400">
+                <ShieldCheck className="w-4 h-4 flex-shrink-0" />
+                <span>Patron Identity Registration Required</span>
+              </div>
+              <p className="text-[11px] text-amber-200/80 leading-relaxed">
+                Studio anti-piracy policies require every companion stream to be registered to a verified telephone identity before authorization.
+              </p>
+            </div>
 
-                {/* Optional Africa's Talking SMS Phone Registration */}
-                <div className="pt-2">
-                  {!showPhoneOptional ? (
-                    <button
-                      type="button"
-                      onClick={() => setShowPhoneOptional(true)}
-                      className="w-full text-center text-xs text-muted hover:text-ink hover:underline"
-                    >
-                      Want SMS confirmation & device recovery? (Optional)
-                    </button>
-                  ) : (
-                    <div className="space-y-2 pt-2 border-t border-line">
-                      <label
-                        htmlFor="phoneNumber"
-                        className="block text-xs font-semibold text-muted"
-                      >
-                        Phone number for Africa&apos;s Talking SMS alerts:
-                      </label>
-                      <div className="flex space-x-2">
-                        <input
-                          id="phoneNumber"
-                          type="tel"
-                          placeholder="+255 7..."
-                          value={phoneInput}
-                          onChange={(e) => setPhoneInput(e.target.value)}
-                          className="flex-1 px-3 py-2 rounded-xl border border-line text-xs focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20 bg-bg text-ink placeholder-muted"
-                        />
-                        <button
-                          type="button"
-                          onClick={handleRequestOtp}
-                          disabled={loading || !phoneInput.trim()}
-                          className="px-3 py-2 bg-field text-ink text-xs font-semibold rounded-xl hover:bg-field-raised border border-line disabled:opacity-50 transition-colors"
-                        >
-                          Send OTP
-                        </button>
-                      </div>
-                      <p className="text-[10px] text-muted">
-                        Secured via Africa&apos;s Talking SMS Gateway.
-                      </p>
-                    </div>
-                  )}
+            {/* Step A: Request Phone Verification Code */}
+            {!otpSent && (
+              <div className="space-y-3 pt-1 text-left">
+                <label
+                  htmlFor="phoneNumber"
+                  className="block text-xs font-bold uppercase tracking-wider text-muted"
+                >
+                  Patron Mobile Number *
+                </label>
+                <div className="flex space-x-2">
+                  <input
+                    id="phoneNumber"
+                    type="tel"
+                    required
+                    placeholder="+255 7XX XXX XXX"
+                    value={phoneInput}
+                    onChange={(e) => setPhoneInput(e.target.value)}
+                    className="flex-1 px-3.5 py-2.5 rounded-xl border border-line text-xs font-mono focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20 bg-bg text-ink placeholder-muted"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRequestOtp}
+                    disabled={loading || !phoneInput.trim()}
+                    className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-bold rounded-xl disabled:opacity-50 transition-colors shadow-sm cursor-pointer whitespace-nowrap"
+                  >
+                    {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : "Send Code"}
+                  </button>
                 </div>
+                <p className="text-[10px] text-muted">
+                  SMS verification code will be dispatched via Africa&apos;s Talking Gateway.
+                </p>
               </div>
             )}
 
-            {/* OTP Verification Step if patron requested SMS */}
+            {/* Step B: Confirm Code and Activate */}
             {otpSent && (
-              <div className="space-y-3 pt-2 border-t border-line">
+              <div className="space-y-3 pt-2 text-left">
                 <div className="space-y-1">
                   <p className="text-xs font-bold text-ink">
-                    Enter SMS Verification Code
+                    Enter 6-Digit SMS Verification Code
                   </p>
                   <p className="text-[11px] text-muted">
-                    Sent to {phoneInput}.
+                    Dispatched to <strong className="text-ink">{phoneInput}</strong>.
                   </p>
                   {simulatedOtpNotice && (
-                    <p className="text-[11px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 p-1.5 rounded-lg">
+                    <p className="text-[11px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 p-2 rounded-xl">
                       {simulatedOtpNotice}
                     </p>
                   )}
                 </div>
 
-                <div className="flex space-x-2">
+                <div className="space-y-2">
                   <input
                     type="text"
                     maxLength={6}
-                    placeholder="6-digit code"
+                    placeholder="••••••"
                     value={otpCode}
                     onChange={(e) => setOtpCode(e.target.value)}
-                    className="flex-1 px-3 py-2 rounded-xl border border-line text-sm font-mono tracking-widest text-center focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20 bg-bg text-ink placeholder-muted"
+                    className="w-full px-4 py-3 rounded-xl border border-line text-sm font-mono tracking-widest text-center focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20 bg-bg text-ink placeholder-muted"
                   />
                   <button
                     onClick={handleVerifyOtp}
                     disabled={loading || otpCode.length < 6}
-                    className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-black rounded-xl disabled:opacity-50 transition-colors shadow-sm"
+                    className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-black rounded-xl disabled:opacity-50 transition-colors shadow-sm flex items-center justify-center space-x-1.5 cursor-pointer"
                   >
-                    Confirm & Start
+                    {loading ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <ShieldCheck className="w-4 h-4" />
+                        <span>Verify Identity & Start Companion Break</span>
+                      </>
+                    )}
                   </button>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => setOtpSent(false)}
+                  className="w-full text-center text-[11px] text-muted hover:text-ink hover:underline"
+                >
+                  Change telephone number
+                </button>
               </div>
             )}
 
-            <button
-              onClick={() => {
-                setVerifiedTicket(null);
-                setOtpSent(false);
-                setShowPhoneOptional(false);
-              }}
-              className="w-full text-center text-xs text-muted hover:underline"
-            >
-              Use a different ticket
-            </button>
+            <div className="pt-2 border-t border-line">
+              <button
+                onClick={() => {
+                  setVerifiedTicket(null);
+                  setOtpSent(false);
+                  setShowPhoneOptional(false);
+                }}
+                className="w-full text-center text-xs text-muted hover:underline"
+              >
+                Use a different ticket barcode
+              </button>
+            </div>
           </div>
         )}
 

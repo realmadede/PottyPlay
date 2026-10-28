@@ -40,7 +40,7 @@ export async function GET() {
                   properties: {
                     ticketNumber: {
                       type: "string",
-                      example: "CC-MLM-7821-A12",
+                      example: "TK-8821-DEMO",
                     },
                     screeningId: {
                       type: "string",
@@ -88,8 +88,8 @@ export async function GET() {
                 schema: {
                   type: "object",
                   properties: {
-                    ticketNumber: { type: "string", example: "CC-MLM-7821-A12" },
-                    claimToken: { type: "string", example: "CLM-MLM-A12-8821" },
+                    ticketNumber: { type: "string", example: "TK-8821-DEMO" },
+                    claimToken: { type: "string", example: "CLM-8821-DEMO" },
                     challengeId: { type: "string" },
                     phoneNumber: { type: "string", example: "+255714000111" },
                   },

@@ -66,7 +66,7 @@ export function HeroCarousel() {
                 </span>
               </div>
               <span className="px-2 py-0.5 rounded bg-neutral-900 text-amber-400 font-mono text-[10px] sm:text-[11px] font-bold border border-amber-500/30">
-                SEAT A12
+                SEAT --
               </span>
             </div>
 

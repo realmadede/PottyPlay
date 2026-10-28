@@ -22,6 +22,8 @@ import {
   Lock,
   User,
 } from "lucide-react";
+import { Capacitor } from "@capacitor/core";
+import { PrivacyScreen } from "@capacitor-community/privacy-screen";
 
 type ActiveTab = "discovery" | "reminders" | "bathroom" | "history" | "profile" | "settings";
 
@@ -75,6 +77,11 @@ export default function CustomerApplication() {
 
   // Check persistent session and onboarding status on mount
   useEffect(() => {
+    // Enforce OS-level screenshot and screen recording blocking on native Android / iOS
+    if (Capacitor.isNativePlatform()) {
+      PrivacyScreen.enable().catch(() => {});
+    }
+
     async function initApp() {
       // 1. Check local storage for onboarding completion
       const storedOnboarding = typeof window !== "undefined" ? localStorage.getItem("pp_onboarding_done") : null;

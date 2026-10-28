@@ -21,6 +21,9 @@ const config: CapacitorConfig = {
       style: "DARK",
       backgroundColor: "#0D0F12",
     },
+    PrivacyScreen: {
+      enable: true,
+    },
   },
 };
 

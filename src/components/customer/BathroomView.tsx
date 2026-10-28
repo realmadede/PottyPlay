@@ -195,6 +195,7 @@ export function BathroomView() {
               title={activeSession.screening.title}
               cinemaName={activeSession.screening.cinemaName}
               seatNumber={activeSession.seatNumber}
+              patronIdentity={activeSession.ticketNumber}
               positionSeconds={activeSession.screening.playbackPositionSeconds}
               durationSeconds={activeSession.screening.durationSeconds}
               isPaused={activeSession.screening.isPaused}
@@ -303,7 +304,7 @@ export function BathroomView() {
           <div className="max-w-md mx-auto space-y-3">
             <input
               type="text"
-              placeholder="e.g. CC-MLM-7821-A12"
+              placeholder="e.g. TK-8821-4401"
               value={manualTicket}
               onChange={(e) => setManualTicket(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border border-line bg-bg text-ink placeholder-muted text-center font-mono uppercase text-sm font-bold focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
@@ -327,7 +328,7 @@ export function BathroomView() {
           </div>
 
           <div className="p-3 rounded-xl bg-bg border border-line text-[11px] text-muted text-center">
-            Standard trial ticket: <span className="font-mono font-bold text-amber-400">CC-MLM-7821-A12</span> (Seat A12)
+            Ticket barcodes are located on your printed cinema ticket stub or mobile booking pass.
           </div>
         </div>
       )}

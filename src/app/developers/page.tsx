@@ -66,7 +66,7 @@ export default function DevelopersPortalPage() {
   -H "Content-Type: application/json" \\
   -H "X-Cinema-Key: cin_live_99a8b17c" \\
   -d '{
-    "ticketNumber": "CC-MLM-7821-A12",
+    "ticketNumber": "TK-8821-DEMO",
     "screeningId": "screening_prime_01"
   }'`,
         typescript: `import { PottyPlayClient } from "@pottyplay/cinema-sdk";
@@ -77,7 +77,7 @@ const client = new PottyPlayClient({
 });
 
 const entitlement = await client.tickets.verify({
-  ticketNumber: "CC-MLM-7821-A12",
+  ticketNumber: "TK-8821-DEMO",
   screeningId: "screening_prime_01",
 });
 
@@ -92,7 +92,7 @@ headers = {
     "X-Cinema-Key": os.environ.get("POTTYPLAY_CINEMA_KEY"),
 }
 payload = {
-    "ticketNumber": "CC-MLM-7821-A12",
+    "ticketNumber": "TK-8821-DEMO",
     "screeningId": "screening_prime_01",
 }
 
@@ -104,13 +104,13 @@ print("Eligible:", data.get("isEligible"))`,
   "isEligible": true,
   "status": "ELIGIBLE",
   "ticket": {
-    "ticketNumber": "CC-MLM-7821-A12",
-    "seatNumber": "A12",
-    "customerName": "Juma Mwanamvua"
+    "ticketNumber": "TK-8821-DEMO",
+    "seatNumber": "Auditorium Seat",
+    "customerName": "Verified Patron"
   },
   "screening": {
     "id": "screening_prime_01",
-    "title": "Serengeti Shadows (Main Hall)",
+    "title": "Exhibitor Screening Title",
     "cinemaName": "Exhibitor Theater 01"
   },
   "rights": {
@@ -137,11 +137,11 @@ print("Eligible:", data.get("isEligible"))`,
   -H "Content-Type: application/json" \\
   -H "Idempotency-Key: idemp_87fa21c49b0" \\
   -d '{
-    "claimToken": "CLM-MLM-A12-8821",
+    "claimToken": "CLM-8821-DEMO",
     "deviceInfo": "Safari on iOS 18"
   }'`,
         typescript: `const session = await client.sessions.activate({
-  claimToken: "CLM-MLM-A12-8821",
+  claimToken: "CLM-8821-DEMO",
   deviceInfo: "Mobile Safari 18.2",
   idempotencyKey: "idemp_87fa21c49b0",
 });
@@ -149,7 +149,7 @@ print("Eligible:", data.get("isEligible"))`,
 console.log("Session ID:", session.sessionId);
 console.log("Initial Position (s):", session.initialPlaybackPositionSeconds);`,
         python: `payload = {
-    "claimToken": "CLM-MLM-A12-8821",
+    "claimToken": "CLM-8821-DEMO",
     "deviceInfo": "Mobile Safari 18.2",
 }
 headers = {
@@ -164,7 +164,7 @@ session = res.json()`,
   "sessionId": "session_88192a_cuid",
   "sessionToken": "pstk_e92bf18a032d88c49a1",
   "durationSeconds": 900,
-  "seatNumber": "A12",
+  "seatNumber": "Auditorium Seat",
   "initialPlaybackPositionSeconds": 720.0
 }`,
       errorPayload: `{

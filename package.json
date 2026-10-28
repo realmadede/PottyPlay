@@ -17,6 +17,7 @@
     "cap:sync": "cap sync"
   },
   "dependencies": {
+    "@capacitor-community/privacy-screen": "^8.0.0",
     "@capacitor/core": "^8.5.3",
     "@fontsource/plus-jakarta-sans": "^5.3.0",
     "@node-rs/argon2": "^2.2.2",

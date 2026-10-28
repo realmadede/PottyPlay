@@ -163,11 +163,11 @@ export function RemindersView() {
 
           <div>
             <label className="block text-xs font-bold text-ink mb-1">
-              Ticket Barcode / Code (e.g. CC-MLM-7821-A12)
+              Ticket Barcode / Code (e.g. TK-8821-4401)
             </label>
             <input
               type="text"
-              placeholder="CC-MLM-7821-A12"
+              placeholder="e.g. TK-8821-4401"
               value={ticketInput}
               onChange={(e) => setTicketInput(e.target.value)}
               className="w-full px-3 py-2.5 rounded-xl border border-line bg-bg text-ink placeholder-muted text-xs font-mono uppercase focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"

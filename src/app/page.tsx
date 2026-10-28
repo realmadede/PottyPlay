@@ -303,7 +303,7 @@ export default function BusinessLandingPage() {
                 <div className="aspect-video bg-bg rounded-2xl border border-line flex flex-col justify-between p-4 text-ink">
                   <div className="flex justify-between items-center text-[10px]">
                     <span className="font-mono text-muted">AUDITORIUM 01: ATMOS</span>
-                    <span className="font-mono text-amber-400 font-bold">SEAT A12</span>
+                    <span className="font-mono text-amber-400 font-bold">SEAT --</span>
                   </div>
 
                   <div className="text-center my-auto py-2">
@@ -323,7 +323,7 @@ export default function BusinessLandingPage() {
 
                 <div className="p-3.5 rounded-xl bg-field-raised border border-line flex items-center justify-between text-xs">
                   <span className="text-muted">Return to Auditorium:</span>
-                  <span className="font-bold text-emerald-400">Seat A12 Admitted</span>
+                  <span className="font-bold text-emerald-400">Auditorium Admitted</span>
                 </div>
               </div>
             </div>
@@ -693,8 +693,8 @@ X-PottyPlay-Signature: sha256=...
   "event": "ticket.admitted",
   "cinemaId": "cinema_circuit_01",
   "screeningId": "screening_auditorium_01",
-  "ticketNumber": "TK-8842-A12",
-  "claimToken": "CLM-A12-9901",
+  "ticketNumber": "TK-8842-DEMO",
+  "claimToken": "CLM-8842-01",
   "maxBreaks": 2,
   "maxSessionSeconds": 900
 }`}</pre>

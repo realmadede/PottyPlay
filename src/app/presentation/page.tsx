@@ -23,10 +23,10 @@ export default function PresentationExperiencePage() {
 
   // Controlled demonstration ticket fixture
   const demoTicket = {
-    ticketNumber: "CC-MLM-7821-A12",
-    claimToken: "CLM-MLM-A12-8821",
-    seatNumber: "A12",
-    screeningTitle: "Serengeti Shadows (Auditorium 1)",
+    ticketNumber: "DEMO-TK-7821",
+    claimToken: "DEMO-CLM-8821",
+    seatNumber: "Screen 1",
+    screeningTitle: "Exhibitor Demonstration Screening",
     cinemaName: "Exhibitor Demonstration Auditorium 1",
   };
 
@@ -97,7 +97,7 @@ export default function PresentationExperiencePage() {
               <CinemaCanvasPlayer
                 title="Serengeti Shadows: The Silent Guardian"
                 cinemaName="Auditorium Screen 01 (Dolby Atmos)"
-                seatNumber="A12"
+                seatNumber="Screen 1"
                 positionSeconds={demoPosition}
                 durationSeconds={1800}
                 isPaused={isPaused}
