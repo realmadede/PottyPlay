@@ -74,9 +74,9 @@ Africa's Talking SMS infrastructure powers patron authentication and security fa
 
 - **Framework:** Next.js 15 (App Router, Server Actions, Route Handlers)
 - **Language:** TypeScript 5 (Strict Mode enabled)
-- **Typography:** Plus Jakarta Sans
+- **Typography:** Familjen Grotesk
 - **Cryptography:** Argon2id (`@node-rs/argon2`) for credentials, SHA-256 for OTP hashes and signatures
-- **Design Tokens:** Strict semantic palette (Primary `#FFB800`, Amber `#F59E0B`, Charcoal `#171717`, Bone `#FFFDF7`)
+- **Design Tokens:** Atmospheric cinematic palette (Heather `#7A5A8E` / `#BFA2D0`, Amber `#F5C451`, Ink `#15191B` / `#E6EAE8`, Mist `#E7EAE8` / `#121517`)
 - **Mobile Container:** Capacitor 8 (`@capacitor/core`, `@capacitor/android`, `@capacitor/ios`)
 - **Database & Transactions:** PostgreSQL 16 with Prisma ORM
 - **Testing:** Vitest automated test suite (23 integration and invariant tests)
@@ -86,19 +86,16 @@ Africa's Talking SMS infrastructure powers patron authentication and security fa
 
 ## 4. Brand Design Tokens
 
-| Token | Hex Value | Semantic Usage |
-| :--- | :--- | :--- |
-| Primary Brand | `#FFB800` | Primary buttons, active highlights, key accents |
-| Secondary Brand | `#F59E0B` | Interactive hover states, warm amber accents |
-| Accent / Charcoal | `#171717` | Contrast frames, player viewports, dark surfaces |
-| Soft Bone White | `#FFFDF7` | Page background |
-| Pure White | `#FFFFFF` | Cards, modals, dialog surfaces |
-| Border | `#E5E7EB` | Structural dividers, card borders |
-| Primary Text | `#111111` | Headings, primary content |
-| Secondary Text | `#6B7280` | Metadata, subtitles, captions |
-| Success | `#16A34A` | Active streams, verified tickets |
-| Error | `#DC2626` | Revoked sessions, expired breaks |
-| Warning | `#D97706` | Approaching session expirations |
+| Token | Light Value | Dark Value | Semantic Usage |
+| :--- | :--- | :--- | :--- |
+| `bg` | `#E7EAE8` (231 234 232) | `#121517` (18 21 23) | Atmospheric page background |
+| `ink` | `#15191B` (21 25 27) | `#E6EAE8` (230 234 232) | High-contrast typography, primary content |
+| `muted` | `#59636A` (89 99 106) | `#9AA4A8` (154 164 168) | Secondary labels, captions, metadata |
+| `field` | `#F5F7F6` (245 247 246) | `#1B1F22` (27 31 34) | Card surfaces, form fields, modal containers |
+| `heather` | `#7A5A8E` (122 90 142) | `#BFA2D0` (191 162 208) | Signature theatrical purple accent, primary CTA |
+| `error` | `#B8382F` (184 56 47) | `#F08A80` (240 138 128) | Revoked sessions, expiration alerts |
+| `line` | `rgba(21, 25, 27, 0.14)` | `rgba(230, 234, 232, 0.14)` | Structural borders, hairline dividers |
+| `led.amber` | `#F5C451` | `#F5C451` | Active telemetry status, projection sync highlights |
 
 ---
 

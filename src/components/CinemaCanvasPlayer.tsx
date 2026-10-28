@@ -189,13 +189,13 @@ export function CinemaCanvasPlayer({
       }
 
       // Watermark and Cinema Identifier
-      ctx.font = "10px 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif";
+      ctx.font = "10px 'Familjen Grotesk', -apple-system, BlinkMacSystemFont, sans-serif";
       ctx.fillStyle = "rgba(240, 244, 249, 0.75)";
       ctx.fillText(`POTTYPLAY SYNCHRONIZED STREAM | ${cinemaName}`, 20, 28);
 
       if (seatNumber) {
         ctx.fillStyle = "rgba(251, 191, 36, 0.9)";
-        ctx.font = "bold 11px 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif";
+        ctx.font = "bold 11px 'Familjen Grotesk', -apple-system, BlinkMacSystemFont, sans-serif";
         ctx.fillText(`SEAT ${seatNumber} COMPANION VIEW`, width - 180, 28);
       }
 
@@ -219,11 +219,11 @@ export function CinemaCanvasPlayer({
         ctx.fillRect(0, 0, width, height);
 
         ctx.fillStyle = "#ffffff";
-        ctx.font = "bold 18px 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif";
+        ctx.font = "bold 18px 'Familjen Grotesk', -apple-system, BlinkMacSystemFont, sans-serif";
         ctx.textAlign = "center";
         ctx.fillText("CINEMA PROJECTION PAUSED", width / 2, height / 2 - 8);
 
-        ctx.font = "12px 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif";
+        ctx.font = "12px 'Familjen Grotesk', -apple-system, BlinkMacSystemFont, sans-serif";
         ctx.fillStyle = "#94a3b8";
         ctx.fillText("Companion stream synchronized with auditorium screen", width / 2, height / 2 + 16);
         ctx.textAlign = "start";

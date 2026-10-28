@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
 import {
   ArrowRight,
   Pause,
@@ -15,7 +14,6 @@ import {
   Sparkles,
   Ticket,
   Sliders,
-  CheckCircle2,
   Lock,
 } from "lucide-react";
 
@@ -24,7 +22,6 @@ interface SlideData {
   badge: string;
   headlinePrefix: string;
   headlineHighlight: string;
-  headlineSuffix?: string;
   subheadline: string;
   ctaText: string;
   ctaHref: string;
@@ -99,14 +96,13 @@ export function HeroCarousel() {
                 </div>
               </div>
 
-              {/* Live Waveform Indicator */}
-              <div className="flex items-center justify-between pt-2 border-t border-neutral-800/80 text-[10px] sm:text-[11px]">
-                <span className="text-neutral-400">Audio Continuity</span>
-                <div className="flex items-center space-x-1" aria-hidden="true">
-                  <span className="w-1 h-3 bg-brand-primary rounded-full animate-pulse" />
-                  <span className="w-1 h-4 bg-brand-secondary rounded-full animate-pulse" style={{ animationDelay: "150ms" }} />
-                  <span className="w-1 h-2 bg-brand-primary rounded-full animate-pulse" style={{ animationDelay: "300ms" }} />
-                  <span className="w-1 h-5 bg-brand-primary rounded-full animate-pulse" style={{ animationDelay: "75ms" }} />
+              {/* Live Audio / Video Telemetry */}
+              <div className="flex items-center justify-between text-[10px] text-neutral-400 pt-2 border-t border-neutral-800/80">
+                <span>PCM Stereo &bull; Low-Latency HLS</span>
+                <div className="flex items-center space-x-1">
+                  <span className="w-1 h-2 bg-emerald-400 rounded-full animate-pulse" />
+                  <span className="w-1 h-3.5 bg-brand-primary rounded-full animate-pulse" style={{ animationDelay: "75ms" }} />
+                  <span className="w-1 h-2 bg-emerald-400 rounded-full animate-pulse" style={{ animationDelay: "150ms" }} />
                   <span className="w-1 h-3 bg-brand-secondary rounded-full animate-pulse" style={{ animationDelay: "225ms" }} />
                 </div>
               </div>
@@ -180,22 +176,20 @@ export function HeroCarousel() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-2 border-t border-brand-border/60 text-[11px] text-brand-text-secondary">
-                <span>Gentle Vibration Warning</span>
-                <span className="font-bold text-brand-text-primary font-mono">AT 12:00 & 14:00</span>
+              <div className="p-3 rounded-xl bg-white border border-brand-border text-left">
+                <div className="flex items-center justify-between text-xs font-bold text-brand-text-primary">
+                  <span>Re-entry Confidence</span>
+                  <span className="text-emerald-600 font-mono">100% Timeline Match</span>
+                </div>
+                <p className="text-[11px] text-brand-text-secondary mt-1">
+                  Patrons walk back to their exact seat without asking companions what happened.
+                </p>
               </div>
             </div>
 
-            {/* Feature Value Props */}
-            <div className="mt-4 pt-3.5 border-t border-brand-border grid grid-cols-2 gap-2 text-[11px]">
-              <div className="flex items-center space-x-1.5 text-brand-text-secondary">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                <span>Reduced Lobby Anxiety</span>
-              </div>
-              <div className="flex items-center space-x-1.5 text-brand-text-secondary">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                <span>Prompt Seat Return</span>
-              </div>
+            <div className="mt-3.5 pt-3.5 border-t border-brand-border flex items-center justify-between text-xs text-brand-text-secondary">
+              <span>Auditorium Ambience:</span>
+              <span className="font-bold text-brand-text-primary">Zero Flash &bull; Dark Mode UI</span>
             </div>
           </div>
         </div>
@@ -385,73 +379,102 @@ export function HeroCarousel() {
     setProgress(0);
   };
 
-  const slide = slides[currentSlide];
-
   return (
-    <section className="relative overflow-hidden pt-8 pb-14 md:pt-14 md:pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+    <section className="relative overflow-hidden pt-6 pb-12 md:pt-10 md:pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
       {/* Background Ambient Aura */}
       <div
         className="absolute top-10 left-1/2 -translate-x-1/2 w-full max-w-[700px] h-[350px] bg-gradient-to-b from-brand-primary/10 via-brand-secondary/5 to-transparent rounded-full blur-3xl pointer-events-none -z-10"
         aria-hidden="true"
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-        {/* Left Column: Expressive Copy & Action */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+        {/* Left Column: Expressive Copy & Action with Stable Layout */}
         <div className="lg:col-span-6 flex flex-col text-left">
-          {/* Badge */}
-          <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-white border border-brand-border text-xs font-semibold text-brand-text-secondary mb-5 sm:mb-6 shadow-subtle w-fit">
-            <span className="w-2 h-2 rounded-full bg-brand-primary animate-pulse flex-shrink-0" />
-            <span className="truncate">{slide.badge}</span>
+          {/* Stable Text Container to Eliminate Vertical Layout Shifts */}
+          <div className="relative w-full min-h-[220px] sm:min-h-[210px] lg:min-h-[240px] overflow-hidden">
+            {slides.map((s, idx) => {
+              const isActive = currentSlide === idx;
+              return (
+                <div
+                  key={s.id}
+                  className={`transition-all duration-500 ease-out ${
+                    isActive
+                      ? "opacity-100 translate-y-0 relative z-10 pointer-events-auto"
+                      : "opacity-0 -translate-y-2 absolute inset-0 pointer-events-none z-0"
+                  }`}
+                >
+                  {/* Badge */}
+                  <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white border border-brand-border text-xs font-semibold text-brand-text-secondary mb-4 sm:mb-5 shadow-subtle w-fit">
+                    <span className="w-2 h-2 rounded-full bg-brand-primary animate-pulse flex-shrink-0" />
+                    <span className="truncate">{s.badge}</span>
+                  </div>
+
+                  {/* Expressive Headline */}
+                  <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-brand-text-primary leading-[1.12]">
+                    {s.headlinePrefix}{" "}
+                    <span className="relative inline-block text-brand-primary whitespace-nowrap">
+                      <span>{s.headlineHighlight}</span>
+                      <svg
+                        className="absolute left-0 -bottom-1 w-full h-2.5 text-brand-primary/40 -z-10"
+                        viewBox="0 0 100 12"
+                        preserveAspectRatio="none"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M2 9C25 3 75 3 98 9"
+                          stroke="currentColor"
+                          strokeWidth="5"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                    </span>
+                  </h1>
+
+                  {/* Subheadline */}
+                  <p className="mt-3.5 sm:mt-5 text-sm sm:text-base md:text-lg text-brand-text-secondary leading-relaxed max-w-xl">
+                    {s.subheadline}
+                  </p>
+                </div>
+              );
+            })}
           </div>
 
-          {/* Expressive Headline */}
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-brand-text-primary leading-[1.12]">
-            {slide.headlinePrefix}{" "}
-            <span className="relative inline-block text-brand-primary whitespace-nowrap">
-              <span>{slide.headlineHighlight}</span>
-              <svg
-                className="absolute left-0 -bottom-1 w-full h-2.5 text-brand-primary/40 -z-10"
-                viewBox="0 0 100 12"
-                preserveAspectRatio="none"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                aria-hidden="true"
-              >
-                <path
-                  d="M2 9C25 3 75 3 98 9"
-                  stroke="currentColor"
-                  strokeWidth="5"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </span>
-          </h1>
+          {/* Stable CTAs - Compact, proportionate sizing */}
+          <div className="relative mt-6 sm:mt-7 min-h-[44px] overflow-hidden">
+            {slides.map((s, idx) => {
+              const isActive = currentSlide === idx;
+              return (
+                <div
+                  key={s.id}
+                  className={`transition-all duration-300 ease-out flex flex-wrap items-center gap-2.5 sm:gap-3 ${
+                    isActive
+                      ? "opacity-100 translate-y-0 relative z-10 pointer-events-auto"
+                      : "opacity-0 translate-y-1 absolute inset-0 pointer-events-none z-0"
+                  }`}
+                >
+                  <a
+                    href={s.ctaHref}
+                    className="py-2.5 px-4 sm:px-5 rounded-xl font-bold text-xs sm:text-sm bg-brand-primary text-brand-accent hover:bg-brand-secondary transition-colors duration-150 shadow-subtle inline-flex items-center space-x-1.5"
+                  >
+                    <span>{s.ctaText}</span>
+                    <ArrowRight className="w-3.5 h-3.5 flex-shrink-0" />
+                  </a>
 
-          {/* Subheadline */}
-          <p className="mt-4 sm:mt-6 text-sm sm:text-base md:text-lg text-brand-text-secondary leading-relaxed max-w-xl">
-            {slide.subheadline}
-          </p>
-
-          {/* CTAs */}
-          <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <a
-              href={slide.ctaHref}
-              className="py-3.5 px-6 rounded-xl font-bold text-xs sm:text-sm bg-brand-primary text-brand-accent hover:bg-brand-secondary transition-all duration-150 shadow-subtle flex items-center justify-center space-x-2 text-center"
-            >
-              <span>{slide.ctaText}</span>
-              <ArrowRight className="w-4 h-4 flex-shrink-0" />
-            </a>
-
-            <a
-              href={slide.secondaryCtaHref}
-              className="py-3.5 px-6 rounded-xl font-semibold text-xs sm:text-sm bg-white text-brand-text-primary hover:bg-neutral-50 border border-brand-border transition-colors duration-150 flex items-center justify-center text-center"
-            >
-              <span>{slide.secondaryCtaText}</span>
-            </a>
+                  <a
+                    href={s.secondaryCtaHref}
+                    className="py-2.5 px-4 sm:px-5 rounded-xl font-semibold text-xs sm:text-sm bg-white text-brand-text-primary hover:bg-neutral-50 border border-brand-border transition-colors duration-150 inline-flex items-center"
+                  >
+                    <span>{s.secondaryCtaText}</span>
+                  </a>
+                </div>
+              );
+            })}
           </div>
 
           {/* Carousel Interactive Controls & Slide Progress */}
-          <div className="mt-8 pt-5 border-t border-brand-border/80 flex items-center justify-between">
+          <div className="mt-7 pt-4 border-t border-brand-border/80 flex items-center justify-between">
             {/* Slide Navigation Dots with Progress */}
             <div className="flex items-center space-x-2">
               {slides.map((s, idx) => (
@@ -459,8 +482,8 @@ export function HeroCarousel() {
                   key={s.id}
                   type="button"
                   onClick={() => goToSlide(idx)}
-                  className="group relative h-2 rounded-full transition-all duration-300 overflow-hidden focus:outline-none min-w-[24px] touch-manipulation"
-                  style={{ width: currentSlide === idx ? "44px" : "16px" }}
+                  className="group relative h-2 rounded-full transition-all duration-300 overflow-hidden focus:outline-none min-w-[20px] touch-manipulation"
+                  style={{ width: currentSlide === idx ? "40px" : "14px" }}
                   aria-label={`Go to slide ${idx + 1}`}
                 >
                   <div className="w-full h-full bg-neutral-300 group-hover:bg-neutral-400 rounded-full" />
@@ -479,7 +502,7 @@ export function HeroCarousel() {
               <button
                 type="button"
                 onClick={() => setIsPlaying(!isPlaying)}
-                className="w-9 h-9 flex items-center justify-center rounded-lg border border-brand-border text-brand-text-secondary hover:text-brand-text-primary hover:bg-white transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-lg border border-brand-border text-brand-text-secondary hover:text-brand-text-primary hover:bg-white transition-colors"
                 aria-label={isPlaying ? "Pause carousel auto-advance" : "Resume carousel"}
               >
                 {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
@@ -487,26 +510,44 @@ export function HeroCarousel() {
               <button
                 type="button"
                 onClick={handlePrev}
-                className="w-9 h-9 flex items-center justify-center rounded-lg border border-brand-border text-brand-text-secondary hover:text-brand-text-primary hover:bg-white transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-lg border border-brand-border text-brand-text-secondary hover:text-brand-text-primary hover:bg-white transition-colors"
                 aria-label="Previous slide"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="w-3.5 h-3.5" />
               </button>
               <button
                 type="button"
                 onClick={handleNext}
-                className="w-9 h-9 flex items-center justify-center rounded-lg border border-brand-border text-brand-text-secondary hover:text-brand-text-primary hover:bg-white transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-lg border border-brand-border text-brand-text-secondary hover:text-brand-text-primary hover:bg-white transition-colors"
                 aria-label="Next slide"
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
         </div>
 
-        {/* Right Column: Visual Scene */}
-        <div className="lg:col-span-6 flex items-center justify-center w-full min-w-0 transition-opacity duration-300">
-          {slide.visualScene}
+        {/* Right Column: Visual Scenes in Fixed-Height Frame with Sliding Glide Motion */}
+        <div className="lg:col-span-6 relative w-full flex items-center justify-center min-w-0">
+          <div className="relative w-full max-w-md mx-auto h-[380px] sm:h-[400px] flex items-center justify-center overflow-hidden">
+            {slides.map((s, idx) => {
+              const isActive = currentSlide === idx;
+              return (
+                <div
+                  key={s.id}
+                  className={`absolute inset-0 flex items-center justify-center transition-all duration-600 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                    isActive
+                      ? "opacity-100 translate-x-0 scale-100 pointer-events-auto z-10"
+                      : idx < currentSlide
+                      ? "opacity-0 -translate-x-8 scale-95 pointer-events-none z-0"
+                      : "opacity-0 translate-x-8 scale-95 pointer-events-none z-0"
+                  }`}
+                >
+                  {s.visualScene}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>

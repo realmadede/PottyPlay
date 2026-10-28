@@ -15,7 +15,7 @@ export function NavigationHeader() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-[#E5E7EB] overflow-x-clip">
+    <header className="sticky top-0 z-50 w-full bg-field/95 backdrop-blur-md border-b border-line overflow-x-clip">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 min-w-0">
         {/* Brand */}
         <Link href="/" className="flex items-center space-x-2.5 sm:space-x-3 group min-w-0 flex-shrink-0">
@@ -28,14 +28,14 @@ export function NavigationHeader() {
           />
           <div className="flex flex-col min-w-0">
             <div className="flex items-center space-x-1.5 sm:space-x-2">
-              <span className="font-extrabold text-sm sm:text-base text-[#111111] tracking-tight">
+              <span className="font-extrabold text-sm sm:text-base text-ink tracking-tight">
                 PottyPlay
               </span>
-              <span className="text-[9px] sm:text-[10px] font-bold tracking-wider uppercase px-1.5 sm:px-2 py-0.5 rounded-full bg-[#FFB800]/20 text-[#111111] border border-[#FFB800]/40 flex-shrink-0">
+              <span className="text-[9px] sm:text-[10px] font-bold tracking-wider uppercase px-1.5 sm:px-2 py-0.5 rounded-full bg-heather/20 text-ink border border-heather/40 flex-shrink-0">
                 Console
               </span>
             </div>
-            <span className="hidden sm:block text-[11px] text-[#6B7280] truncate">
+            <span className="hidden sm:block text-[11px] text-muted truncate">
               Cinema Companion Viewing Platform
             </span>
           </div>
@@ -52,8 +52,8 @@ export function NavigationHeader() {
                 href={item.href}
                 className={`flex items-center space-x-1 sm:space-x-1.5 px-2 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-colors flex-shrink-0 ${
                   isActive
-                    ? "bg-[#171717] text-white shadow-sm"
-                    : "text-[#6B7280] hover:text-[#111111] hover:bg-[#FFFDF7]"
+                    ? "bg-ink text-bg shadow-sm"
+                    : "text-muted hover:text-ink hover:bg-bg"
                 }`}
               >
                 <Icon className="w-3.5 h-3.5 flex-shrink-0" />
@@ -64,7 +64,7 @@ export function NavigationHeader() {
           })}
           <Link
             href="/"
-            className="hidden lg:flex items-center space-x-1 px-3 py-1.5 text-xs text-[#6B7280] hover:text-[#111111] transition-colors"
+            className="hidden lg:flex items-center space-x-1 px-3 py-1.5 text-xs text-muted hover:text-ink transition-colors"
           >
             <span>Public Site</span>
             <ExternalLink className="w-3 h-3" />

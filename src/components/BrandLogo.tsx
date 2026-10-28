@@ -40,9 +40,9 @@ export function BrandLogo({
           aria-hidden="true"
         >
           <defs>
-            <linearGradient id="logoGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#FFB800" />
-              <stop offset="100%" stopColor="#F59E0B" />
+            <linearGradient id="logoHeatherGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#7A5A8E" />
+              <stop offset="100%" stopColor="#F5C451" />
             </linearGradient>
           </defs>
           {/* Theater Screen Arc */}
@@ -56,14 +56,14 @@ export function BrandLogo({
           {/* Continuity Möbius Loop */}
           <path
             d="M 18 40 C 13 32 17 23 26 21 C 35 19 43 25 46 33 C 48 38 45 44 40 46 C 34 48 28 46 25 41"
-            stroke="url(#logoGoldGrad)"
+            stroke="url(#logoHeatherGrad)"
             strokeWidth="5"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
           {/* Synchronized Vector */}
-          <polygon points="30,28 39,33 30,38" fill="#FFB800" />
-          <circle cx="50" cy="24" r="2.5" fill="#FFB800" />
+          <polygon points="30,28 39,33 30,38" fill="#F5C451" />
+          <circle cx="50" cy="24" r="2.5" fill="#F5C451" />
         </svg>
       </div>
 

@@ -3,6 +3,7 @@
 import React, { Suspense, useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Film,
   Clock,
@@ -348,19 +349,23 @@ function WatchExperience() {
     const isUrgent = secondsRemaining <= 60;
 
     return (
-      <main className="min-h-screen bg-[#FFFDF7] text-[#111111] flex flex-col justify-between">
+      <main className="min-h-screen bg-brand-bg text-brand-text-primary flex flex-col justify-between">
         {/* Top Session Bar */}
-        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-[#E5E7EB] px-4 py-3">
+        <header className="sticky top-0 z-30 bg-brand-surface/95 backdrop-blur-md border-b border-brand-border px-4 py-3">
           <div className="max-w-2xl mx-auto flex items-center justify-between">
             <div className="flex items-center space-x-2.5">
-              <div className="w-8 h-8 rounded-lg bg-[#FFB800] flex items-center justify-center font-bold text-black text-sm">
-                PP
-              </div>
+              <Image
+                src="/brand-mark.svg"
+                alt="PottyPlay"
+                width={32}
+                height={32}
+                className="w-8 h-8 rounded-lg shadow-sm"
+              />
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-[#6B7280]">
+                <p className="text-xs font-semibold uppercase tracking-wider text-brand-text-secondary">
                   Companion Stream
                 </p>
-                <p className="text-sm font-bold text-[#111111] leading-tight">
+                <p className="text-sm font-bold text-brand-text-primary leading-tight">
                   Seat {activeSession.seatNumber} &middot; {activeSession.screening.screenName}
                 </p>
               </div>
@@ -370,10 +375,10 @@ function WatchExperience() {
             <div
               className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
                 isUrgent
-                  ? "bg-[#DC2626]/10 text-[#DC2626] border border-[#DC2626]/30 animate-pulse"
+                  ? "bg-red-500/10 text-red-500 border border-red-500/30 animate-pulse"
                   : isWarning
-                  ? "bg-[#D97706]/10 text-[#D97706] border border-[#D97706]/30"
-                  : "bg-[#16A34A]/10 text-[#16A34A] border border-[#16A34A]/20"
+                  ? "bg-amber-500/10 text-amber-500 border border-amber-500/30"
+                  : "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
               }`}
             >
               <Clock className="w-3.5 h-3.5" />
@@ -386,7 +391,7 @@ function WatchExperience() {
 
         {/* Video Player & Synchronized Film Canvas */}
         <section className="flex-1 max-w-2xl w-full mx-auto p-4 flex flex-col justify-center space-y-4">
-          <div className="rounded-2xl overflow-hidden shadow-lg border border-[#E5E7EB]">
+          <div className="rounded-2xl overflow-hidden shadow-lg border border-brand-border">
             <CinemaCanvasPlayer
               positionSeconds={activeSession.screening.playbackPositionSeconds}
               durationSeconds={activeSession.screening.durationSeconds}
@@ -398,25 +403,25 @@ function WatchExperience() {
           </div>
 
           {/* Sync & Theater Advisory Card */}
-          <div className="bg-white rounded-xl p-4 border border-[#E5E7EB] shadow-sm flex items-start justify-between space-x-3">
+          <div className="bg-brand-surface rounded-xl p-4 border border-brand-border shadow-sm flex items-start justify-between space-x-3">
             <div className="space-y-1">
               <div className="flex items-center space-x-2">
-                <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-ping" />
-                <p className="text-xs font-bold uppercase tracking-wider text-[#16A34A]">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                <p className="text-xs font-bold uppercase tracking-wider text-emerald-600">
                   Frame-Synchronized with Auditorium
                 </p>
               </div>
-              <h2 className="text-sm font-bold text-[#111111]">
+              <h2 className="text-sm font-bold text-brand-text-primary">
                 {activeSession.screening.title}
               </h2>
-              <p className="text-xs text-[#6B7280]">
+              <p className="text-xs text-brand-text-secondary">
                 {activeSession.screening.cinemaName} &middot; Maximum break limit: 15 minutes
               </p>
             </div>
             <button
               onClick={() => syncExistingSession(activeSession.sessionToken)}
               disabled={isSyncing}
-              className="p-2 rounded-lg border border-[#E5E7EB] hover:bg-[#FFFDF7] text-[#6B7280] transition-colors"
+              className="p-2 rounded-lg border border-brand-border hover:bg-brand-bg text-brand-text-secondary transition-colors"
               title="Force timeline resync"
             >
               <RefreshCw className={`w-4 h-4 ${isSyncing ? "animate-spin" : ""}`} />
@@ -424,10 +429,10 @@ function WatchExperience() {
           </div>
 
           {/* Re-entry Guidance */}
-          <div className="bg-[#FFFDF7] border border-[#FFB800]/40 rounded-xl p-3.5 flex items-center justify-between text-xs">
+          <div className="bg-brand-bg border border-brand-primary/40 rounded-xl p-3.5 flex items-center justify-between text-xs">
             <div className="flex items-center space-x-2.5">
-              <ShieldCheck className="w-4 h-4 text-[#D97706] flex-shrink-0" />
-              <p className="text-[#111111] leading-tight">
+              <ShieldCheck className="w-4 h-4 text-brand-secondary flex-shrink-0" />
+              <p className="text-brand-text-primary leading-tight">
                 Return to <strong>Seat {activeSession.seatNumber}</strong> when ready. Playback stays in sync.
               </p>
             </div>
@@ -454,23 +459,23 @@ function WatchExperience() {
   // ==========================================
   if (sessionExpiredReason) {
     return (
-      <main className="min-h-screen bg-[#FFFDF7] text-[#111111] flex flex-col justify-center items-center p-4">
-        <div className="max-w-md w-full bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm text-center space-y-4">
-          <div className="w-12 h-12 rounded-full bg-[#FFB800]/20 text-[#D97706] flex items-center justify-center mx-auto">
+      <main className="min-h-screen bg-brand-bg text-brand-text-primary flex flex-col justify-center items-center p-4">
+        <div className="max-w-md w-full bg-brand-surface rounded-2xl border border-brand-border p-6 shadow-sm text-center space-y-4">
+          <div className="w-12 h-12 rounded-full bg-brand-primary/20 text-brand-primary flex items-center justify-center mx-auto">
             <Clock className="w-6 h-6" />
           </div>
 
           <div className="space-y-1.5">
-            <h1 className="text-xl font-bold text-[#111111]">
+            <h1 className="text-xl font-bold text-brand-text-primary">
               Viewing Break Concluded
             </h1>
-            <p className="text-sm text-[#6B7280]">
+            <p className="text-sm text-brand-text-secondary">
               {sessionExpiredReason}
             </p>
           </div>
 
-          <div className="p-3 bg-[#FFFDF7] border border-[#E5E7EB] rounded-xl text-xs text-[#6B7280] text-left space-y-1">
-            <p className="font-semibold text-[#111111]">Auditorium Re-entry</p>
+          <div className="p-3 bg-brand-bg border border-brand-border rounded-xl text-xs text-brand-text-secondary text-left space-y-1">
+            <p className="font-semibold text-brand-text-primary">Auditorium Re-entry</p>
             <p>
               Please return to your assigned auditorium seat to continue enjoying the theatrical screening.
             </p>
@@ -482,7 +487,7 @@ function WatchExperience() {
               setVerifiedTicket(null);
               setTicketInput("");
             }}
-            className="w-full py-2.5 px-4 rounded-xl bg-[#171717] text-white font-semibold text-sm hover:bg-black transition-colors"
+            className="w-full py-2.5 px-4 rounded-xl bg-brand-accent text-brand-bg font-semibold text-sm hover:opacity-90 transition-opacity"
           >
             Start New Break Session
           </button>
@@ -495,19 +500,23 @@ function WatchExperience() {
   // VIEW 3: ONBOARDING & TICKET VERIFICATION
   // ==========================================
   return (
-    <main className="min-h-screen bg-[#FFFDF7] text-[#111111] flex flex-col justify-between">
+    <main className="min-h-screen bg-brand-bg text-brand-text-primary flex flex-col justify-between">
       {/* Header */}
-      <header className="border-b border-[#E5E7EB] bg-white/95 px-4 py-3 sticky top-0 z-20">
+      <header className="border-b border-brand-border bg-brand-surface/95 px-4 py-3 sticky top-0 z-20">
         <div className="max-w-md mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center space-x-2">
-            <div className="w-7 h-7 rounded-lg bg-[#FFB800] flex items-center justify-center font-bold text-black text-xs">
-              PP
-            </div>
-            <span className="font-bold text-base tracking-tight text-[#111111]">
+            <Image
+              src="/brand-mark.svg"
+              alt="PottyPlay"
+              width={28}
+              height={28}
+              className="rounded-lg shadow-sm"
+            />
+            <span className="font-bold text-base tracking-tight text-brand-text-primary">
               PottyPlay
             </span>
           </Link>
-          <span className="text-xs font-medium text-[#6B7280] bg-[#FFFDF7] px-2.5 py-1 rounded-full border border-[#E5E7EB]">
+          <span className="text-xs font-medium text-brand-text-secondary bg-brand-bg px-2.5 py-1 rounded-full border border-brand-border">
             Patron Companion
           </span>
         </div>
@@ -516,10 +525,10 @@ function WatchExperience() {
       {/* Main Container */}
       <section className="flex-1 max-w-md w-full mx-auto p-4 flex flex-col justify-center space-y-5">
         <div className="space-y-1 text-center">
-          <h1 className="text-2xl font-bold tracking-tight text-[#111111]">
+          <h1 className="text-2xl font-bold tracking-tight text-brand-text-primary">
             Cinema Companion Break
           </h1>
-          <p className="text-xs text-[#6B7280]">
+          <p className="text-xs text-brand-text-secondary">
             Continue watching your screening during a short personal break without losing your place.
           </p>
         </div>
@@ -546,14 +555,14 @@ function WatchExperience() {
                 <input
                   id="ticketCode"
                   type="text"
-                  placeholder="e.g. CC-MLM-7821-A12 or CLM-..."
+                  placeholder="e.g. TK-8821-A12 or CLM-..."
                   value={ticketInput}
                   onChange={(e) => setTicketInput(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E5E7EB] text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-[#FFB800] focus:border-transparent bg-white"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent bg-brand-surface text-brand-text-primary"
                 />
-                <Ticket className="w-4 h-4 absolute right-3.5 top-3 text-[#6B7280]" />
+                <Ticket className="w-4 h-4 absolute right-3.5 top-3 text-brand-text-secondary" />
               </div>
-              <p className="text-[11px] text-[#6B7280]">
+              <p className="text-[11px] text-brand-text-secondary">
                 Located on your printed cinema ticket, digital pass, or seat QR code.
               </p>
             </div>
@@ -561,7 +570,7 @@ function WatchExperience() {
             <button
               onClick={() => verifyEntitlement()}
               disabled={loading || !ticketInput.trim()}
-              className="w-full py-2.5 px-4 rounded-xl bg-[#FFB800] hover:bg-[#F59E0B] text-[#111111] font-bold text-sm transition-colors flex items-center justify-center space-x-1.5 disabled:opacity-50"
+              className="w-full py-2.5 px-4 rounded-xl bg-brand-primary hover:bg-brand-secondary text-white font-bold text-sm transition-colors flex items-center justify-center space-x-1.5 disabled:opacity-50 shadow-subtle"
             >
               {loading ? (
                 <RefreshCw className="w-4 h-4 animate-spin" />
@@ -577,26 +586,26 @@ function WatchExperience() {
 
         {/* STEP 2: Entitlement Confirmed & Ready to Activate */}
         {verifiedTicket && (
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
+          <div className="bg-brand-surface rounded-2xl border border-brand-border p-5 shadow-sm space-y-4">
             {/* Ticket Summary Card */}
-            <div className="bg-[#FFFDF7] border border-[#FFB800]/40 rounded-xl p-3.5 space-y-2">
+            <div className="bg-brand-bg border border-brand-primary/40 rounded-xl p-3.5 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-[#16A34A] bg-[#16A34A]/10 px-2 py-0.5 rounded-full">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full">
                   Entitlement Verified
                 </span>
-                <span className="text-xs font-mono font-bold text-[#111111]">
+                <span className="text-xs font-mono font-bold text-brand-text-primary">
                   Seat {verifiedTicket.seatNumber}
                 </span>
               </div>
               <div>
-                <h3 className="text-sm font-bold text-[#111111]">
+                <h3 className="text-sm font-bold text-brand-text-primary">
                   {verifiedTicket.screening.title}
                 </h3>
-                <p className="text-xs text-[#6B7280]">
+                <p className="text-xs text-brand-text-secondary">
                   {verifiedTicket.screening.cinemaName} &middot; {verifiedTicket.screening.screenName}
                 </p>
               </div>
-              <div className="pt-1 border-t border-[#E5E7EB]/80 flex items-center justify-between text-[11px] text-[#6B7280]">
+              <div className="pt-1 border-t border-brand-border flex items-center justify-between text-[11px] text-brand-text-secondary">
                 <span>Patron: {verifiedTicket.customerName}</span>
                 <span>Max: {Math.round(verifiedTicket.rights.maxSessionDurationSeconds / 60)} min</span>
               </div>
@@ -772,7 +781,7 @@ function WatchExperience() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[#E5E7EB] bg-white py-3 px-4 text-center text-[11px] text-[#6B7280]">
+      <footer className="border-t border-brand-border bg-brand-surface py-3 px-4 text-center text-[11px] text-brand-text-secondary">
         PottyPlay Cinema Companion &middot; Authorized Patrons Only
       </footer>
     </main>
@@ -783,7 +792,7 @@ export default function WatchPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#FFFDF7] flex items-center justify-center text-xs text-[#6B7280]">
+        <div className="min-h-screen bg-brand-bg flex items-center justify-center text-xs text-brand-text-secondary">
           Loading companion stream...
         </div>
       }
