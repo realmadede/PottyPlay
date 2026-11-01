@@ -452,9 +452,8 @@ export function DynamicGlassSurface({
       {/* Real-time WebGL Refraction, Fresnel, and Rim Shader Canvas */}
       <canvas
         ref={canvasRef}
-        hidden
         aria-hidden="true"
-        className="!block absolute inset-0 w-full h-full pointer-events-none -z-10 !m-0"
+        className="block absolute inset-0 w-full h-full pointer-events-none -z-10 m-0"
         style={{
           borderRadius: `${borderRadius}px`,
         }}

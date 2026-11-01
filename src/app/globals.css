@@ -135,12 +135,14 @@ button:active:not(:disabled) {
 .glass-ios26 {
   position: relative;
   isolation: isolate;
-  background: radial-gradient(
-    130% 120% at 50% 10%,
-    rgba(255, 255, 255, 0.14) 0%,
-    rgba(255, 255, 255, 0.04) 45%,
-    rgba(14, 18, 24, 0.76) 100%
-  );
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 65%),
+    radial-gradient(
+      130% 120% at 50% 10%,
+      rgba(255, 255, 255, 0.14) 0%,
+      rgba(255, 255, 255, 0.04) 45%,
+      rgba(14, 18, 24, 0.76) 100%
+    );
   backdrop-filter: blur(28px) saturate(210%) contrast(108%);
   -webkit-backdrop-filter: blur(28px) saturate(210%) contrast(108%);
   box-shadow:
@@ -151,20 +153,6 @@ button:active:not(:disabled) {
     0 20px 45px -12px rgba(0, 0, 0, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.18);
   overflow: hidden;
-}
-
-/* Optical edge compression & center magnification simulation */
-.glass-ios26::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  z-index: 1;
-  background:
-    radial-gradient(ellipse at 50% 50%, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 65%),
-    radial-gradient(ellipse at 50% 50%, transparent 68%, rgba(255, 255, 255, 0.08) 94%, rgba(255, 255, 255, 0.24) 100%);
-  mix-blend-mode: overlay;
 }
 
 /* Thin Luminous Specular Caustic Rim */

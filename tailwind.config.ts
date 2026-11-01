@@ -11,7 +11,13 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      screens: {
+        xs: "480px",
+      },
       colors: {
+        line: "var(--line)",
+        "line-strong": "var(--line-strong)",
+        "line-amber": "var(--line-amber)",
         bg: v("bg"),
         ink: v("ink"),
         muted: v("muted"),
@@ -90,9 +96,13 @@ const config: Config = {
           "monospace",
         ],
       },
+      transitionDuration: {
+        "600": "600ms",
+      },
       transitionTimingFunction: {
         awna: "cubic-bezier(0.2, 0.8, 0.2, 1)",
         "apple-ease": "cubic-bezier(0.23, 1, 0.32, 1)",
+        glide: "cubic-bezier(0.16, 1, 0.3, 1)",
       },
       boxShadow: {
         subtle: "0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2)",

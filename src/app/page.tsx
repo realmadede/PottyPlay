@@ -155,7 +155,7 @@ export default function BusinessLandingPage() {
 
           <div className="mt-12 sm:mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 relative">
             {/* Step 1 */}
-            <GlassSurface variant="panel" className="p-6 border border-line shadow-card flex flex-col justify-between text-left relative group hover:border-amber-500/30 transition-all">
+            <div className="p-6 rounded-2xl bg-field border border-line shadow-card flex flex-col justify-between text-left relative group hover:border-amber-500/30 transition-all">
               <div>
                 <div className="flex items-center justify-between pb-3 border-b border-line">
                   <span className="text-xs font-mono font-bold text-amber-400">STEP 01</span>
@@ -171,10 +171,10 @@ export default function BusinessLandingPage() {
               <div className="mt-6 pt-3 border-t border-line text-[11px] text-muted font-mono">
                 POS Webhook Sync
               </div>
-            </GlassSurface>
+            </div>
 
             {/* Step 2 */}
-            <GlassSurface variant="panel" className="p-6 border border-line shadow-card flex flex-col justify-between text-left relative group hover:border-amber-500/30 transition-all">
+            <div className="p-6 rounded-2xl bg-field border border-line shadow-card flex flex-col justify-between text-left relative group hover:border-amber-500/30 transition-all">
               <div>
                 <div className="flex items-center justify-between pb-3 border-b border-line">
                   <span className="text-xs font-mono font-bold text-amber-400">STEP 02</span>
@@ -190,10 +190,10 @@ export default function BusinessLandingPage() {
               <div className="mt-6 pt-3 border-t border-line text-[11px] text-muted font-mono">
                 One-Tap Activation
               </div>
-            </GlassSurface>
+            </div>
 
             {/* Step 3 */}
-            <GlassSurface variant="panel" className="p-6 border border-line shadow-card flex flex-col justify-between text-left relative group hover:border-amber-500/30 transition-all">
+            <div className="p-6 rounded-2xl bg-field border border-line shadow-card flex flex-col justify-between text-left relative group hover:border-amber-500/30 transition-all">
               <div>
                 <div className="flex items-center justify-between pb-3 border-b border-line">
                   <span className="text-xs font-mono font-bold text-amber-400">STEP 03</span>
@@ -209,10 +209,10 @@ export default function BusinessLandingPage() {
               <div className="mt-6 pt-3 border-t border-line text-[11px] text-muted font-mono">
                 Live Projection Lock
               </div>
-            </GlassSurface>
+            </div>
 
             {/* Step 4 */}
-            <GlassSurface variant="panel" className="p-6 border border-line shadow-card flex flex-col justify-between text-left relative group hover:border-amber-500/30 transition-all">
+            <div className="p-6 rounded-2xl bg-field border border-line shadow-card flex flex-col justify-between text-left relative group hover:border-amber-500/30 transition-all">
               <div>
                 <div className="flex items-center justify-between pb-3 border-b border-line">
                   <span className="text-xs font-mono font-bold text-amber-400">STEP 04</span>
@@ -228,7 +228,7 @@ export default function BusinessLandingPage() {
               <div className="mt-6 pt-3 border-t border-line text-[11px] text-muted font-mono">
                 15m Server Revocation
               </div>
-            </GlassSurface>
+            </div>
           </div>
         </section>
 
@@ -674,7 +674,7 @@ export default function BusinessLandingPage() {
                 </div>
               </div>
 
-              <GlassSurface variant="dock" className="lg:col-span-6 bg-[#040507] border border-neutral-800 overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
+              <div className="lg:col-span-6 rounded-3xl bg-[#040507] border border-neutral-800 overflow-hidden shadow-elevated">
                 <div className="bg-neutral-900/90 border-b border-neutral-800 px-4 py-2.5 flex items-center justify-between text-[11px] font-mono text-neutral-400">
                   <div className="flex items-center space-x-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-red-500/80 inline-block" />
@@ -700,7 +700,7 @@ X-PottyPlay-Signature: sha256=...
   "maxSessionSeconds": 900
 }`}</pre>
                 </div>
-              </GlassSurface>
+              </div>
             </div>
           </div>
         </section>

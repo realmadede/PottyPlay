@@ -56,27 +56,27 @@ export function HeroCarousel() {
           />
 
           {/* Handheld Device Container */}
-          <div className="relative rounded-[32px] glass-ios26 glass-ios26-rim glass-ios26-glint text-white p-5 sm:p-6 shadow-elevated">
+          <div className="relative rounded-[32px] glass-ios26 glass-ios26-rim glass-ios26-glint text-ink p-5 sm:p-6 shadow-elevated">
             {/* Device Top Bar */}
-            <div className="flex items-center justify-between pb-3.5 border-b border-neutral-800 text-xs">
+            <div className="flex items-center justify-between pb-3.5 border-b border-line text-xs">
               <div className="flex items-center space-x-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="font-semibold text-neutral-200 tracking-wide text-[11px] sm:text-xs">
+                <span className="font-semibold text-ink tracking-wide text-[11px] sm:text-xs">
                   AUDITORIUM 01: ATMOS
                 </span>
               </div>
-              <span className="px-2 py-0.5 rounded bg-neutral-900 text-amber-400 font-mono text-[10px] sm:text-[11px] font-bold border border-amber-500/30">
+              <span className="px-2 py-0.5 rounded bg-field-raised text-amber-400 font-mono text-[10px] sm:text-[11px] font-bold border border-amber-500/30">
                 SEAT --
               </span>
             </div>
 
             {/* Authoritative Screen Canvas Frame */}
-            <div className="mt-4 relative rounded-2xl bg-neutral-900/90 border border-neutral-800 overflow-hidden p-4 flex flex-col justify-between aspect-video">
+            <div className="mt-4 relative rounded-2xl bg-field-raised border border-line overflow-hidden p-4 flex flex-col justify-between aspect-video">
               <div className="flex items-center justify-between text-[10px] sm:text-[11px]">
-                <span className="font-bold tracking-wider text-neutral-300">
+                <span className="font-bold tracking-wider text-ink">
                   FEATURE SCREENING
                 </span>
-                <span className="font-mono text-emerald-400 font-semibold bg-emerald-950/70 px-2 py-0.5 rounded border border-emerald-800/40">
+                <span className="font-mono text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
                   SYNCED 0.0s
                 </span>
               </div>
@@ -86,16 +86,16 @@ export function HeroCarousel() {
                 <div className="inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 mb-1.5 shadow-sm">
                   <Film className="w-5 h-5" />
                 </div>
-                <div className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">
+                <div className="text-[10px] uppercase tracking-wider text-muted font-medium">
                   Authoritative Clock
                 </div>
-                <div className="font-mono text-xl sm:text-2xl font-black text-white tracking-widest tabular-nums">
+                <div className="font-mono text-xl sm:text-2xl font-black text-ink tracking-widest tabular-nums">
                   00:42:15.08
                 </div>
               </div>
 
               {/* Live Audio / Video Telemetry */}
-              <div className="flex items-center justify-between text-[10px] text-neutral-400 pt-2 border-t border-neutral-800/80">
+              <div className="flex items-center justify-between text-[10px] text-muted pt-2 border-t border-line">
                 <span>PCM Stereo &bull; Low-Latency HLS</span>
                 <div className="flex items-center space-x-1">
                   <span className="w-1 h-2 bg-emerald-400 rounded-full animate-pulse" />
@@ -107,10 +107,10 @@ export function HeroCarousel() {
             </div>
 
             {/* Countdown & Allowance Footer */}
-            <div className="mt-3.5 pt-3.5 border-t border-neutral-800 flex items-center justify-between text-xs">
+            <div className="mt-3.5 pt-3.5 border-t border-line flex items-center justify-between text-xs">
               <div className="flex items-center space-x-2">
                 <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                <span className="text-neutral-300 text-[11px] sm:text-xs">
+                <span className="text-muted text-[11px] sm:text-xs">
                   Break 1 of 2 Allowed
                 </span>
               </div>
@@ -211,48 +211,48 @@ export function HeroCarousel() {
             aria-hidden="true"
           />
 
-          <div className="relative rounded-[32px] glass-ios26 glass-ios26-rim glass-ios26-glint text-white p-5 sm:p-6 shadow-elevated">
+          <div className="relative rounded-[32px] glass-ios26 glass-ios26-rim glass-ios26-glint text-ink p-5 sm:p-6 shadow-elevated">
             {/* Security Header */}
-            <div className="flex items-center justify-between pb-3.5 border-b border-neutral-800 text-xs">
+            <div className="flex items-center justify-between pb-3.5 border-b border-line text-xs">
               <div className="flex items-center space-x-2">
                 <Lock className="w-4 h-4 text-amber-400" />
-                <span className="font-bold text-neutral-200 text-[11px] sm:text-xs">
+                <span className="font-bold text-ink text-[11px] sm:text-xs">
                   Studio Rights Vault
                 </span>
               </div>
-              <span className="font-mono text-[10px] sm:text-[11px] text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/40">
+              <span className="font-mono text-[10px] sm:text-[11px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
                 RIGHTS VALIDATED
               </span>
             </div>
 
             {/* Architectural Security Matrix */}
             <div className="mt-4 space-y-2.5">
-              <div className="p-3 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-between">
+              <div className="p-3 rounded-xl bg-field-raised border border-line flex items-center justify-between">
                 <div>
-                  <div className="text-xs font-bold text-white">900-Second Hard Limit</div>
-                  <div className="text-[11px] text-neutral-400">Server auto-revocation at limit</div>
+                  <div className="text-xs font-bold text-ink">900-Second Hard Limit</div>
+                  <div className="text-[11px] text-muted">Server auto-revocation at limit</div>
                 </div>
                 <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
               </div>
 
-              <div className="p-3 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-between">
+              <div className="p-3 rounded-xl bg-field-raised border border-line flex items-center justify-between">
                 <div>
-                  <div className="text-xs font-bold text-white">2 Breaks Per Ticket</div>
-                  <div className="text-[11px] text-neutral-400">Strict atomic database constraints</div>
+                  <div className="text-xs font-bold text-ink">2 Breaks Per Ticket</div>
+                  <div className="text-[11px] text-muted">Strict atomic database constraints</div>
                 </div>
                 <Ticket className="w-4 h-4 text-amber-400 flex-shrink-0" />
               </div>
 
-              <div className="p-3 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-between">
+              <div className="p-3 rounded-xl bg-field-raised border border-line flex items-center justify-between">
                 <div>
-                  <div className="text-xs font-bold text-white">No Public Catalog</div>
-                  <div className="text-[11px] text-neutral-400">Tethered exclusively to live showtime</div>
+                  <div className="text-xs font-bold text-ink">No Public Catalog</div>
+                  <div className="text-[11px] text-muted">Tethered exclusively to live showtime</div>
                 </div>
                 <ShieldCheck className="w-4 h-4 text-emerald-400 flex-shrink-0" />
               </div>
             </div>
 
-            <div className="mt-3.5 pt-3.5 border-t border-neutral-800 flex items-center justify-between text-[11px] text-neutral-400">
+            <div className="mt-3.5 pt-3.5 border-t border-line flex items-center justify-between text-[11px] text-muted">
               <span>Tokenized Ticket Claim:</span>
               <span className="font-mono text-amber-400 font-bold">CLM-7821-SECURE</span>
             </div>
@@ -380,7 +380,7 @@ export function HeroCarousel() {
         {/* Left Column: Expressive Copy & Action with Stable Layout */}
         <div className="lg:col-span-6 flex flex-col text-left">
           {/* Stable Text Container to Eliminate Vertical Layout Shifts */}
-          <div className="relative w-full min-h-[220px] sm:min-h-[210px] lg:min-h-[240px] overflow-hidden">
+          <div className="relative w-full min-h-[240px] sm:min-h-[210px] lg:min-h-[240px]">
             {slides.map((s, idx) => {
               const isActive = currentSlide === idx;
               return (
@@ -403,7 +403,7 @@ export function HeroCarousel() {
                     {s.headlinePrefix}{" "}
                     <span className="relative inline-block text-amber-400 whitespace-nowrap">
                       <span>{s.headlineHighlight}</span>
-                      <span className="absolute left-0 -bottom-1 w-full h-[3px] rounded-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.9)]" />
+                      <span className="absolute left-0 -bottom-1 w-full h-[3px] rounded-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-300 shadow-[0_0_12px_#F59E0BE6]" />
                     </span>
                   </h1>
 
@@ -417,7 +417,7 @@ export function HeroCarousel() {
           </div>
 
           {/* Stable CTAs - Compact, proportionate sizing */}
-          <div className="relative mt-6 sm:mt-7 min-h-[44px] overflow-hidden">
+          <div className="relative mt-6 sm:mt-7 min-h-[44px]">
             {slides.map((s, idx) => {
               const isActive = currentSlide === idx;
               return (
@@ -449,7 +449,7 @@ export function HeroCarousel() {
           </div>
 
           {/* Modern Minimalist Carousel Controls: Pause, Prev, Next */}
-          <div className="mt-8 pt-5 border-t border-line/60 flex items-center justify-between gap-4">
+          <div className="mt-8 pt-5 border-t border-line flex items-center justify-between gap-4">
             {/* Slide Index & Context Capsule */}
             <div className="inline-flex items-center space-x-2.5 px-3.5 py-1.5 rounded-full glass-ios26 glass-ios26-rim glass-ios26-glint text-xs shadow-sm">
               <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse flex-shrink-0" />
@@ -517,7 +517,7 @@ export function HeroCarousel() {
               return (
                 <div
                   key={s.id}
-                  className={`absolute inset-0 flex items-center justify-center transition-all duration-600 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                  className={`absolute inset-0 flex items-center justify-center transition-all duration-600 ease-glide ${
                     isActive
                       ? "opacity-100 translate-x-0 scale-100 pointer-events-auto z-10"
                       : idx < currentSlide
