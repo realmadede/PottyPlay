@@ -2,7 +2,7 @@
 
 PottyPlay is an enterprise cinema companion-viewing technology platform designed for theatrical exhibitors, cinema circuits, and film festival organizers.
 
-The platform enables authenticated cinema patrons to temporarily follow an ongoing theatrical screening on their personal mobile devices during a brief intermission (restroom break, concession run) without losing their place in the film. It strictly enforces a maximum session duration of 15 minutes (900 seconds), a limit of two breaks per ticket, server-authoritative projection synchronization, carrier-grade Africa's Talking SMS verification, studio anti-piracy screen capture restrictions, in-auditorium local edge streaming, and idempotent usage billing.
+The platform enables authenticated cinema patrons to temporarily follow an ongoing theatrical screening on their personal mobile devices during a brief intermission (restroom break, concession run) without losing their place in the film. It strictly enforces a maximum session duration of 15 minutes (900 seconds), a limit of two breaks per ticket, server-authoritative projection synchronization, carrier-grade Africa's Talking SMS verification, studio anti-piracy screen capture restrictions, in-auditorium local edge streaming, native mobile hardware perimeter protection, and idempotent usage billing.
 
 ---
 
@@ -19,15 +19,21 @@ The platform enables authenticated cinema patrons to temporarily follow an ongoi
 - **Dynamic Optical Glass Shader Engine:** Real-time WebGL GLSL fragment shader rendering signed-distance-field (SDF) rounded convex lenses, tri-channel chromatic dispersion (nR, nG, nB), Schlick's Fresnel reflectivity, thin-film spectral iridescence coating, and device gyroscope tilt parallax across all header docks and surface cards.
 - **Bot Defense & Origin Logging:** Automated scrapers are trapped by hidden form honeypot fields (`website_url_hp`); inquiring circuits have IP addresses and HTTP User-Agent signatures recorded for fraud auditing.
 
-### 1.2 Customer Application (`/app`)
-- Single shared React/TypeScript codebase supporting native iOS and Android publication via Capacitor 8.
-- **True Native Mobile Experience:**
-  - **Pan-to-Dismiss Gestures:** Modal sheets (`ReportIssueModal`, `CustomerAuthModal`) support touch-drag gestures with rubber-banding physics and haptic trigger cues.
+### 1.2 Customer Application (Native Mobile Shell)
+- Shared React/TypeScript codebase compiled directly into native iOS and Android packages via Capacitor 8.
+- **Strict Native Perimeter Gating:**
+  - Standard web browsers requesting `/app` receive an immediate `404 Not Found` response via middleware.
+  - The patron application, authentication screens, and all 5 companion tabs are accessible exclusively through the native mobile emulator or physical device container.
+- **True Native Mobile Hardware Architecture:**
+  - **Native Secure Storage (`@capacitor/preferences`):** Session bearer tokens, customer profiles, and onboarding state are stored in encrypted hardware keystores (Android `EncryptedSharedPreferences` and iOS Keychain) rather than volatile web `localStorage`.
+  - **Native OS Break Alarms (`@capacitor/local-notifications`):** Schedules system-level alerts for the 12-minute warning (180s left) and 14-minute final advisory (60s left). These alerts sound and vibrate even when the device screen is off, the phone is in a pocket, or the app is backgrounded.
+  - **Hardware Haptics Engine (`@capacitor/haptics`):** Taptic Engine and linear resonant vibrator motor patterns for tab switches, modal swipe triggers, and urgent countdown alerts.
+  - **Real-Time Network Monitoring (`@capacitor/network`):** Monitors network interface transitions (Wi-Fi vs Cellular) to instantly switch between in-auditorium LAN edge servers and cloud WAN fallbacks.
+  - **Hardware Back Button Interception (`@capacitor/app`):** Dismisses open modal dialogs (`CustomerAuthModal`, `ReportIssueModal`) or returns the user to the primary "Bathroom" tab before allowing operating system app minimization.
   - **Screen Wake-Lock Management:** Native screen wake-lock prevents display dimming and screen sleep during active bathroom playback.
-  - **Timed Break Vibration Chimes:** Haptic vibrations at 12 minutes (warning) and 14 minutes (final advisory) alert patrons as the 15-minute intermission limit approaches.
-  - **Offline-First Resilience:** Instant profile hydration from local encrypted storage, paired with an offline status indicator and cached session restore.
+  - **Pan-to-Dismiss Gestures:** Modal sheets support touch-drag gestures with rubber-banding physics and haptic trigger cues.
+  - **Studio-Grade Screen Security:** Integrates `@capacitor-community/privacy-screen` enforcing OS-level `FLAG_SECURE` on Android (rendering screenshots and screen recordings completely black) and privacy snapshot blanking on iOS when the App Switcher is engaged.
   - **Responsive Scaling:** Dynamic safe-area padding (`pt-safe`, `pb-safe`, `bottom-safe-dock`) engineered for narrow mobile screens (<360px), flagship phones, and iPad tablets.
-- **Studio-Grade Screen Security:** Integrates `@capacitor-community/privacy-screen` to enforce OS-level `FLAG_SECURE` on Android (rendering screenshots and screen recordings completely black) and privacy snapshot blanking on iOS when the App Switcher is engaged.
 - **Universal Optical Glass Styling:** Full platform integration of the Dynamic Optical Glass Shader Engine with spectral rainbow iridescence, caustic edge rims, and pointer-tracked glint sweeps.
 - **Mandatory Customer Registration & Authentication:**
   - Streamlined registration form requiring Full Name, Phone Number (+255 E.164), Email, and Password (hashed with Argon2id).
@@ -137,7 +143,13 @@ Africa's Talking SMS infrastructure powers patron authentication and security fa
 - **Typography:** Familjen Grotesk
 - **Cryptography:** Argon2id (`@node-rs/argon2`) for credentials, SHA-256 for OTP hashes and signatures
 - **Optical Glass Engine:** Custom WebGL GLSL Shader Engine, SVG displacement filters, Schlick Fresnel reflectivity, and thin-film spectral iridescence
-- **Mobile Container:** Capacitor 8 (`@capacitor/core`, `@capacitor/android`, `@capacitor/ios`) with `@capacitor-community/privacy-screen`
+- **Native Mobile Container:** Capacitor 8 (`@capacitor/core`, `@capacitor/android`, `@capacitor/ios`)
+  - `@capacitor/preferences` (Hardware Keystore & Keychain storage)
+  - `@capacitor/haptics` (Taptic Engine tactile feedback)
+  - `@capacitor/local-notifications` (OS background alarm scheduling)
+  - `@capacitor/network` (Real-time network interface monitoring)
+  - `@capacitor/app` (Hardware back-button and lifecycle management)
+  - `@capacitor-community/privacy-screen` (OS screenshot & screen-recording DRM blocker)
 - **Database & Transactions:** PostgreSQL 16 with Prisma ORM
 - **In-Auditorium Edge Streaming:** NGINX micro-caching, HLS segment proxies, and TMS integration bridge
 - **Testing:** Vitest automated test suite (115 comprehensive unit, integration, and security tests)
@@ -202,12 +214,12 @@ Africa's Talking SMS infrastructure powers patron authentication and security fa
    ```
    Open `http://localhost:3000` in your browser.
 
-7. (Optional) Run Native Mobile Shell in Android/iOS Simulator:
+7. Run Patron App in Native Android Emulator or iOS Simulator:
    ```bash
-   # Sync web assets to Capacitor
-   npx cap sync
+   # Sync native assets and plugins
+   npm run cap:sync
    
-   # Open native project in Android Studio or Xcode
+   # Launch project in Android Studio or Xcode emulator
    npx cap open android
    npx cap open ios
    ```
