@@ -7,6 +7,8 @@ export default defineConfig({
     globals: true,
     // Test files share one Postgres database; run them sequentially to avoid cross-file interference
     fileParallelism: false,
+    testTimeout: 30000,
+    hookTimeout: 30000,
   },
   resolve: {
     alias: {

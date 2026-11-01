@@ -222,10 +222,11 @@ export class SessionService {
           throw new Error("Ticket status does not allow admission.");
         }
 
-        // Verify content rights within the transaction boundary
+        // Verify content rights within the transaction boundary (pass tx to reuse transaction connection)
         const rightsCheck = await RightsService.verifyScreeningRights(
           ticket.screeningId,
-          ticket.screening.cinemaId
+          ticket.screening.cinemaId,
+          tx
         );
 
         if (!rightsCheck.isAuthorized) {

@@ -6,9 +6,6 @@ on:
   pull_request:
     branches: [ main ]
 
-env:
-  ACTIONS_RUNNER_FORCE_NODE24: "true"
-
 jobs:
   code-assurance:
     name: Code Analysis and Assurance (CA)
@@ -66,7 +63,7 @@ jobs:
           --health-retries 5
 
     env:
-      DATABASE_URL: "postgresql://pottyplay:pottyplay_secret@localhost:5433/pottyplay?schema=public"
+      DATABASE_URL: "postgresql://pottyplay:pottyplay_secret@localhost:5433/pottyplay?schema=public&connection_limit=20"
       NEXT_PUBLIC_APP_URL: "http://localhost:3000"
       AT_SIMULATOR_MODE: "true"
       AT_API_KEY: ""

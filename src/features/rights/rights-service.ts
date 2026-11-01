@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { PrismaClient } from "@prisma/client";
 
 export interface RightsCheckResult {
   isAuthorized: boolean;
@@ -9,16 +10,21 @@ export interface RightsCheckResult {
   licenseSource?: string;
 }
 
+type PrismaTransactionClient = Parameters<Parameters<PrismaClient["$transaction"]>[0]>[0];
+
 export class RightsService {
   /**
    * Verifies that the screening's content asset has a valid, active authorization
    * for the specific cinema and current time window.
+   * Accepts an optional transaction client (tx) to prevent connection pool exhaustion.
    */
   static async verifyScreeningRights(
     screeningId: string,
-    cinemaId: string
+    cinemaId: string,
+    tx?: PrismaTransactionClient
   ): Promise<RightsCheckResult> {
-    const screening = await prisma.screening.findUnique({
+    const client = tx || prisma;
+    const screening = await client.screening.findUnique({
       where: { id: screeningId },
       include: {
         contentAsset: true,
@@ -43,7 +49,7 @@ export class RightsService {
 
     const now = new Date();
 
-    const authorization = await prisma.rightsAuthorization.findFirst({
+    const authorization = await client.rightsAuthorization.findFirst({
       where: {
         contentAssetId: screening.contentAssetId,
         cinemaId: cinemaId,

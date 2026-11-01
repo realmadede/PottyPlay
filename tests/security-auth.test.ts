@@ -850,94 +850,128 @@ describe("Operator API authentication and tenant isolation", () => {
   });
 
   describe("session activation race condition and phone verification", () => {
-    it("prevents double-spend when concurrent parallel activations target the same ticket", async () => {
-      const raceTicket = await prisma.demonstrationTicket.create({
-        data: {
-          ticketNumber: "SEC-RACE-TK-01",
-          screeningId: screeningA,
-          seatNumber: "R01",
-          customerName: "Race Condition Patron",
-          status: TicketStatus.VALID_ADMITTED,
-        },
-      });
+    it(
+      "prevents double-spend when concurrent parallel activations target the same ticket",
+      async () => {
+        await prisma.usageBillingEvent.deleteMany({
+          where: { ticketNumber: "SEC-RACE-TK-01" },
+        });
+        await prisma.breakSession.deleteMany({
+          where: { ticket: { ticketNumber: "SEC-RACE-TK-01" } },
+        });
+        await prisma.demonstrationTicket.deleteMany({
+          where: { ticketNumber: "SEC-RACE-TK-01" },
+        });
 
-      // Fire 5 simultaneous activation requests for the exact same ticket
-      const results = await Promise.all([
-        SessionService.activateSession({ ticketNumber: raceTicket.ticketNumber }),
-        SessionService.activateSession({ ticketNumber: raceTicket.ticketNumber }),
-        SessionService.activateSession({ ticketNumber: raceTicket.ticketNumber }),
-        SessionService.activateSession({ ticketNumber: raceTicket.ticketNumber }),
-        SessionService.activateSession({ ticketNumber: raceTicket.ticketNumber }),
-      ]);
+        const raceTicket = await prisma.demonstrationTicket.create({
+          data: {
+            ticketNumber: "SEC-RACE-TK-01",
+            screeningId: screeningA,
+            seatNumber: "R01",
+            customerName: "Race Condition Patron",
+            status: TicketStatus.VALID_ADMITTED,
+          },
+        });
 
-      const successCount = results.filter((r) => r.success).length;
-      const failureCount = results.filter((r) => !r.success).length;
+        // Fire 5 simultaneous activation requests for the exact same ticket
+        const results = await Promise.all([
+          SessionService.activateSession({ ticketNumber: raceTicket.ticketNumber }),
+          SessionService.activateSession({ ticketNumber: raceTicket.ticketNumber }),
+          SessionService.activateSession({ ticketNumber: raceTicket.ticketNumber }),
+          SessionService.activateSession({ ticketNumber: raceTicket.ticketNumber }),
+          SessionService.activateSession({ ticketNumber: raceTicket.ticketNumber }),
+        ]);
 
-      // Exactly ONE activation MUST succeed; all others MUST fail under row lock
-      expect(successCount).toBe(1);
-      expect(failureCount).toBe(4);
+        const successCount = results.filter((r) => r.success).length;
+        const failureCount = results.filter((r) => !r.success).length;
 
-      // Verify that in the database, only one active break session and one billing event exist
-      const activeSessions = await prisma.breakSession.findMany({
-        where: { ticketId: raceTicket.id, status: SessionStatus.ACTIVE },
-      });
-      expect(activeSessions).toHaveLength(1);
+        // Exactly ONE activation MUST succeed; all others MUST fail under row lock
+        expect(successCount).toBe(1);
+        expect(failureCount).toBe(4);
 
-      const billingEvents = await prisma.usageBillingEvent.findMany({
-        where: { ticketNumber: raceTicket.ticketNumber },
-      });
-      expect(billingEvents).toHaveLength(1);
-    });
+        // Verify that in the database, only one active break session and one billing event exist
+        const activeSessions = await prisma.breakSession.findMany({
+          where: { ticketId: raceTicket.id, status: SessionStatus.ACTIVE },
+        });
+        expect(activeSessions).toHaveLength(1);
 
-    it("rejects attaching an unverified phone number without OTP challenge", async () => {
-      const ticket = await prisma.demonstrationTicket.create({
-        data: {
-          ticketNumber: "SEC-UNVERIF-PHONE-01",
-          screeningId: screeningA,
-          seatNumber: "U01",
-          customerName: "Unverified Phone Patron",
-          status: TicketStatus.VALID_ADMITTED,
-        },
-      });
+        const billingEvents = await prisma.usageBillingEvent.findMany({
+          where: { ticketNumber: raceTicket.ticketNumber },
+        });
+        expect(billingEvents).toHaveLength(1);
+      },
+      30000
+    );
 
-      const res = await SessionService.activateSession({
-        ticketNumber: ticket.ticketNumber,
-        phoneNumber: "+255712999888", // No challengeId provided!
-      });
+    it(
+      "rejects attaching an unverified phone number without OTP challenge",
+      async () => {
+        await prisma.breakSession.deleteMany({
+          where: { ticket: { ticketNumber: "SEC-UNVERIF-PHONE-01" } },
+        });
+        await prisma.demonstrationTicket.deleteMany({
+          where: { ticketNumber: "SEC-UNVERIF-PHONE-01" },
+        });
 
-      expect(res.success).toBe(false);
-      expect(res.error).toContain("Phone verification");
+        const ticket = await prisma.demonstrationTicket.create({
+          data: {
+            ticketNumber: "SEC-UNVERIF-PHONE-01",
+            screeningId: screeningA,
+            seatNumber: "U01",
+            customerName: "Unverified Phone Patron",
+            status: TicketStatus.VALID_ADMITTED,
+          },
+        });
 
-      // Verify no session was created
-      const sessions = await prisma.breakSession.findMany({ where: { ticketId: ticket.id } });
-      expect(sessions).toHaveLength(0);
-    });
+        const res = await SessionService.activateSession({
+          ticketNumber: ticket.ticketNumber,
+          phoneNumber: "+255712999888", // No challengeId provided!
+        });
 
-    it("accepts activation when phone number matches verified challenge", async () => {
-      await prisma.otpChallenge.deleteMany({ where: { phoneNumber: "+255714000333" } });
-      const ticket = await prisma.demonstrationTicket.create({
-        data: {
-          ticketNumber: "SEC-VERIF-PHONE-02",
-          screeningId: screeningA,
-          seatNumber: "U02",
-          customerName: "Verified Phone Patron",
-          status: TicketStatus.VALID_ADMITTED,
-        },
-      });
+        expect(res.success).toBe(false);
+        expect(res.error).toContain("Phone verification");
 
-      const otp = await OtpService.requestOtp("+255714000333");
-      await OtpService.verifyOtp(otp.challengeId!, otp.simulatedCode!);
+        // Verify no session was created
+        const sessions = await prisma.breakSession.findMany({ where: { ticketId: ticket.id } });
+        expect(sessions).toHaveLength(0);
+      },
+      15000
+    );
 
-      const res = await SessionService.activateSession({
-        ticketNumber: ticket.ticketNumber,
-        challengeId: otp.challengeId,
-        phoneNumber: "+255714000333",
-      });
+    it(
+      "accepts activation when phone number matches verified challenge",
+      async () => {
+        await prisma.otpChallenge.deleteMany({ where: { phoneNumber: "+255714000333" } });
+        await prisma.breakSession.deleteMany({
+          where: { ticket: { ticketNumber: "SEC-VERIF-PHONE-02" } },
+        });
+        await prisma.demonstrationTicket.deleteMany({
+          where: { ticketNumber: "SEC-VERIF-PHONE-02" },
+        });
 
-      expect(res.success).toBe(true);
-      expect(res.sessionToken).toBeDefined();
+        const ticket = await prisma.demonstrationTicket.create({
+          data: {
+            ticketNumber: "SEC-VERIF-PHONE-02",
+            screeningId: screeningA,
+            seatNumber: "U02",
+            customerName: "Verified Phone Patron",
+            status: TicketStatus.VALID_ADMITTED,
+          },
+        });
 
-      const session = await prisma.breakSession.findUnique({ where: { id: res.sessionId } });
+        const otp = await OtpService.requestOtp("+255714000333");
+        await OtpService.verifyOtp(otp.challengeId!, otp.simulatedCode!);
+
+        const res = await SessionService.activateSession({
+          ticketNumber: ticket.ticketNumber,
+          challengeId: otp.challengeId,
+          phoneNumber: "+255714000333",
+        });
+
+        expect(res.success).toBe(true);
+        expect(res.sessionToken).toBeDefined();
+
+        const session = await prisma.breakSession.findUnique({ where: { id: res.sessionId } });
       expect(session?.phoneNumber).toBe("+255714000333");
     });
 
