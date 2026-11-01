@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Building2, MapPin, Film, Search, CheckCircle2, ChevronRight, AlertCircle } from "lucide-react";
+import { GlassSurface } from "@/components/GlassSurface";
 
 interface CinemaDiscoveryRecord {
   id: string;
@@ -95,7 +96,7 @@ export function DiscoveryView() {
 
       {/* Empty State */}
       {!loading && filtered.length === 0 && (
-        <div className="p-10 rounded-3xl bg-field border border-line text-center space-y-3">
+        <GlassSurface variant="dock" className="p-10 border border-line text-center space-y-3">
           <div className="w-12 h-12 rounded-2xl bg-field-raised text-muted flex items-center justify-center mx-auto">
             <Building2 className="w-6 h-6" />
           </div>
@@ -105,16 +106,17 @@ export function DiscoveryView() {
               ? "No participating cinemas match your search query."
               : "No cinema partners are currently approved in your territory. New theater partnerships will appear once verified."}
           </p>
-        </div>
+        </GlassSurface>
       )}
 
       {/* Cinemas List */}
       {!loading && filtered.length > 0 && (
         <div className="space-y-4">
           {filtered.map((cinema) => (
-            <div
+            <GlassSurface
               key={cinema.id}
-              className="p-5 sm:p-6 rounded-2xl bg-field border border-line shadow-card hover:border-amber-500/30 transition-all"
+              variant="panel"
+              className="p-5 sm:p-6 border border-line shadow-card hover:border-amber-500/30 transition-all"
             >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-line gap-2">
                 <div>
@@ -183,7 +185,7 @@ export function DiscoveryView() {
                   </span>
                 ))}
               </div>
-            </div>
+            </GlassSurface>
           ))}
         </div>
       )}

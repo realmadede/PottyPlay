@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { config } from "@/lib/config";
 import { verifyPassword } from "@/lib/crypto";
 import { createHmac, timingSafeEqual } from "crypto";
 
@@ -6,7 +7,6 @@ import { createHmac, timingSafeEqual } from "crypto";
 const loginAttempts = new Map<string, { count: number; lastAttempt: number }>();
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_MS = 15 * 60 * 1000; // 15 minutes
-const ADMIN_SECRET = process.env.ADMIN_SESSION_SECRET || "pottyplay_admin_supersecret_key_2026";
 const ADMIN_SESSION_DURATION_MS = 8 * 60 * 60 * 1000; // 8 hours
 
 export class AdminAuthService {
@@ -81,7 +81,7 @@ export class AdminAuthService {
 
     const timestamp = Date.now().toString();
     const payload = `${admin.id}.${timestamp}`;
-    const signature = createHmac("sha256", ADMIN_SECRET).update(payload).digest("hex");
+    const signature = createHmac("sha256", config.adminSessionSecret).update(payload).digest("hex");
     const token = `adm_${admin.id}.${timestamp}.${signature}`;
 
     await prisma.adminUser.update({
@@ -123,7 +123,7 @@ export class AdminAuthService {
     if (Date.now() - timestamp > ADMIN_SESSION_DURATION_MS) return false;
 
     const payload = `${adminId}.${timestampStr}`;
-    const expectedSig = createHmac("sha256", ADMIN_SECRET).update(payload).digest("hex");
+    const expectedSig = createHmac("sha256", config.adminSessionSecret).update(payload).digest("hex");
 
     if (candidateSig.length !== expectedSig.length) return false;
     try {

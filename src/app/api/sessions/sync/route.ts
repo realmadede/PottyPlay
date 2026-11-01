@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SessionService } from "@/features/sessions/session-service";
+import { extractClientIp } from "@/lib/edge-streaming";
 
 export async function GET(req: NextRequest) {
   try {
     const authHeader = req.headers.get("authorization");
     const customHeader = req.headers.get("x-session-token");
     const cookieToken = req.cookies.get("pottyplay_token")?.value;
-    const searchToken = req.nextUrl.searchParams.get("token");
 
-    let token = customHeader || cookieToken || searchToken;
+    // Tokens must be transported securely in headers or HttpOnly cookies, never in query parameters
+    let token = customHeader || cookieToken;
     if (!token && authHeader?.startsWith("Bearer ")) {
       token = authHeader.substring(7).trim();
     }
@@ -24,7 +25,8 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const result = await SessionService.getSessionState(token);
+    const clientIp = extractClientIp(req);
+    const result = await SessionService.getSessionState(token, clientIp);
 
     return NextResponse.json(result, {
       status: result.isValid ? 200 : 403,

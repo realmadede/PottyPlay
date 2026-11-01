@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { generateSessionToken, hashPassword, verifyPassword } from "@/lib/crypto";
+import { generateSessionToken, hashToken, hashPassword, verifyPassword } from "@/lib/crypto";
 import { resendService } from "@/features/email/resend-service";
 import { randomBytes } from "crypto";
 
@@ -109,10 +109,12 @@ export class OperatorAuthService {
     const token = generateSessionToken("opr_");
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
+    const sessionTokenHash = hashToken(token);
     await prisma.operatorUser.update({
       where: { id: operator.id },
       data: {
         sessionToken: token,
+        sessionTokenHash,
         tokenExpiresAt: expiresAt,
         lastLoginAt: new Date(),
       },
@@ -257,9 +259,13 @@ export class OperatorAuthService {
       return null;
     }
 
+    const tokenHash = hashToken(token);
     const operator = await prisma.operatorUser.findFirst({
       where: {
-        sessionToken: token,
+        OR: [
+          { sessionTokenHash: tokenHash },
+          { sessionToken: token },
+        ],
         tokenExpiresAt: { gt: new Date() },
         isActive: true,
       },

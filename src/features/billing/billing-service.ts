@@ -22,13 +22,15 @@ export class BillingService {
   /**
    * Records a billable activation event idempotently inside a transaction.
    * If an event for this session already exists, it will not create a duplicate.
-   * Uses active CinemaPricingRule if present, otherwise falls back to configured demo default.
+   * Uses dynamic percentage deduction if ticket face value is available,
+   * otherwise uses active CinemaPricingRule or configured demo default.
    */
   static async recordActivationBilling(
     sessionId: string,
     cinemaId: string,
     ticketNumber: string,
-    tx?: Parameters<Parameters<typeof prisma.$transaction>[0]>[0]
+    tx?: Parameters<Parameters<typeof prisma.$transaction>[0]>[0],
+    ticketPriceTzs?: number
   ) {
     const client = tx || prisma;
 
@@ -55,12 +57,31 @@ export class BillingService {
       orderBy: { effectiveFrom: "desc" },
     });
 
-    const priceTzs = activePricing ? activePricing.pricePerSession : config.demoPricePerSessionTzs;
+    // Determine percentage rate (from pricing rule notes or system default)
+    let deductionPercent = config.deductionPercentDefault;
+    if (activePricing?.notes && /percent:\s*([\d.]+)/i.test(activePricing.notes)) {
+      const match = activePricing.notes.match(/percent:\s*([\d.]+)/i);
+      if (match && match[1]) {
+        deductionPercent = parseFloat(match[1]);
+      }
+    }
+
+    let priceTzs: number;
+    let disclaimer: string;
+
+    if (ticketPriceTzs && ticketPriceTzs > 0) {
+      // Dynamic percentage deduction based on ticket face value
+      priceTzs = Math.round(ticketPriceTzs * (deductionPercent / 100));
+      disclaimer = `Dynamic commercial deduction calculated at ${deductionPercent}% of ticket face value (${ticketPriceTzs} TZS)`;
+    } else {
+      priceTzs = activePricing ? activePricing.pricePerSession : config.demoPricePerSessionTzs;
+      disclaimer = activePricing
+        ? (activePricing.notes || `Agreed commercial rate for cinema ${cinemaId}`)
+        : `Dynamic percentage model (${deductionPercent}% standard) applied with fallback base rate`;
+    }
+
     const currency = activePricing ? activePricing.currency : "TZS";
     const isSimulated = !activePricing;
-    const disclaimer = activePricing
-      ? (activePricing.notes || `Agreed commercial rate for cinema ${cinemaId}`)
-      : "Simulated commercial pricing model for cinema partner evaluation, not an agreed commercial rate";
 
     return client.usageBillingEvent.create({
       data: {

@@ -48,13 +48,16 @@ export class TicketService {
     identifier: string,
     targetScreeningId?: string
   ): Promise<TicketVerificationResult> {
-    const cleaned = identifier.trim().toUpperCase();
+    const cleaned = identifier.trim();
+    const upper = cleaned.toUpperCase();
 
     const ticket = await prisma.demonstrationTicket.findFirst({
       where: {
         OR: [
           { ticketNumber: cleaned },
+          { ticketNumber: upper },
           { claimToken: cleaned },
+          { claimToken: upper },
         ],
       },
       include: {
@@ -78,6 +81,7 @@ export class TicketService {
     }
 
     // Check screening match if a specific screening was targeted
+    // Do NOT leak claim token or patron details across different screenings
     if (targetScreeningId && ticket.screeningId !== targetScreeningId) {
       return {
         status: "WRONG_SCREENING",
@@ -86,9 +90,9 @@ export class TicketService {
         ticket: {
           id: ticket.id,
           ticketNumber: ticket.ticketNumber,
-          claimToken: ticket.claimToken,
+          claimToken: null,
           seatNumber: ticket.seatNumber,
-          customerName: ticket.customerName,
+          customerName: "Auditorium Patron",
           status: ticket.status,
         },
       };

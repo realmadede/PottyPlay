@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Film, Sliders, Tv, ExternalLink } from "lucide-react";
+import { GlassSurface } from "@/components/GlassSurface";
 
 export function NavigationHeader() {
   const pathname = usePathname();
@@ -14,7 +15,7 @@ export function NavigationHeader() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-field/95 backdrop-blur-md border-b border-line overflow-x-clip">
+    <GlassSurface variant="dock" className="sticky top-0 z-50 w-full border-b border-line overflow-x-clip !rounded-none">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 min-w-0">
         {/* Brand */}
         <Link href="/" className="flex items-center space-x-2.5 sm:space-x-3 group min-w-0 flex-shrink-0">
@@ -65,6 +66,6 @@ export function NavigationHeader() {
           </Link>
         </nav>
       </div>
-    </header>
+    </GlassSurface>
   );
 }

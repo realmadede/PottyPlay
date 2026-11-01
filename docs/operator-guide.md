@@ -21,6 +21,8 @@ Both interfaces are restricted to authorized venue staff and are not exposed in 
    - **Resume:** When projection resumes on the main screen, press **Resume**. All active companion streams resume simultaneously without temporal drift.
    - **Seek & Scrub:** If projection timing requires calibration, use the timeline scrubber or the `+30s` / `-30s` adjustment controls.
 
+> **Prerequisite for scheduling:** a screening can only be scheduled for content that platform administration has licensed to your cinema for the screening time. If scheduling reports that no licensed content is available, contact platform administration to provision content rights. The projection console (`/cinema`) requires you to be signed in to `/operator` first.
+
 ### 2.2 Active Viewer Monitoring & Session Revocation
 
 When patrons leave the auditorium for a restroom or refreshment break, their break status appears in both `/cinema` and `/operator`:

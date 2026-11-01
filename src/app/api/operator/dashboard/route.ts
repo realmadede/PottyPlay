@@ -1,43 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { ScreeningService } from "@/features/screenings/screening-service";
-import { OperatorAuthService } from "@/features/operator/operator-auth-service";
+import { requireOperator } from "@/lib/auth-guards";
 
 export async function GET(req: NextRequest) {
   try {
-    const authHeader = req.headers.get("authorization");
-    const cookieToken = req.cookies.get("pp_operator_token")?.value;
-    const token = authHeader?.replace("Bearer ", "") || cookieToken;
+    const guard = await requireOperator(req);
+    if (!guard.ok) return guard.response;
 
-    if (!token) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized operator access." },
-        { status: 401 }
-      );
-    }
-
-    let authenticatedCinemaId: string | null = null;
-    const session = await OperatorAuthService.verifySession(token);
-    const isAdmin = token.startsWith("adm_");
-
-    if (session) {
-      authenticatedCinemaId = session.cinemaId;
-    } else if (!isAdmin) {
-      return NextResponse.json(
-        { success: false, error: "Invalid or expired operator session." },
-        { status: 401 }
-      );
-    }
-
-    const { searchParams } = new URL(req.url);
-    const requestedCinemaId =
-      authenticatedCinemaId ||
-      searchParams.get("cinemaId") ||
-      req.headers.get("x-cinema-id");
+    const isOperator = guard.ctx.kind === "operator";
+    const requestedCinemaId = guard.ctx.cinemaId;
 
     // 1. Query all approved, registered cinema circuits in database
     const availableCinemas = await prisma.cinema.findMany({
-      where: { status: "APPROVED" },
+      // Operators only ever see their own cinema; platform administrators see all approved cinemas
+      where: {
+        status: "APPROVED",
+        ...(isOperator && requestedCinemaId ? { id: requestedCinemaId } : {}),
+      },
       select: { id: true, name: true, location: true },
       orderBy: { name: "asc" },
     });
@@ -60,7 +40,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    if (!cinema && availableCinemas.length > 0) {
+    if (!cinema && !isOperator && availableCinemas.length > 0) {
       cinema = await prisma.cinema.findUnique({
         where: { id: availableCinemas[0].id },
         include: {
@@ -193,6 +173,10 @@ export async function GET(req: NextRequest) {
         timezone: cinema.timezone,
         ticketingSystem: cinema.ticketingSystem || "Vista",
         screeningSystem: cinema.screeningSystem || "Dolby TMS",
+        edgeStreamingEnabled: cinema.edgeStreamingEnabled,
+        edgeServerUrl: cinema.edgeServerUrl,
+        venueWifiSsid: cinema.venueWifiSsid,
+        lanIpSubnets: cinema.lanIpSubnets,
         status: cinema.status,
         screens: cinema.screens,
       },

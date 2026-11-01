@@ -1,11 +1,13 @@
 import { prisma } from "@/lib/db";
 import { config } from "@/lib/config";
-import { generateSessionToken } from "@/lib/crypto";
+import { generateSessionToken, hashToken } from "@/lib/crypto";
 import { SessionStatus, TicketStatus } from "@prisma/client";
 import { ScreeningService } from "@/features/screenings/screening-service";
 import { BillingService } from "@/features/billing/billing-service";
 import { smsService } from "@/features/messaging/sms-service";
 import { RightsService } from "@/features/rights/rights-service";
+import { maskPhoneNumber, maskToken } from "@/lib/auth-guards";
+import { resolvePlaybackStreamUrls } from "@/lib/edge-streaming";
 
 export interface ActivateSessionInput {
   ticketNumber?: string;
@@ -13,6 +15,9 @@ export interface ActivateSessionInput {
   challengeId?: string;
   phoneNumber?: string;
   deviceInfo?: string;
+  customerId?: string;
+  phoneAlreadyVerified?: boolean;
+  clientIp?: string | null;
 }
 
 export interface ActivateSessionResult {
@@ -33,6 +38,11 @@ export interface ActivateSessionResult {
   initialPlaybackPositionSeconds?: number;
   totalDurationSeconds?: number;
   videoUrl?: string;
+  primaryVideoUrl?: string;
+  edgeVideoUrl?: string | null;
+  venueWifiSsid?: string | null;
+  preferredRoute?: "LAN_EDGE" | "WAN_CDN";
+  isLanClient?: boolean;
   error?: string;
 }
 
@@ -58,6 +68,11 @@ export interface SessionVerificationResult {
     durationSeconds: number;
     isPaused: boolean;
     videoUrl: string;
+    primaryVideoUrl?: string;
+    edgeVideoUrl?: string | null;
+    venueWifiSsid?: string | null;
+    preferredRoute?: "LAN_EDGE" | "WAN_CDN";
+    isLanClient?: boolean;
     licenseType: string;
   };
   reason?: string;
@@ -76,7 +91,7 @@ export class SessionService {
   static async activateSession(
     input: ActivateSessionInput
   ): Promise<ActivateSessionResult> {
-    const rawIdentifier = (input.claimToken || input.ticketNumber || "").trim().toUpperCase();
+    const rawIdentifier = (input.claimToken || input.ticketNumber || "").trim();
 
     if (!rawIdentifier) {
       return {
@@ -85,9 +100,13 @@ export class SessionService {
       };
     }
 
+    const upperIdentifier = rawIdentifier.toUpperCase();
+
     let verifiedPhoneNumber: string | null = null;
 
-    // 1. If challengeId is provided, verify it
+    // 1. Phone number verification guard
+    // Disallow attaching unverified telephone numbers without an OTP challenge,
+    // unless the customer is already authenticated with a verified telephone identity in-app.
     if (input.challengeId) {
       const challenge = await prisma.otpChallenge.findUnique({
         where: { id: input.challengeId },
@@ -99,22 +118,62 @@ export class SessionService {
           error: "Phone verification is required before session activation.",
         };
       }
+      if (input.phoneNumber && input.phoneNumber.trim() !== challenge.phoneNumber) {
+        return {
+          success: false,
+          error: "Phone number does not match verified OTP challenge.",
+        };
+      }
       verifiedPhoneNumber = challenge.phoneNumber;
     } else if (input.phoneNumber) {
-      verifiedPhoneNumber = input.phoneNumber.trim();
+      if (input.phoneAlreadyVerified && input.customerId) {
+        const customer = await prisma.customerAccount.findUnique({
+          where: { id: input.customerId },
+          select: { phoneNumber: true, phoneVerified: true },
+        });
+        if (
+          customer &&
+          customer.phoneVerified &&
+          customer.phoneNumber === input.phoneNumber.trim()
+        ) {
+          verifiedPhoneNumber = customer.phoneNumber;
+        } else {
+          return {
+            success: false,
+            error: "Phone verification challenge is required to attach a telephone number.",
+          };
+        }
+      } else {
+        return {
+          success: false,
+          error: "Phone verification challenge is required to attach a telephone number.",
+        };
+      }
     }
 
-    // 2. Perform atomic activation inside a transaction
+    // 2. Perform atomic activation inside a transaction with row-level locking
     try {
       const transactionResult = await prisma.$transaction(async (tx) => {
-        // Fetch ticket with locks
-        const ticket = await tx.demonstrationTicket.findFirst({
-          where: {
-            OR: [
-              { ticketNumber: rawIdentifier },
-              { claimToken: rawIdentifier },
-            ],
-          },
+        // Exclusively lock the DemonstrationTicket row in PostgreSQL to prevent concurrent double-activation
+        const lockedRows = await tx.$queryRaw<Array<{ id: string }>>`
+          SELECT id FROM "DemonstrationTicket"
+          WHERE "ticketNumber" = ${rawIdentifier}
+             OR LOWER("ticketNumber") = LOWER(${rawIdentifier})
+             OR "claimToken" = ${rawIdentifier}
+             OR LOWER("claimToken") = LOWER(${rawIdentifier})
+          LIMIT 1
+          FOR UPDATE
+        `;
+
+        if (!lockedRows || lockedRows.length === 0) {
+          throw new Error("Ticket not found.");
+        }
+
+        const lockedTicketId = lockedRows[0].id;
+
+        // Fetch ticket with freshly committed relation state under the lock
+        const ticket = await tx.demonstrationTicket.findUnique({
+          where: { id: lockedTicketId },
           include: {
             screening: {
               include: {
@@ -202,10 +261,12 @@ export class SessionService {
           ticket.screening
         );
 
-        // Create the break session
+        // Create the break session with hashed token storage at rest
+        const sessionTokenHash = hashToken(sessionToken);
         const session = await tx.breakSession.create({
           data: {
             sessionToken,
+            sessionTokenHash,
             ticketId: ticket.id,
             screeningId: ticket.screeningId,
             phoneNumber: verifiedPhoneNumber,
@@ -237,9 +298,9 @@ export class SessionService {
             actor: "CUSTOMER",
             details: JSON.stringify({
               ticketNumber: ticket.ticketNumber,
-              claimToken: ticket.claimToken,
+              claimToken: maskToken(ticket.claimToken),
               seatNumber: ticket.seatNumber,
-              phoneNumber: verifiedPhoneNumber,
+              phoneNumber: verifiedPhoneNumber ? maskPhoneNumber(verifiedPhoneNumber) : null,
               startedAt: now.toISOString(),
               expiresAt: expiresAt.toISOString(),
               initialPosition: currentPosition,
@@ -268,6 +329,12 @@ export class SessionService {
           });
       }
 
+      const resolvedStreams = resolvePlaybackStreamUrls({
+        contentAsset: transactionResult.ticket.screening.contentAsset,
+        cinema: transactionResult.ticket.screening.cinema,
+        clientIp: input.clientIp,
+      });
+
       return {
         success: true,
         sessionToken: transactionResult.session.sessionToken,
@@ -287,6 +354,11 @@ export class SessionService {
           Math.round(transactionResult.currentPosition * 10) / 10,
         totalDurationSeconds: transactionResult.ticket.screening.contentAsset.durationSeconds,
         videoUrl: transactionResult.ticket.screening.contentAsset.videoUrl,
+        primaryVideoUrl: resolvedStreams.primaryVideoUrl,
+        edgeVideoUrl: resolvedStreams.edgeVideoUrl,
+        venueWifiSsid: resolvedStreams.venueWifiSsid,
+        preferredRoute: resolvedStreams.preferredRoute,
+        isLanClient: resolvedStreams.isLanClient,
       };
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
@@ -302,10 +374,17 @@ export class SessionService {
    * Calculates remaining time and enforces hard server-side expiration.
    */
   static async getSessionState(
-    sessionToken: string
+    sessionToken: string,
+    clientIp?: string | null
   ): Promise<SessionVerificationResult> {
-    const session = await prisma.breakSession.findUnique({
-      where: { sessionToken },
+    const tokenHash = hashToken(sessionToken);
+    const session = await prisma.breakSession.findFirst({
+      where: {
+        OR: [
+          { sessionTokenHash: tokenHash },
+          { sessionToken },
+        ],
+      },
       include: {
         ticket: true,
         screening: {
@@ -331,34 +410,42 @@ export class SessionService {
 
     // Check if session has expired based on server authoritative clock
     if (session.status === SessionStatus.ACTIVE && session.expiresAt <= now) {
-      await prisma.breakSession.update({
-        where: { id: session.id },
-        data: {
-          status: SessionStatus.EXPIRED,
-          endedAt: now,
-        },
+      const effectiveDuration = session.durationSeconds || 900;
+      await prisma.$transaction(async (tx) => {
+        await tx.breakSession.update({
+          where: { id: session.id },
+          data: {
+            status: SessionStatus.EXPIRED,
+            endedAt: now,
+          },
+        });
+
+        await tx.auditEvent.create({
+          data: {
+            sessionId: session.id,
+            eventType: "SESSION_EXPIRED",
+            entityType: "BREAK_SESSION",
+            entityId: session.id,
+            actor: "SYSTEM",
+            details: JSON.stringify({
+              expiredAt: now.toISOString(),
+              maxLimit: `${effectiveDuration} seconds reached`,
+            }),
+          },
+        });
       });
 
-      await prisma.auditEvent.create({
-        data: {
-          sessionId: session.id,
-          eventType: "SESSION_EXPIRED",
-          entityType: "BREAK_SESSION",
-          entityId: session.id,
-          actor: "SYSTEM",
-          details: JSON.stringify({
-            expiredAt: now.toISOString(),
-            maxLimit: "900 seconds reached",
-          }),
-        },
-      });
+      const durationMinutes = Math.round(effectiveDuration / 60);
+      const durationLabel =
+        durationMinutes > 0
+          ? `${durationMinutes}-minute`
+          : `${effectiveDuration}-second`;
 
       return {
         isValid: false,
         status: SessionStatus.EXPIRED,
         remainingSeconds: 0,
-        reason:
-          "Your companion viewing break has expired (15-minute maximum limit reached). Please return to your cinema auditorium.",
+        reason: `Your companion viewing break has expired (${durationLabel} maximum limit reached). Please return to your cinema auditorium.`,
       };
     }
 
@@ -410,6 +497,12 @@ export class SessionService {
       },
     });
 
+    const resolvedStreams = resolvePlaybackStreamUrls({
+      contentAsset: session.screening.contentAsset,
+      cinema: session.screening.cinema,
+      clientIp,
+    });
+
     return {
       isValid: true,
       status: SessionStatus.ACTIVE,
@@ -432,6 +525,11 @@ export class SessionService {
         durationSeconds: session.screening.contentAsset.durationSeconds,
         isPaused: session.screening.isPaused,
         videoUrl: session.screening.contentAsset.videoUrl,
+        primaryVideoUrl: resolvedStreams.primaryVideoUrl,
+        edgeVideoUrl: resolvedStreams.edgeVideoUrl,
+        venueWifiSsid: resolvedStreams.venueWifiSsid,
+        preferredRoute: resolvedStreams.preferredRoute,
+        isLanClient: resolvedStreams.isLanClient,
         licenseType: session.screening.contentAsset.licenseType,
       },
     };
@@ -440,32 +538,42 @@ export class SessionService {
   /**
    * Operator action: Revokes an active session immediately.
    */
-  static async revokeSession(sessionId: string, reason: string) {
-    const session = await prisma.breakSession.findUnique({
-      where: { id: sessionId },
+  static async revokeSession(
+    sessionId: string,
+    reason: string,
+    scopeCinemaId?: string
+  ) {
+    const session = await prisma.breakSession.findFirst({
+      where: {
+        id: sessionId,
+        // When scoped, a session of another cinema is indistinguishable from a missing one
+        ...(scopeCinemaId ? { screening: { cinemaId: scopeCinemaId } } : {}),
+      },
     });
 
     if (!session) throw new Error("Session not found.");
 
     const now = new Date();
-    await prisma.breakSession.update({
-      where: { id: sessionId },
-      data: {
-        status: SessionStatus.REVOKED,
-        endedAt: now,
-        revokedReason: reason,
-      },
-    });
+    await prisma.$transaction(async (tx) => {
+      await tx.breakSession.update({
+        where: { id: sessionId },
+        data: {
+          status: SessionStatus.REVOKED,
+          endedAt: now,
+          revokedReason: reason,
+        },
+      });
 
-    await prisma.auditEvent.create({
-      data: {
-        sessionId,
-        eventType: "SESSION_REVOKED",
-        entityType: "BREAK_SESSION",
-        entityId: sessionId,
-        actor: "OPERATOR",
-        details: JSON.stringify({ reason }),
-      },
+      await tx.auditEvent.create({
+        data: {
+          sessionId,
+          eventType: "SESSION_REVOKED",
+          entityType: "BREAK_SESSION",
+          entityId: sessionId,
+          actor: "OPERATOR",
+          details: JSON.stringify({ reason }),
+        },
+      });
     });
 
     return true;
@@ -475,8 +583,14 @@ export class SessionService {
    * Patron action: Ends and completes an active break session upon returning to auditorium.
    */
   static async completeSession(sessionToken: string, reason: string = "Auditorium re-entry by patron") {
-    const session = await prisma.breakSession.findUnique({
-      where: { sessionToken },
+    const tokenHash = hashToken(sessionToken);
+    const session = await prisma.breakSession.findFirst({
+      where: {
+        OR: [
+          { sessionTokenHash: tokenHash },
+          { sessionToken },
+        ],
+      },
     });
 
     if (!session) throw new Error("Session not found.");
@@ -485,26 +599,88 @@ export class SessionService {
     const now = new Date();
     const duration = Math.round((now.getTime() - session.startedAt.getTime()) / 1000);
 
-    const updated = await prisma.breakSession.update({
-      where: { id: session.id },
-      data: {
-        status: SessionStatus.COMPLETED,
-        endedAt: now,
-        durationSeconds: duration,
+    return await prisma.$transaction(async (tx) => {
+      const updated = await tx.breakSession.update({
+        where: { id: session.id },
+        data: {
+          status: SessionStatus.COMPLETED,
+          endedAt: now,
+          durationSeconds: duration,
+        },
+      });
+
+      await tx.auditEvent.create({
+        data: {
+          sessionId: session.id,
+          eventType: "SESSION_COMPLETED_EARLY",
+          entityType: "BREAK_SESSION",
+          entityId: session.id,
+          actor: "PATRON",
+          details: JSON.stringify({ reason, durationSeconds: duration }),
+        },
+      });
+
+      return updated;
+    });
+  }
+
+  /**
+   * Sweeps and transitions any expired ACTIVE sessions whose expiresAt has passed.
+   * Can be invoked periodically by cron dispatch or background workers.
+   */
+  static async expireStaleSessions(): Promise<number> {
+    const now = new Date();
+    const staleSessions = await prisma.breakSession.findMany({
+      where: {
+        status: SessionStatus.ACTIVE,
+        expiresAt: { lte: now },
       },
+      select: {
+        id: true,
+        durationSeconds: true,
+      },
+      take: 200,
     });
 
-    await prisma.auditEvent.create({
-      data: {
-        sessionId: session.id,
-        eventType: "SESSION_COMPLETED_EARLY",
-        entityType: "BREAK_SESSION",
-        entityId: session.id,
-        actor: "PATRON",
-        details: JSON.stringify({ reason, durationSeconds: duration }),
-      },
-    });
+    if (staleSessions.length === 0) return 0;
 
-    return updated;
+    let expiredCount = 0;
+    for (const session of staleSessions) {
+      try {
+        await prisma.$transaction(async (tx) => {
+          const res = await tx.breakSession.updateMany({
+            where: {
+              id: session.id,
+              status: SessionStatus.ACTIVE,
+            },
+            data: {
+              status: SessionStatus.EXPIRED,
+              endedAt: now,
+            },
+          });
+
+          if (res.count > 0) {
+            await tx.auditEvent.create({
+              data: {
+                sessionId: session.id,
+                eventType: "SESSION_EXPIRED",
+                entityType: "BREAK_SESSION",
+                entityId: session.id,
+                actor: "BACKGROUND_WORKER",
+                details: JSON.stringify({
+                  expiredAt: now.toISOString(),
+                  maxLimit: `${session.durationSeconds} seconds reached`,
+                }),
+              },
+            });
+            expiredCount++;
+          }
+        });
+      } catch (err) {
+        console.error(`[SESSION-SERVICE] Error expiring stale session ${session.id}:`, err);
+      }
+    }
+
+    return expiredCount;
   }
 }

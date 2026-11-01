@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
+import { requireOperator } from "@/lib/auth-guards";
 
 const pricingSchema = z.object({
   cinemaId: z.string().min(1, "Cinema ID is required"),
@@ -12,8 +13,10 @@ const pricingSchema = z.object({
 
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const cinemaId = searchParams.get("cinemaId") || req.headers.get("x-cinema-id");
+    const guard = await requireOperator(req);
+    if (!guard.ok) return guard.response;
+
+    const cinemaId = guard.ctx.cinemaId;
 
     if (!cinemaId) {
       return NextResponse.json({ success: false, error: "Cinema ID is required." }, { status: 400 });
@@ -38,6 +41,14 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const validated = pricingSchema.parse(body);
+
+    // Commercial pricing may only be changed by cinema managers/admins or platform administrators,
+    // and only for the cinema bound to the authenticated session.
+    const guard = await requireOperator(req, {
+      roles: ["ADMIN", "MANAGER"],
+      requestedCinemaId: validated.cinemaId,
+    });
+    if (!guard.ok) return guard.response;
 
     // Verify cinema exists
     const cinema = await prisma.cinema.findUnique({

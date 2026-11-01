@@ -206,6 +206,34 @@ export async function GET() {
           },
         },
       },
+      "/api/screenings/current": {
+        get: {
+          summary: "Authoritative Playback State",
+          description:
+            "Returns the server-authoritative playback position and state. Patrons provide session tokens to receive their active screening; operators receive screenings belonging to their cinema.",
+          responses: {
+            "200": { description: "Authoritative playback state" },
+            "401": { description: "Authentication required" },
+            "403": { description: "Invalid or expired session" },
+          },
+        },
+      },
+      "/api/operator/assets": {
+        get: {
+          summary: "List Content Assets & Studio Rights",
+          description: "Lists all content assets and active rights authorizations for the operator's cinema.",
+          responses: {
+            "200": { description: "Array of authorized content assets" },
+          },
+        },
+        post: {
+          summary: "Register Content Asset & Rights",
+          description: "Registers a film asset and provisions an authorized theatrical rights window for the cinema.",
+          responses: {
+            "201": { description: "Content asset registered and authorized" },
+          },
+        },
+      },
       "/api/operator/screenings": {
         get: {
           summary: "List Auditorium Screenings",

@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
+import { GlassSurface } from "@/components/GlassSurface";
 import { Menu, X, ArrowRight } from "lucide-react";
 
 export function LandingHeader() {
@@ -15,9 +16,9 @@ export function LandingHeader() {
   };
 
   return (
-    <header
-      onPointerMove={handlePointerMove}
-      className="sticky top-0 z-50 w-full glass-ios26 glass-ios26-rim glass-ios26-glint border-b border-white/15 transition-all"
+    <GlassSurface
+      variant="dock"
+      className="sticky top-0 z-50 w-full border-b border-white/15 transition-all !rounded-none"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         {/* Brand Logo */}
@@ -68,6 +69,12 @@ export function LandingHeader() {
             className="hover:text-ink transition-colors duration-150"
           >
             Developers
+          </Link>
+          <Link
+            href="/support"
+            className="hover:text-ink transition-colors duration-150"
+          >
+            Support
           </Link>
         </nav>
 
@@ -152,6 +159,13 @@ export function LandingHeader() {
             >
               Developer Integration Portal
             </Link>
+            <Link
+              href="/support"
+              onClick={() => setMobileMenuOpen(false)}
+              className="px-3 py-2 rounded-lg hover:bg-field hover:text-ink"
+            >
+              Support & Help Center
+            </Link>
           </nav>
 
           <div className="pt-3 border-t border-line flex flex-col space-y-2">
@@ -166,6 +180,6 @@ export function LandingHeader() {
           </div>
         </div>
       )}
-    </header>
+    </GlassSurface>
   );
 }

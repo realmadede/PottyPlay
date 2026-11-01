@@ -3,21 +3,22 @@ import { prisma } from "@/lib/db";
 import { config } from "@/lib/config";
 import { ScreeningService } from "@/features/screenings/screening-service";
 import { createHmac, timingSafeEqual } from "crypto";
-import { TicketStatus, SessionStatus } from "@prisma/client";
+import { TicketStatus, SessionStatus, ScreeningStatus } from "@prisma/client";
 
 /**
  * Validates HMAC SHA-256 signature for POS webhook payloads.
+ * Strictly required in ALL environments to prevent unauthorized ticket forgery.
  */
 function verifyWebhookSignature(rawBody: string, signatureHeader: string | null): boolean {
   if (!signatureHeader) {
-    // In production, signature header is strictly required
-    return process.env.NODE_ENV !== "production";
+    return false;
   }
 
   try {
     const secret = config.posWebhookSecret;
     const computed = createHmac("sha256", secret).update(rawBody).digest("hex");
-    const signatureBuffer = Buffer.from(signatureHeader.replace(/^sha256=/, ""), "hex");
+    const cleanHeader = signatureHeader.replace(/^sha256=/, "").trim();
+    const signatureBuffer = Buffer.from(cleanHeader, "hex");
     const computedBuffer = Buffer.from(computed, "hex");
 
     if (signatureBuffer.length !== computedBuffer.length) {
@@ -47,6 +48,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Replay attack protection: optional timestamp verification
+    const timestampHeader =
+      req.headers.get("x-pos-timestamp") || req.headers.get("x-timestamp");
+    if (timestampHeader) {
+      const ts = parseInt(timestampHeader, 10);
+      if (isNaN(ts) || Math.abs(Date.now() - ts) > 5 * 60 * 1000) {
+        return NextResponse.json(
+          { success: false, error: "Webhook request timestamp is expired or invalid." },
+          { status: 401 }
+        );
+      }
+    }
+
     let payload: Record<string, any>;
     try {
       payload = JSON.parse(rawBody);
@@ -65,6 +79,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const xCinemaId = req.headers.get("x-cinema-id");
+
     switch (event) {
       case "ticket.admitted":
       case "ticket.issued": {
@@ -74,6 +90,37 @@ export async function POST(req: NextRequest) {
           return NextResponse.json(
             { success: false, error: "ticketNumber and screeningId are required for ticket.admitted." },
             { status: 400 }
+          );
+        }
+
+        // Verify screening exists and matches tenant scope if provided
+        const screening = await prisma.screening.findUnique({
+          where: { id: screeningId },
+        });
+
+        if (!screening) {
+          return NextResponse.json(
+            { success: false, error: `Screening ${screeningId} not found.` },
+            { status: 404 }
+          );
+        }
+
+        if (xCinemaId && screening.cinemaId !== xCinemaId) {
+          return NextResponse.json(
+            { success: false, error: "Screening does not belong to the authorized cinema." },
+            { status: 403 }
+          );
+        }
+
+        // Check if ticket exists under another screening
+        const existingTicket = await prisma.demonstrationTicket.findUnique({
+          where: { ticketNumber },
+        });
+
+        if (existingTicket && existingTicket.screeningId !== screeningId) {
+          return NextResponse.json(
+            { success: false, error: `Ticket ${ticketNumber} is already bound to another screening.` },
+            { status: 409 }
           );
         }
 
@@ -97,6 +144,7 @@ export async function POST(req: NextRequest) {
 
         await prisma.auditEvent.create({
           data: {
+            cinemaId: screening.cinemaId,
             eventType: "POS_TICKET_ADMITTED",
             entityType: "TICKET",
             entityId: ticket.id,
@@ -175,13 +223,29 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      case "screening.timeline_pause": {
+      case "screening.timeline_pause":
+      case "screening.playback_paused":
+      case "tms.playback_paused": {
         const { screeningId } = payload.data || payload;
 
         if (!screeningId) {
           return NextResponse.json(
             { success: false, error: "screeningId is required for screening.timeline_pause." },
             { status: 400 }
+          );
+        }
+
+        const screening = await prisma.screening.findUnique({ where: { id: screeningId } });
+        if (!screening) {
+          return NextResponse.json(
+            { success: false, error: `Screening ${screeningId} not found.` },
+            { status: 404 }
+          );
+        }
+        if (xCinemaId && screening.cinemaId !== xCinemaId) {
+          return NextResponse.json(
+            { success: false, error: "Screening does not belong to the authorized cinema." },
+            { status: 403 }
           );
         }
 
@@ -195,13 +259,31 @@ export async function POST(req: NextRequest) {
       }
 
       case "screening.timeline_resume":
-      case "screening.timeline_play": {
+      case "screening.timeline_play":
+      case "screening.playback_started":
+      case "screening.playback_resumed":
+      case "tms.playback_started":
+      case "tms.playback_resumed": {
         const { screeningId } = payload.data || payload;
 
         if (!screeningId) {
           return NextResponse.json(
             { success: false, error: "screeningId is required for screening.timeline_resume." },
             { status: 400 }
+          );
+        }
+
+        const screening = await prisma.screening.findUnique({ where: { id: screeningId } });
+        if (!screening) {
+          return NextResponse.json(
+            { success: false, error: `Screening ${screeningId} not found.` },
+            { status: 404 }
+          );
+        }
+        if (xCinemaId && screening.cinemaId !== xCinemaId) {
+          return NextResponse.json(
+            { success: false, error: "Screening does not belong to the authorized cinema." },
+            { status: 403 }
           );
         }
 
@@ -214,6 +296,60 @@ export async function POST(req: NextRequest) {
         });
       }
 
+      case "screening.playback_stopped":
+      case "screening.ended":
+      case "tms.playback_stopped": {
+        const { screeningId } = payload.data || payload;
+
+        if (!screeningId) {
+          return NextResponse.json(
+            { success: false, error: "screeningId is required for playback stop event." },
+            { status: 400 }
+          );
+        }
+
+        const screening = await prisma.screening.findUnique({ where: { id: screeningId } });
+        if (!screening) {
+          return NextResponse.json(
+            { success: false, error: `Screening ${screeningId} not found.` },
+            { status: 404 }
+          );
+        }
+        if (xCinemaId && screening.cinemaId !== xCinemaId) {
+          return NextResponse.json(
+            { success: false, error: "Screening does not belong to the authorized cinema." },
+            { status: 403 }
+          );
+        }
+
+        await prisma.screening.update({
+          where: { id: screeningId },
+          data: {
+            status: ScreeningStatus.COMPLETED,
+            isPaused: true,
+            pausedAt: new Date(),
+          },
+        });
+
+        await prisma.auditEvent.create({
+          data: {
+            cinemaId: screening.cinemaId,
+            eventType: "TMS_PLAYBACK_STOPPED",
+            entityType: "SCREENING",
+            entityId: screening.id,
+            actor: "TMS_SYSTEM",
+            details: JSON.stringify({ screeningId, event }),
+          },
+        });
+
+        return NextResponse.json({
+          success: true,
+          event,
+          screeningId,
+          status: ScreeningStatus.COMPLETED,
+        });
+      }
+
       case "screening.timeline_seek": {
         const { screeningId, positionSeconds } = payload.data || payload;
 
@@ -221,6 +357,20 @@ export async function POST(req: NextRequest) {
           return NextResponse.json(
             { success: false, error: "screeningId and positionSeconds are required for screening.timeline_seek." },
             { status: 400 }
+          );
+        }
+
+        const screening = await prisma.screening.findUnique({ where: { id: screeningId } });
+        if (!screening) {
+          return NextResponse.json(
+            { success: false, error: `Screening ${screeningId} not found.` },
+            { status: 404 }
+          );
+        }
+        if (xCinemaId && screening.cinemaId !== xCinemaId) {
+          return NextResponse.json(
+            { success: false, error: "Screening does not belong to the authorized cinema." },
+            { status: 403 }
           );
         }
 

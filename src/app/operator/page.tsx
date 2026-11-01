@@ -172,7 +172,7 @@ export default function OperatorPage() {
   const [data, setData] = useState<OperatorData | null>(null);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<
-    "sessions" | "screenings" | "tickets" | "pricing" | "billing" | "sms" | "audit"
+    "sessions" | "screenings" | "tickets" | "pricing" | "billing" | "sms" | "audit" | "feedback"
   >("sessions");
 
   // Screening Scheduling State
@@ -209,6 +209,13 @@ export default function OperatorPage() {
   const [newPricingStatus, setNewPricingStatus] = useState("ACTIVE");
   const [pricingNotes, setPricingNotes] = useState("");
   const [savingPrice, setSavingPrice] = useState(false);
+
+  // Patron Feedback Queue State
+  const [feedbacks, setFeedbacks] = useState<any[]>([]);
+  const [feedbacksLoading, setFeedbacksLoading] = useState(false);
+  const [feedbackStatusFilter, setFeedbackStatusFilter] = useState<string>("ALL");
+  const [updatingFeedbackId, setUpdatingFeedbackId] = useState<string | null>(null);
+  const [operatorNotesInput, setOperatorNotesInput] = useState<{ [id: string]: string }>({});
 
   // Verify stored operator token on mount
   useEffect(() => {
@@ -391,6 +398,59 @@ export default function OperatorPage() {
     }
   }, [cinemaId, token]);
 
+  const fetchFeedbacks = useCallback(async () => {
+    if (!token || !cinemaId) return;
+    setFeedbacksLoading(true);
+    try {
+      const url =
+        feedbackStatusFilter && feedbackStatusFilter !== "ALL"
+          ? `/api/operator/feedback?cinemaId=${cinemaId}&status=${feedbackStatusFilter}`
+          : `/api/operator/feedback?cinemaId=${cinemaId}`;
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setFeedbacks(json.feedbacks || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch patron feedback:", err);
+    } finally {
+      setFeedbacksLoading(false);
+    }
+  }, [cinemaId, token, feedbackStatusFilter]);
+
+  const handleUpdateFeedbackStatus = async (feedbackId: string, newStatus: string) => {
+    if (!token || !cinemaId) return;
+    setUpdatingFeedbackId(feedbackId);
+    try {
+      const notes = operatorNotesInput[feedbackId] || undefined;
+      const res = await fetch("/api/operator/feedback", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          feedbackId,
+          status: newStatus,
+          operatorNotes: notes,
+        }),
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setActionNotice(`Issue updated to status: ${newStatus}`);
+        fetchFeedbacks();
+      } else {
+        setActionNotice(json.error || "Failed to update feedback status");
+      }
+    } catch {
+      setActionNotice("Network error updating feedback status");
+    } finally {
+      setUpdatingFeedbackId(null);
+    }
+  };
+
   useEffect(() => {
     if (!token) return;
     fetchData();
@@ -402,7 +462,10 @@ export default function OperatorPage() {
     if (activeTab === "tickets" && token && cinemaId) {
       fetchTickets();
     }
-  }, [activeTab, fetchTickets, token, cinemaId]);
+    if (activeTab === "feedback" && token && cinemaId) {
+      fetchFeedbacks();
+    }
+  }, [activeTab, fetchTickets, fetchFeedbacks, token, cinemaId, feedbackStatusFilter]);
 
   const handleScheduleScreening = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1022,6 +1085,7 @@ export default function OperatorPage() {
                 { id: "sessions", label: "Active & Recent Breaks", count: data?.sessions?.length },
                 { id: "screenings", label: "Auditorium Screens", count: data?.screenings?.length },
                 { id: "tickets", label: "Tickets & Entitlements", count: tickets.length || null },
+                { id: "feedback", label: "Patron Issues & Reports", count: feedbacks.filter((f) => f.status === "PENDING" || f.status === "INVESTIGATING").length || feedbacks.length || null },
                 { id: "pricing", label: "Commercial Pricing", count: null },
                 { id: "billing", label: "Billed Transactions", count: data?.billing?.totalBillableActivations },
                 { id: "sms", label: "Delivery Telemetry", count: data?.smsAttempts?.length },
@@ -1725,6 +1789,197 @@ export default function OperatorPage() {
                     </tbody>
                   </table>
                 </div>
+              </div>
+            )}
+
+            {/* TAB: PATRON ISSUES & REPORTS */}
+            {activeTab === "feedback" && (
+              <div className="bg-field rounded-2xl border border-line overflow-hidden shadow-card">
+                <div className="p-4 sm:p-5 border-b border-line flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                  <div>
+                    <h3 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center space-x-2">
+                      <MessageSquare className="w-4 h-4 text-amber-400" />
+                      <span>Patron Feedback & Issue Triage Queue</span>
+                    </h3>
+                    <p className="text-xs text-muted mt-0.5">
+                      Live reports from companion viewers experiencing stream buffering, Wi-Fi issues, or facility concerns.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center space-x-2 self-stretch sm:self-auto justify-between sm:justify-end">
+                    <button
+                      onClick={fetchFeedbacks}
+                      disabled={feedbacksLoading}
+                      className="py-1.5 px-3 rounded-xl border border-line bg-bg hover:bg-field-raised text-muted hover:text-ink text-xs font-semibold flex items-center space-x-1.5 transition-colors cursor-pointer"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${feedbacksLoading ? "animate-spin" : ""}`} />
+                      <span>Refresh Queue</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Filter Chips */}
+                <div className="px-4 py-3 bg-bg/50 border-b border-line flex flex-wrap gap-2 text-xs">
+                  {[
+                    { id: "ALL", label: "All Reports" },
+                    { id: "PENDING", label: "Pending" },
+                    { id: "INVESTIGATING", label: "Investigating" },
+                    { id: "RESOLVED", label: "Resolved" },
+                    { id: "DISMISSED", label: "Dismissed" },
+                  ].map((filter) => (
+                    <button
+                      key={filter.id}
+                      onClick={() => setFeedbackStatusFilter(filter.id)}
+                      className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                        feedbackStatusFilter === filter.id
+                          ? "bg-amber-500 text-neutral-950 font-bold shadow-xs"
+                          : "bg-field text-muted hover:text-ink border border-line"
+                      }`}
+                    >
+                      {filter.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Feedbacks List */}
+                {feedbacksLoading ? (
+                  <div className="p-12 text-center text-xs text-muted flex items-center justify-center space-x-2">
+                    <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
+                    <span>Loading patron feedback queue...</span>
+                  </div>
+                ) : feedbacks.length === 0 ? (
+                  <div className="p-12 text-center text-xs text-muted space-y-2">
+                    <CheckCircle2 className="w-8 h-8 mx-auto text-emerald-400 opacity-80" />
+                    <p className="font-semibold text-ink text-sm">No Patron Reports Found</p>
+                    <p>There are no patron issues or reports under the selected status filter.</p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-line">
+                    {feedbacks.map((item) => (
+                      <div key={item.id} className="p-4 sm:p-5 hover:bg-field-raised/30 transition-colors space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            {/* Category Badge */}
+                            <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                              {item.category.replace(/_/g, " ")}
+                            </span>
+
+                            {/* Status Badge */}
+                            <span
+                              className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase ${
+                                item.status === "PENDING"
+                                  ? "bg-amber-950/40 text-amber-300 border border-amber-500/30"
+                                  : item.status === "INVESTIGATING"
+                                  ? "bg-sky-950/40 text-sky-300 border border-sky-500/30"
+                                  : item.status === "RESOLVED"
+                                  ? "bg-emerald-950/40 text-emerald-300 border border-emerald-500/30"
+                                  : "bg-neutral-900 text-neutral-400 border border-line"
+                              }`}
+                            >
+                              {item.status}
+                            </span>
+
+                            <span className="text-[11px] text-muted">
+                              {new Date(item.createdAt).toLocaleString()}
+                            </span>
+                          </div>
+
+                          {/* Ticket / Seat info */}
+                          <div className="flex items-center space-x-2 text-[11px] text-muted font-mono">
+                            {item.ticketNumber && (
+                              <span className="px-2 py-0.5 rounded bg-bg border border-line text-ink">
+                                Ticket: {item.ticketNumber}
+                              </span>
+                            )}
+                            {item.screening?.title && (
+                              <span className="px-2 py-0.5 rounded bg-bg border border-line text-ink truncate max-w-[180px]">
+                                {item.screening.title}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Subject and Message */}
+                        <div>
+                          <h4 className="text-sm font-bold text-ink">{item.subject}</h4>
+                          <p className="text-xs text-muted mt-1 leading-relaxed whitespace-pre-line bg-bg/60 p-3 rounded-xl border border-line/60">
+                            {item.message}
+                          </p>
+                        </div>
+
+                        {/* Customer Info */}
+                        {item.customer && (
+                          <div className="text-[11px] text-muted flex items-center space-x-3">
+                            <span>Patron: <strong className="text-ink">{item.customer.name || "Customer"}</strong></span>
+                            {item.customer.phone && <span>Phone: <strong className="text-ink font-mono">{item.customer.phone}</strong></span>}
+                            {item.customer.email && <span>Email: <strong className="text-ink font-mono">{item.customer.email}</strong></span>}
+                          </div>
+                        )}
+
+                        {/* Existing Operator Notes */}
+                        {item.operatorNotes && (
+                          <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 text-xs text-ink space-y-1">
+                            <span className="font-bold text-amber-400 text-[11px] uppercase tracking-wider block">
+                              Operator Triage Notes:
+                            </span>
+                            <p className="text-muted text-xs">{item.operatorNotes}</p>
+                          </div>
+                        )}
+
+                        {/* Triage Action Controls */}
+                        <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-t border-line/50">
+                          <input
+                            type="text"
+                            placeholder="Add operator triage note or resolution log..."
+                            value={operatorNotesInput[item.id] ?? ""}
+                            onChange={(e) =>
+                              setOperatorNotesInput((prev) => ({
+                                ...prev,
+                                [item.id]: e.target.value,
+                              }))
+                            }
+                            className="flex-1 bg-bg border border-line rounded-xl px-3 py-1.5 text-xs text-ink outline-none focus:border-amber-400 placeholder:text-muted/50"
+                          />
+
+                          <div className="flex items-center space-x-2 shrink-0">
+                            {item.status !== "INVESTIGATING" && (
+                              <button
+                                type="button"
+                                disabled={updatingFeedbackId === item.id}
+                                onClick={() => handleUpdateFeedbackStatus(item.id, "INVESTIGATING")}
+                                className="py-1.5 px-3 rounded-xl text-xs font-semibold bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 transition-colors cursor-pointer disabled:opacity-50"
+                              >
+                                {updatingFeedbackId === item.id ? "Updating..." : "Mark Investigating"}
+                              </button>
+                            )}
+
+                            {item.status !== "RESOLVED" && (
+                              <button
+                                type="button"
+                                disabled={updatingFeedbackId === item.id}
+                                onClick={() => handleUpdateFeedbackStatus(item.id, "RESOLVED")}
+                                className="py-1.5 px-3 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition-colors cursor-pointer shadow-xs disabled:opacity-50"
+                              >
+                                {updatingFeedbackId === item.id ? "Updating..." : "Mark Resolved"}
+                              </button>
+                            )}
+
+                            {item.status !== "DISMISSED" && (
+                              <button
+                                type="button"
+                                disabled={updatingFeedbackId === item.id}
+                                onClick={() => handleUpdateFeedbackStatus(item.id, "DISMISSED")}
+                                className="py-1.5 px-3 rounded-xl text-xs font-semibold bg-field hover:bg-field-raised text-muted hover:text-ink border border-line transition-colors cursor-pointer disabled:opacity-50"
+                              >
+                                Dismiss
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </>

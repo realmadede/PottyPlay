@@ -1,9 +1,10 @@
 import { prisma } from "@/lib/db";
+import { config } from "@/lib/config";
 import { generateSessionToken, generateOtpCode, hashPassword, verifyPassword } from "@/lib/crypto";
 import { OtpService } from "@/features/messaging/otp-service";
 import { resendService } from "@/features/email/resend-service";
 import { normalizePhoneNumber, isValidPhoneNumber } from "@/lib/phone";
-import { AuthProvider } from "@prisma/client";
+import { AuthProvider, Prisma } from "@prisma/client";
 
 export interface CustomerAuthSession {
   customerId: string;
@@ -154,12 +155,19 @@ export class CustomerAuthService {
     // 6. Deliver email verification code via Resend
     await resendService.sendCustomerEmailVerification(email, emailVerificationCode);
 
+    const isDevSimulator =
+      process.env.NODE_ENV !== "production" && config.africasTalking.isSimulatorMode;
+
     return {
       success: true,
       customerId: customer.id,
       phoneChallengeId: otpResult.challengeId,
-      simulatedSmsCode: otpResult.simulatedCode,
-      simulatedEmailCode: emailVerificationCode,
+      ...(isDevSimulator
+        ? {
+            simulatedSmsCode: otpResult.simulatedCode,
+            simulatedEmailCode: emailVerificationCode,
+          }
+        : {}),
     };
   }
 
@@ -694,6 +702,67 @@ export class CustomerAuthService {
       },
     });
     return true;
+  }
+
+  /**
+   * Permanently scrubs all PII and anonymizes a customer account.
+   */
+  static async anonymizeCustomerAccount(customerId: string): Promise<boolean> {
+    await prisma.screeningReminder.deleteMany({
+      where: { customerId },
+    });
+
+    await prisma.customerAccount.update({
+      where: { id: customerId },
+      data: {
+        status: "DELETED",
+        name: "Anonymized Patron",
+        phoneNumber: null,
+        email: null,
+        passwordHash: null,
+        passwordResetToken: null,
+        passwordResetExpiresAt: null,
+        emailVerificationCode: null,
+        emailVerificationExpiresAt: null,
+        notificationPreferences: Prisma.DbNull,
+        sessionToken: null,
+        tokenExpiresAt: null,
+        phoneVerified: false,
+        emailVerified: false,
+      },
+    });
+
+    return true;
+  }
+
+  /**
+   * Scans for customer accounts whose deletion request has exceeded the grace period,
+   * executing complete PII erasure in compliance with PDPA 2022.
+   */
+  static async purgeExpiredDeletionRequests(gracePeriodDays: number = 30): Promise<{
+    purgedCount: number;
+    accountIds: string[];
+  }> {
+    const cutoffDate = new Date(Date.now() - gracePeriodDays * 24 * 60 * 60 * 1000);
+
+    const expiredAccounts = await prisma.customerAccount.findMany({
+      where: {
+        status: "DELETION_REQUESTED",
+        deletionRequestedAt: { lte: cutoffDate },
+      },
+      select: { id: true },
+    });
+
+    const accountIds: string[] = [];
+    for (const acc of expiredAccounts) {
+      await this.anonymizeCustomerAccount(acc.id);
+      accountIds.push(acc.id);
+    }
+
+    return {
+      purgedCount: accountIds.length,
+      accountIds,
+    };
   }
 
   private static toSession(account: any): CustomerAuthSession {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { OperatorAuthService } from "@/features/operator/operator-auth-service";
+import { requireOperator } from "@/lib/auth-guards";
 import { z } from "zod";
 import { ScreeningStatus } from "@prisma/client";
 
@@ -11,39 +11,15 @@ const createScreeningSchema = z.object({
   scheduledStart: z.string().datetime({ offset: true }).or(z.string().min(1)),
 });
 
-async function getAuthorizedCinemaId(req: NextRequest): Promise<{ cinemaId: string | null; errorResponse?: NextResponse }> {
-  const authHeader = req.headers.get("authorization");
-  const cookieToken = req.cookies.get("pp_operator_token")?.value;
-  const token = authHeader?.replace("Bearer ", "") || cookieToken;
-
-  if (!token) {
-    return {
-      cinemaId: null,
-      errorResponse: NextResponse.json(
-        { success: false, error: "Unauthorized operator access." },
-        { status: 401 }
-      ),
-    };
+async function getAuthorizedCinemaId(
+  req: NextRequest,
+  requestedCinemaId?: string | null
+): Promise<{ cinemaId: string | null; errorResponse?: NextResponse }> {
+  const guard = await requireOperator(req, { requestedCinemaId });
+  if (!guard.ok) {
+    return { cinemaId: null, errorResponse: guard.response };
   }
-
-  const session = await OperatorAuthService.verifySession(token);
-  const isAdmin = token.startsWith("adm_");
-
-  if (session) {
-    return { cinemaId: session.cinemaId };
-  } else if (isAdmin) {
-    const { searchParams } = new URL(req.url);
-    const requestedCinemaId = searchParams.get("cinemaId") || req.headers.get("x-cinema-id");
-    return { cinemaId: requestedCinemaId };
-  }
-
-  return {
-    cinemaId: null,
-    errorResponse: NextResponse.json(
-      { success: false, error: "Invalid or expired operator session." },
-      { status: 401 }
-    ),
-  };
+  return { cinemaId: guard.ctx.cinemaId };
 }
 
 export async function GET(req: NextRequest) {
@@ -91,13 +67,16 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { cinemaId, errorResponse } = await getAuthorizedCinemaId(req);
+    const body = await req.json();
+    const { cinemaId, errorResponse } = await getAuthorizedCinemaId(
+      req,
+      typeof body?.cinemaId === "string" ? body.cinemaId : null
+    );
     if (errorResponse) return errorResponse;
 
-    const body = await req.json();
     const validated = createScreeningSchema.parse(body);
 
-    const targetCinemaId = cinemaId || body.cinemaId;
+    const targetCinemaId = cinemaId;
     if (!targetCinemaId) {
       return NextResponse.json(
         { success: false, error: "Target cinema ID required." },
@@ -116,53 +95,56 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Resolve or create Content Asset
-    let contentAssetId = validated.contentAssetId;
-    if (!contentAssetId) {
-      // Find existing asset or create a default demo content asset
-      const defaultAsset = await prisma.contentAsset.findFirst({
+    const scheduledStartDate = new Date(validated.scheduledStart);
+    if (Number.isNaN(scheduledStartDate.getTime())) {
+      return NextResponse.json(
+        { success: false, error: "Invalid scheduled start time." },
+        { status: 400 }
+      );
+    }
+
+    // Content must already be licensed to THIS cinema for the screening time.
+    // Operators can never create content assets or grant themselves rights; platform administration does.
+    const licensedWindow = {
+      cinemaId: targetCinemaId,
+      isAuthorized: true,
+      validFrom: { lte: scheduledStartDate },
+      validUntil: { gte: scheduledStartDate },
+    };
+
+    let contentAssetId: string | undefined;
+    if (validated.contentAssetId) {
+      const authorization = await prisma.rightsAuthorization.findFirst({
+        where: { ...licensedWindow, contentAssetId: validated.contentAssetId },
+      });
+      if (!authorization) {
+        return NextResponse.json(
+          {
+            success: false,
+            error:
+              "This cinema holds no valid content rights for the selected asset at the scheduled time.",
+          },
+          { status: 403 }
+        );
+      }
+      contentAssetId = authorization.contentAssetId;
+    } else {
+      const authorization = await prisma.rightsAuthorization.findFirst({
+        where: licensedWindow,
         orderBy: { createdAt: "desc" },
       });
-
-      if (defaultAsset) {
-        contentAssetId = defaultAsset.id;
-      } else {
-        const createdAsset = await prisma.contentAsset.create({
-          data: {
-            title: validated.title,
-            durationSeconds: 7200, // 2 hours standard duration
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-            licenseType: "COMMERCIAL_EXHIBITION_RIGHTS",
-            licenseSource: "Synthesized Demo Media Rights",
+      if (!authorization) {
+        return NextResponse.json(
+          {
+            success: false,
+            error:
+              "No licensed content is available for this cinema at the scheduled time. Contact platform administration to provision content rights.",
           },
-        });
-        contentAssetId = createdAsset.id;
+          { status: 403 }
+        );
       }
+      contentAssetId = authorization.contentAssetId;
     }
-
-    // Ensure rights authorization exists for this content asset and cinema
-    const existingRights = await prisma.rightsAuthorization.findFirst({
-      where: {
-        cinemaId: targetCinemaId,
-        contentAssetId,
-      },
-    });
-
-    if (!existingRights) {
-      await prisma.rightsAuthorization.create({
-        data: {
-          cinemaId: targetCinemaId,
-          contentAssetId,
-          isAuthorized: true,
-          validFrom: new Date(Date.now() - 24 * 3600 * 1000),
-          validUntil: new Date(Date.now() + 365 * 24 * 3600 * 1000),
-          maxSessionDurationSeconds: 900,
-          notes: "Automated rights authorization provisioned for cinema exhibitor",
-        },
-      });
-    }
-
-    const scheduledStartDate = new Date(validated.scheduledStart);
 
     const screening = await prisma.screening.create({
       data: {

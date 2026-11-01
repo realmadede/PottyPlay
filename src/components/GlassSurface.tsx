@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useCallback, useRef } from "react";
+import React from "react";
+import { DynamicGlassSurface } from "./DynamicGlassSurface";
 
 interface GlassSurfaceProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   variant?: "card" | "pill" | "panel" | "dock";
   interactive?: boolean;
   ambient?: boolean;
+  iridescent?: boolean;
   className?: string;
 }
 
@@ -15,22 +17,13 @@ export function GlassSurface({
   variant = "card",
   interactive = true,
   ambient = false,
+  iridescent = true,
   className = "",
   style,
   ...props
 }: GlassSurfaceProps) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-
-  const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    if (!interactive) return;
-    const el = containerRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    el.style.setProperty("--glint-x", `${x}px`);
-    el.style.setProperty("--glint-y", `${y}px`);
-  }, [interactive]);
+  const radius =
+    variant === "pill" ? 9999 : variant === "dock" ? 32 : variant === "panel" ? 16 : 24;
 
   const variantClass =
     variant === "pill"
@@ -43,16 +36,17 @@ export function GlassSurface({
 
   const ambientClass = ambient ? "glass-ios26-ambient" : "";
   const glintClass = interactive ? "glass-ios26-glint" : "";
+  const iridClass = iridescent ? "glass-ios26-iridescent" : "";
 
   return (
-    <div
-      ref={containerRef}
-      onPointerMove={handlePointerMove}
-      className={`glass-ios26 glass-ios26-rim ${glintClass} ${ambientClass} ${variantClass} ${className}`}
+    <DynamicGlassSurface
+      borderRadius={radius}
+      interactive={interactive}
+      className={`glass-ios26 glass-ios26-rim ${iridClass} ${glintClass} ${ambientClass} ${variantClass} ${className}`}
       style={style}
       {...props}
     >
-      <div className="relative z-10 w-full h-full">{children}</div>
-    </div>
+      {children}
+    </DynamicGlassSurface>
   );
 }

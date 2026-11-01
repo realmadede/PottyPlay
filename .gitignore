@@ -54,3 +54,10 @@ Thumbs.db
 *.sqlite
 *.sqlite3
 *.db
+
+# Mobile native build caches
+.gradle/
+**/android/.gradle/
+**/android/app/build/
+**/ios/App/Pods/
+

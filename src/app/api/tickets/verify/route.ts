@@ -13,8 +13,39 @@ const verifySchema = z
     message: "Ticket number or claim token is required",
   });
 
+// Rate limiting: maximum 30 verification attempts per minute per IP address
+const ipAttempts = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const record = ipAttempts.get(ip);
+  if (!record || now > record.resetAt) {
+    ipAttempts.set(ip, { count: 1, resetAt: now + 60 * 1000 });
+    return true;
+  }
+  if (record.count >= 30) {
+    return false;
+  }
+  record.count += 1;
+  return true;
+}
+
 export async function POST(req: NextRequest) {
   try {
+    const forwarded = req.headers.get("x-forwarded-for");
+    const ip = forwarded ? forwarded.split(",")[0].trim() : "127.0.0.1";
+
+    if (!checkRateLimit(ip)) {
+      return NextResponse.json(
+        {
+          status: "RATE_LIMITED",
+          isEligible: false,
+          message: "Too many ticket verification attempts. Please wait a minute.",
+        },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
     const parsed = verifySchema.safeParse(body);
 

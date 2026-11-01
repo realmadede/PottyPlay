@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
-import { Volume2, VolumeX, ShieldCheck, ShieldAlert } from "lucide-react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import { Volume2, VolumeX, ShieldCheck, ShieldAlert, Wifi, Globe } from "lucide-react";
 
 interface CinemaCanvasPlayerProps {
   positionSeconds: number;
@@ -11,6 +11,10 @@ interface CinemaCanvasPlayerProps {
   cinemaName: string;
   seatNumber?: string;
   patronIdentity?: string;
+  videoUrl?: string;
+  edgeVideoUrl?: string | null;
+  venueWifiSsid?: string | null;
+  preferredRoute?: "LAN_EDGE" | "WAN_CDN";
   onPositionUpdate?: (pos: number) => void;
 }
 
@@ -22,13 +26,63 @@ export function CinemaCanvasPlayer({
   cinemaName,
   seatNumber,
   patronIdentity,
+  videoUrl,
+  edgeVideoUrl,
+  venueWifiSsid,
+  preferredRoute = "WAN_CDN",
 }: CinemaCanvasPlayerProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const hlsRef = useRef<any>(null);
   const [isMuted, setIsMuted] = useState(true);
   const [internalTime, setInternalTime] = useState(positionSeconds);
   const [captureBlocked, setCaptureBlocked] = useState(false);
   const [blockMessage, setBlockMessage] = useState<string | null>(null);
   const lastSyncRef = useRef({ serverPos: positionSeconds, localTime: Date.now() });
+
+  // In-Auditorium Local Edge Streaming resolution
+  const initialUseEdge = Boolean(
+    edgeVideoUrl && (preferredRoute === "LAN_EDGE" || !videoUrl)
+  );
+  const [activeSourceType, setActiveSourceType] = useState<"LAN_EDGE" | "WAN_CDN">(
+    initialUseEdge ? "LAN_EDGE" : "WAN_CDN"
+  );
+  const [activeStreamUrl, setActiveStreamUrl] = useState<string | undefined>(
+    initialUseEdge && edgeVideoUrl ? edgeVideoUrl : (videoUrl || edgeVideoUrl || undefined)
+  );
+  const [edgeFailed, setEdgeFailed] = useState<boolean>(false);
+  const [showWifiTip, setShowWifiTip] = useState<boolean>(false);
+
+  // Fallback handler if local edge server is unreachable
+  const handleStreamError = useCallback(() => {
+    if (activeSourceType === "LAN_EDGE" && videoUrl) {
+      console.warn(
+        "[POTTYPLAY-STREAM] Cinema LAN edge server unreachable. Seamlessly failing over to public WAN cloud CDN."
+      );
+      setEdgeFailed(true);
+      setActiveSourceType("WAN_CDN");
+      setActiveStreamUrl(videoUrl);
+      if (venueWifiSsid) {
+        setShowWifiTip(true);
+      }
+    }
+  }, [activeSourceType, videoUrl, venueWifiSsid]);
+
+  // Keep activeStreamUrl in sync if props update
+  useEffect(() => {
+    if (!edgeFailed && edgeVideoUrl && preferredRoute === "LAN_EDGE") {
+      setActiveSourceType("LAN_EDGE");
+      setActiveStreamUrl(edgeVideoUrl);
+    } else if (!edgeFailed && edgeVideoUrl && !videoUrl) {
+      setActiveSourceType("LAN_EDGE");
+      setActiveStreamUrl(edgeVideoUrl);
+    } else if (videoUrl) {
+      if (edgeFailed || preferredRoute === "WAN_CDN" || !edgeVideoUrl) {
+        setActiveSourceType("WAN_CDN");
+        setActiveStreamUrl(videoUrl);
+      }
+    }
+  }, [videoUrl, edgeVideoUrl, preferredRoute, edgeFailed]);
 
   // Web Audio Synthesizer
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -189,6 +243,117 @@ export function CinemaCanvasPlayer({
     };
     setInternalTime(positionSeconds);
   }, [positionSeconds, isPaused]);
+
+  // Adaptive Stream Engine (HLS.js / Native Video) binding
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !activeStreamUrl) return;
+
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+    }
+
+    const isHls =
+      activeStreamUrl.includes(".m3u8") ||
+      activeStreamUrl.includes("/hls/") ||
+      activeStreamUrl.includes("application/vnd.apple.mpegurl");
+
+    const attachHlsInstance = (HlsConstructor: any) => {
+      try {
+        const hls = new HlsConstructor({
+          enableWorker: true,
+          lowLatencyMode: true,
+          backBufferLength: 30,
+        });
+        hlsRef.current = hls;
+        hls.loadSource(activeStreamUrl);
+        hls.attachMedia(video);
+
+        hls.on(HlsConstructor.Events.MANIFEST_PARSED, () => {
+          if (!isPaused && !captureBlocked) {
+            video.play().catch(() => {});
+          }
+          if (Math.abs(video.currentTime - positionSeconds) > 1.2) {
+            video.currentTime = positionSeconds;
+          }
+        });
+
+        hls.on(HlsConstructor.Events.ERROR, (_: any, data: any) => {
+          if (data && data.fatal) {
+            console.warn("[POTTYPLAY-HLS] Stream network/media error:", data.type);
+            handleStreamError();
+          }
+        });
+      } catch (err) {
+        console.warn("[POTTYPLAY-HLS] Instance creation failed:", err);
+        handleStreamError();
+      }
+    };
+
+    if (isHls) {
+      if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        // Native HLS for Safari (iOS/macOS)
+        video.src = activeStreamUrl;
+      } else if (typeof window !== "undefined" && (window as any).Hls && (window as any).Hls.isSupported()) {
+        attachHlsInstance((window as any).Hls);
+      } else if (typeof document !== "undefined") {
+        // Load HLS.js dynamically for desktop Chrome/Firefox/Edge
+        const scriptId = "hls-js-engine";
+        let script = document.getElementById(scriptId) as HTMLScriptElement | null;
+        if (!script) {
+          script = document.createElement("script");
+          script.id = scriptId;
+          script.src = "https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js";
+          script.async = true;
+          document.head.appendChild(script);
+        }
+
+        const onScriptLoad = () => {
+          if ((window as any).Hls && (window as any).Hls.isSupported()) {
+            attachHlsInstance((window as any).Hls);
+          } else {
+            video.src = activeStreamUrl;
+          }
+        };
+
+        if ((window as any).Hls) {
+          onScriptLoad();
+        } else {
+          script.addEventListener("load", onScriptLoad, { once: true });
+        }
+      } else {
+        video.src = activeStreamUrl;
+      }
+    } else {
+      // Standard MP4 / WebM progressive video stream
+      video.src = activeStreamUrl;
+    }
+
+    return () => {
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+    };
+  }, [activeStreamUrl, handleStreamError, isPaused, captureBlocked, positionSeconds]);
+
+  // Synchronize playback timeline, drift compensation, and paused states
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !activeStreamUrl) return;
+
+    if (isPaused || captureBlocked) {
+      video.pause();
+    } else {
+      video.play().catch(() => {});
+    }
+
+    const drift = Math.abs(video.currentTime - positionSeconds);
+    if (drift > 1.2) {
+      video.currentTime = positionSeconds;
+    }
+  }, [positionSeconds, isPaused, captureBlocked, activeStreamUrl]);
 
   // Frame animation loop
   useEffect(() => {
@@ -422,11 +587,21 @@ export function CinemaCanvasPlayer({
     >
       {/* 16:9 Aspect Ratio Canvas */}
       <div className="relative w-full pb-[56.25%] bg-black">
+        {activeStreamUrl && (
+          <video
+            ref={videoRef}
+            src={activeStreamUrl}
+            playsInline
+            muted={isMuted}
+            onError={handleStreamError}
+            className="absolute inset-0 w-full h-full object-contain"
+          />
+        )}
         <canvas
           ref={canvasRef}
           width={640}
           height={360}
-          className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+          className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10"
         />
 
         {/* Studio Content Capture Block Warning Overlay */}
@@ -461,7 +636,41 @@ export function CinemaCanvasPlayer({
           <ShieldCheck className="w-3 h-3 text-emerald-400" />
           <span>DRM PROTECTED &bull; ANTI-CAPTURE ACTIVE</span>
         </div>
+
+        {/* In-Auditorium Network Routing Pill */}
+        <div className="absolute top-2.5 right-2.5 z-10 flex items-center space-x-1.5 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-neutral-700/60 text-[10px] text-neutral-300 font-mono pointer-events-none">
+          {activeSourceType === "LAN_EDGE" ? (
+            <>
+              <Wifi className="w-3 h-3 text-emerald-400" />
+              <span className="text-emerald-300 font-bold">CINEMA LAN EDGE</span>
+            </>
+          ) : (
+            <>
+              <Globe className="w-3 h-3 text-sky-400" />
+              <span className="text-neutral-300">CLOUD CDN</span>
+            </>
+          )}
+        </div>
       </div>
+
+      {/* In-Auditorium Local Wi-Fi Guidance Advisory */}
+      {showWifiTip && venueWifiSsid && (
+        <div className="bg-amber-500/10 border-b border-amber-500/20 px-3 py-1.5 flex items-center justify-between text-[11px] text-amber-200">
+          <div className="flex items-center space-x-2">
+            <Wifi className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span>
+              Low cellular reception in restroom? Connect to theater Wi-Fi: <strong>{venueWifiSsid}</strong> for zero buffering.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowWifiTip(false)}
+            className="text-amber-400/80 hover:text-amber-200 ml-2 text-[10px] uppercase font-bold"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* Control Surface */}
       <div className="bg-neutral-950/95 border-t border-neutral-800/80 px-4 py-2.5 flex items-center justify-between text-xs">

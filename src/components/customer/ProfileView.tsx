@@ -18,6 +18,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { CustomerAuthSession } from "@/features/auth/customer-auth-service";
+import { GlassSurface } from "@/components/GlassSurface";
 
 interface ProfileViewProps {
   customer: CustomerAuthSession;
@@ -309,7 +310,7 @@ export function ProfileView({ customer, onUpdateCustomer }: ProfileViewProps) {
   return (
     <div className="space-y-6 text-left max-w-2xl mx-auto">
       {/* Header Banner */}
-      <div className="p-6 rounded-3xl bg-field border border-line shadow-card flex items-center space-x-4">
+      <GlassSurface variant="dock" className="p-6 border border-line shadow-card flex items-center space-x-4">
         <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center font-black text-xl flex-shrink-0">
           {customer.name ? customer.name.charAt(0).toUpperCase() : "U"}
         </div>
@@ -328,7 +329,7 @@ export function ProfileView({ customer, onUpdateCustomer }: ProfileViewProps) {
             </span>
           </div>
         </div>
-      </div>
+      </GlassSurface>
 
       {/* CARD 1: Full Name */}
       <div className="p-6 rounded-3xl bg-field border border-line shadow-card space-y-4">

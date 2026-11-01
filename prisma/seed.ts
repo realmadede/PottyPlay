@@ -12,9 +12,16 @@ import { hashPassword } from "../src/lib/crypto";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("Seeding PottyPlay production-ready database...");
+  if (process.env.NODE_ENV === "production" && process.env.ALLOW_PRODUCTION_SEED !== "true") {
+    console.error(
+      "[FATAL] PottyPlay database seeding is strictly blocked in production environments to prevent data loss. Set ALLOW_PRODUCTION_SEED=true if this is intentional."
+    );
+    process.exit(1);
+  }
 
-  // 1. Purge all existing demo data while preserving schema integrity
+  console.log("Seeding PottyPlay database fixtures...");
+
+  // 1. Purge existing test records while preserving schema integrity
   await prisma.auditEvent.deleteMany();
   await prisma.usageBillingEvent.deleteMany();
   await prisma.smsDeliveryAttempt.deleteMany();
@@ -32,6 +39,9 @@ async function main() {
 
   // 2. Provision Initial Platform Administrator
   const adminPassword = process.env.ADMIN_INITIAL_PASSWORD || "AdminPottyPlay2026!";
+  if (!process.env.ADMIN_INITIAL_PASSWORD) {
+    console.warn("[SECURITY-WARNING] Using default admin credentials. Configure ADMIN_INITIAL_PASSWORD in production.");
+  }
   const passwordHash = hashPassword(adminPassword);
 
   const admin = await prisma.adminUser.upsert({
@@ -65,7 +75,11 @@ async function main() {
   });
 
   // 4. Provision Operator Account for Cinema
-  const operatorPassword = hashPassword("Operator2026!");
+  const operatorPlainPassword = process.env.OPERATOR_INITIAL_PASSWORD || "Operator2026!";
+  if (!process.env.OPERATOR_INITIAL_PASSWORD) {
+    console.warn("[SECURITY-WARNING] Using default operator credentials. Configure OPERATOR_INITIAL_PASSWORD in production.");
+  }
+  const operatorPassword = hashPassword(operatorPlainPassword);
   const operator = await prisma.operatorUser.create({
     data: {
       cinemaId: cinema.id,

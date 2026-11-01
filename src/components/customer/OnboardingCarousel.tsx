@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Film, Ticket, Clock, ShieldCheck, ArrowRight, Check } from "lucide-react";
+import { GlassSurface } from "@/components/GlassSurface";
 
 interface OnboardingCarouselProps {
   onComplete: () => void;
@@ -75,9 +76,9 @@ export function OnboardingCarousel({ onComplete }: OnboardingCarouselProps) {
       {/* Center Animated Slide Panel */}
       <div className="max-w-md mx-auto w-full text-center flex flex-col items-center my-auto">
         {/* Animated Icon Housing */}
-        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-field text-amber-400 flex items-center justify-center shadow-card border border-line mb-8 transition-transform duration-300">
+        <GlassSurface variant="dock" className="w-20 h-20 sm:w-24 sm:h-24 text-amber-400 flex items-center justify-center shadow-card border border-line mb-8 transition-transform duration-300">
           <Icon className="w-10 h-10 sm:w-12 sm:h-12" />
-        </div>
+        </GlassSurface>
 
         {/* Badge */}
         <span className="px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 text-[11px] font-bold uppercase tracking-wider mb-4 border border-amber-500/20">

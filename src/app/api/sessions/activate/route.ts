@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { SessionService } from "@/features/sessions/session-service";
+import { extractClientIp } from "@/lib/edge-streaming";
 
 const activateSchema = z
   .object({
@@ -37,12 +38,14 @@ export async function POST(req: NextRequest) {
       parsed.data.claimToken ||
       parsed.data.ticketNumber;
 
+    const clientIp = extractClientIp(req);
     const result = await SessionService.activateSession({
       ticketNumber: identifier,
       claimToken: parsed.data.claimToken,
       challengeId: parsed.data.challengeId,
       phoneNumber: parsed.data.phoneNumber,
       deviceInfo,
+      clientIp,
     });
 
     if (!result.success) {

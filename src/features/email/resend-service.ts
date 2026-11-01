@@ -30,6 +30,12 @@ export class ResendEmailService {
     const { to, subject, html, text } = params;
 
     if (!this.resendClient) {
+      if (process.env.NODE_ENV === "production") {
+        return {
+          success: false,
+          error: "Resend email provider is not configured in production.",
+        };
+      }
       // Safe fallback for testing and development environments
       console.log(`[RESEND-SIMULATED] To: ${to} | Subject: ${subject} | Body: ${text || html.slice(0, 100)}`);
       return {
@@ -74,7 +80,9 @@ export class ResendEmailService {
    * Dispatches two-stage email verification code to a registering customer.
    */
   async sendCustomerEmailVerification(to: string, code: string): Promise<SendEmailResult> {
-    console.log(`[EMAIL-VERIFICATION] Code for ${to}: ${code} (expires in 15m)`);
+    if (process.env.NODE_ENV !== "production") {
+      console.log(`[EMAIL-VERIFICATION] Code for ${to}: ${code} (expires in 15m)`);
+    }
 
     return this.sendEmail({
       to,
@@ -99,7 +107,9 @@ export class ResendEmailService {
    * Dispatches password reset token to customer.
    */
   async sendCustomerPasswordReset(to: string, resetToken: string): Promise<SendEmailResult> {
-    console.log(`[PASSWORD-RESET] Token for ${to}: ${resetToken}`);
+    if (process.env.NODE_ENV !== "production") {
+      console.log(`[PASSWORD-RESET] Token for ${to}: ${resetToken}`);
+    }
 
     return this.sendEmail({
       to,
@@ -124,7 +134,9 @@ export class ResendEmailService {
    * Dispatches email change verification code.
    */
   async sendEmailChangeVerification(to: string, code: string): Promise<SendEmailResult> {
-    console.log(`[EMAIL-CHANGE-VERIFICATION] Code for ${to}: ${code} (expires in 15m)`);
+    if (process.env.NODE_ENV !== "production") {
+      console.log(`[EMAIL-CHANGE-VERIFICATION] Code for ${to}: ${code} (expires in 15m)`);
+    }
 
     return this.sendEmail({
       to,
@@ -149,7 +161,9 @@ export class ResendEmailService {
    * Dispatches operator password reset instructions.
    */
   async sendOperatorPasswordReset(to: string, resetToken: string): Promise<SendEmailResult> {
-    console.log(`[OPERATOR-PASSWORD-RESET] Token for ${to}: ${resetToken} (expires in 15m)`);
+    if (process.env.NODE_ENV !== "production") {
+      console.log(`[OPERATOR-PASSWORD-RESET] Token for ${to}: ${resetToken} (expires in 15m)`);
+    }
 
     return this.sendEmail({
       to,
@@ -212,9 +226,11 @@ export class ResendEmailService {
     screeningServer: string;
   }): Promise<SendEmailResult> {
     const internalEmail = process.env.PARTNERSHIPS_EMAIL || "partnerships@pottyplay.internal";
-    console.log(
-      `[PARTNER-INQUIRY-EMAIL] To: ${internalEmail} | Subject: New Cinema Partnership Inquiry from ${data.organizationName} (${data.city}, ${data.country}) | Contact: ${data.contactName} <${data.contactEmail}>, Phone: ${data.contactPhone} | Infrastructure: ${data.screensCount} screens, POS: ${data.ticketingSystem}, TMS: ${data.screeningServer}`
-    );
+    if (process.env.NODE_ENV !== "production") {
+      console.log(
+        `[PARTNER-INQUIRY-EMAIL] To: ${internalEmail} | Subject: New Cinema Partnership Inquiry from ${data.organizationName} (${data.city}, ${data.country}) | Contact: ${data.contactName} <${data.contactEmail}>, Phone: ${data.contactPhone} | Infrastructure: ${data.screensCount} screens, POS: ${data.ticketingSystem}, TMS: ${data.screeningServer}`
+      );
+    }
 
     return this.sendEmail({
       to: internalEmail,
@@ -248,9 +264,11 @@ export class ResendEmailService {
     expiresAt: Date;
   }): Promise<SendEmailResult> {
     const { to, organizationName, inviteUrl, expiresInHours, expiresAt } = params;
-    console.log(
-      `[INVITATION-EMAIL] To: ${to} | Subject: PottyPlay Official Cinema Registration Invitation | Link: ${inviteUrl} (Expires in ${expiresInHours}h at ${expiresAt.toISOString()})`
-    );
+    if (process.env.NODE_ENV !== "production") {
+      console.log(
+        `[INVITATION-EMAIL] To: ${to} | Subject: PottyPlay Official Cinema Registration Invitation | Link: ${inviteUrl} (Expires in ${expiresInHours}h at ${expiresAt.toISOString()})`
+      );
+    }
 
     return this.sendEmail({
       to,

@@ -2,6 +2,9 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { CinemaCanvasPlayer } from "@/components/CinemaCanvasPlayer";
+import { GlassSurface } from "@/components/GlassSurface";
+import { ReportIssueModal } from "@/components/customer/ReportIssueModal";
+import { NativeMobile } from "@/lib/native-mobile";
 import {
   Clock,
   Ticket,
@@ -13,6 +16,8 @@ import {
   Loader2,
   ShieldAlert,
   LogOut,
+  Wifi,
+  MessageSquare,
 } from "lucide-react";
 
 interface ActiveSessionData {
@@ -31,6 +36,11 @@ interface ActiveSessionData {
     durationSeconds: number;
     isPaused: boolean;
     videoUrl?: string;
+    primaryVideoUrl?: string;
+    edgeVideoUrl?: string | null;
+    venueWifiSsid?: string | null;
+    preferredRoute?: "LAN_EDGE" | "WAN_CDN";
+    isLanClient?: boolean;
   };
 }
 
@@ -59,6 +69,7 @@ export function BathroomView() {
 
   // Manual ticket entry fallback if no ticket pre-linked
   const [manualTicket, setManualTicket] = useState("");
+  const [reportModalOpen, setReportModalOpen] = useState(false);
 
   const checkStatus = useCallback(async () => {
     try {
@@ -88,23 +99,40 @@ export function BathroomView() {
     checkStatus();
   }, [checkStatus]);
 
-  // Timer countdown countdown for active session
+  // Timer countdown countdown for active session with native wake-lock and break warnings
   useEffect(() => {
     if (!activeSession || remainingTimer <= 0) return;
+
+    // Acquire wake lock to keep display active in restroom
+    NativeMobile.requestWakeLock();
 
     const interval = setInterval(() => {
       setRemainingTimer((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
+          NativeMobile.releaseWakeLock();
           setActiveSession(null);
           checkStatus();
           return 0;
         }
+
+        // 12-Minute Haptic Break Chime (180s left)
+        if (prev === 180) {
+          NativeMobile.triggerHaptic("medium");
+        }
+        // 14-Minute Urgent Haptic Warning (60s left)
+        if (prev === 60) {
+          NativeMobile.triggerHaptic("heavy");
+        }
+
         return prev - 1;
       });
     }, 1000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      NativeMobile.releaseWakeLock();
+    };
   }, [activeSession, remainingTimer, checkStatus]);
 
   // Periodic authoritative synchronization with cinema timeline
@@ -223,7 +251,7 @@ export function BathroomView() {
       {/* 1. Active Session State: Display Synchronized Canvas Player */}
       {!loading && activeSession && (
         <div className="space-y-4">
-          <div className="p-4 rounded-3xl glass-ios26 glass-ios26-rim glass-ios26-glint text-ink flex items-center justify-between shadow-xl">
+          <GlassSurface variant="dock" className="p-4 border border-white/10 text-ink flex items-center justify-between shadow-xl">
             <div className="flex items-center space-x-3">
               <span className="w-3 h-3 rounded-full bg-amber-400 animate-pulse" />
               <div>
@@ -244,7 +272,7 @@ export function BathroomView() {
                 {formatTime(remainingTimer)}
               </div>
             </div>
-          </div>
+          </GlassSurface>
 
           {/* Synchronized Player Canvas */}
           <div className="rounded-3xl overflow-hidden border border-line bg-bg shadow-elevated">
@@ -256,8 +284,22 @@ export function BathroomView() {
               positionSeconds={activeSession.screening.playbackPositionSeconds}
               durationSeconds={activeSession.screening.durationSeconds}
               isPaused={activeSession.screening.isPaused}
+              videoUrl={activeSession.screening.videoUrl}
+              edgeVideoUrl={activeSession.screening.edgeVideoUrl}
+              venueWifiSsid={activeSession.screening.venueWifiSsid}
+              preferredRoute={activeSession.screening.preferredRoute}
             />
           </div>
+
+          {/* In-Auditorium Local Wi-Fi Guidance */}
+          {activeSession.screening.venueWifiSsid && (
+            <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-xs flex items-center space-x-3">
+              <Wifi className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>
+                Low cellular signal in restroom? Connect to Wi-Fi: <strong>{activeSession.screening.venueWifiSsid}</strong> for zero buffering.
+              </span>
+            </div>
+          )}
 
           <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -272,12 +314,34 @@ export function BathroomView() {
               Return to Auditorium
             </button>
           </div>
+
+          {/* Issue Reporting Link */}
+          <div className="text-center pt-1">
+            <button
+              type="button"
+              onClick={() => setReportModalOpen(true)}
+              className="text-xs text-muted hover:text-amber-400 transition-colors inline-flex items-center space-x-1.5"
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span>Report playback issue or buffering</span>
+            </button>
+          </div>
         </div>
       )}
 
+      {/* Report Issue Modal */}
+      <ReportIssueModal
+        isOpen={reportModalOpen}
+        onClose={() => setReportModalOpen(false)}
+        screeningId={activeSession?.screening?.id || eligibleTicket?.screening?.id}
+        screeningTitle={activeSession?.screening?.title || eligibleTicket?.screening?.title}
+        ticketNumber={activeSession?.ticketNumber || eligibleTicket?.ticketNumber}
+        cinemaId={activeSession?.screening?.id ? undefined : eligibleTicket?.screening?.id}
+      />
+
       {/* 2. Inactive Session: Eligible Ticket Available */}
       {!loading && !activeSession && eligibleTicket && (
-        <div className="p-6 sm:p-8 rounded-3xl bg-field border border-line shadow-card space-y-6">
+        <GlassSurface variant="dock" className="p-6 sm:p-8 border border-line shadow-card space-y-6">
           <div className="flex items-center justify-between pb-4 border-b border-line">
             <div className="flex items-center space-x-2">
               <Ticket className="w-5 h-5 text-amber-400" />
@@ -337,12 +401,12 @@ export function BathroomView() {
               No QR re-scan or OTP required. Stream connects directly to auditorium projection feed.
             </p>
           </div>
-        </div>
+        </GlassSurface>
       )}
 
       {/* 3. Inactive Session: No Pre-Linked Ticket -> Enter Barcode */}
       {!loading && !activeSession && !eligibleTicket && (
-        <div className="p-6 sm:p-8 rounded-3xl bg-field border border-line shadow-card space-y-5">
+        <GlassSurface variant="dock" className="p-6 sm:p-8 border border-line shadow-card space-y-5">
           <div className="text-center max-w-sm mx-auto">
             <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mx-auto mb-3">
               <Ticket className="w-6 h-6" />
@@ -384,7 +448,7 @@ export function BathroomView() {
           <div className="p-3 rounded-xl bg-bg border border-line text-[11px] text-muted text-center">
             Ticket barcodes are located on your printed cinema ticket stub or mobile booking pass.
           </div>
-        </div>
+        </GlassSurface>
       )}
     </div>
   );

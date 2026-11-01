@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { BrandLogo } from "@/components/BrandLogo";
+import { GlassSurface } from "@/components/GlassSurface";
 import {
   ShieldAlert,
   Lock,
@@ -22,6 +23,8 @@ import {
   EyeOff,
   Plus,
   X,
+  Film,
+  ShieldCheck,
 } from "lucide-react";
 
 export default function AdminPortalPage() {
@@ -36,9 +39,26 @@ export default function AdminPortalPage() {
   const [data, setData] = useState<any>(null);
   const [loadingDashboard, setLoadingDashboard] = useState(false);
   const [activeTab, setActiveTab] = useState<
-    "partners" | "accounting" | "cinemas" | "sessions" | "audit"
+    "partners" | "accounting" | "cinemas" | "rights" | "sessions" | "audit"
   >("partners");
   const [actionNotice, setActionNotice] = useState<string | null>(null);
+
+  // Studio Rights State
+  const [rights, setRights] = useState<any[]>([]);
+  const [loadingRights, setLoadingRights] = useState(false);
+  const [showAddRightsModal, setShowAddRightsModal] = useState(false);
+  const [savingRights, setSavingRights] = useState(false);
+  const [rightsError, setRightsError] = useState<string | null>(null);
+
+  // Studio Rights Form
+  const [rightsCinemaId, setRightsCinemaId] = useState("");
+  const [rightsAssetTitle, setRightsAssetTitle] = useState("");
+  const [rightsVideoUrl, setRightsVideoUrl] = useState("");
+  const [rightsLicenseType, setRightsLicenseType] = useState("THEATRICAL_COMPANION");
+  const [rightsLicenseSource, setRightsLicenseSource] = useState("Synthesized Studio Rights License");
+  const [rightsDurationMin, setRightsDurationMin] = useState(120);
+  const [rightsValidFrom, setRightsValidFrom] = useState(() => new Date().toISOString().slice(0, 16));
+  const [rightsValidUntil, setRightsValidUntil] = useState(() => new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 16));
 
   // Register Cinema Circuit Modal State
   const [showRegisterCinemaModal, setShowRegisterCinemaModal] = useState(false);
@@ -88,11 +108,78 @@ export default function AdminPortalPage() {
     }
   };
 
+  const fetchRights = async (authToken: string) => {
+    setLoadingRights(true);
+    try {
+      const res = await fetch("/api/admin/rights", {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.rights) {
+          setRights(json.rights);
+        }
+      }
+    } catch (err) {
+      console.error("Rights fetch error:", err);
+    } finally {
+      setLoadingRights(false);
+    }
+  };
+
   useEffect(() => {
     if (token) {
       fetchDashboard(token);
+      if (activeTab === "rights") {
+        fetchRights(token);
+      }
     }
-  }, [token]);
+  }, [token, activeTab]);
+
+  const handleGrantRights = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token || !rightsCinemaId || !rightsAssetTitle.trim() || !rightsVideoUrl.trim()) return;
+    setSavingRights(true);
+    setRightsError(null);
+
+    try {
+      const res = await fetch("/api/admin/rights", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          cinemaId: rightsCinemaId,
+          asset: {
+            title: rightsAssetTitle.trim(),
+            videoUrl: rightsVideoUrl.trim(),
+            durationSeconds: Math.max(60, rightsDurationMin * 60),
+            licenseType: rightsLicenseType.trim(),
+            licenseSource: rightsLicenseSource.trim(),
+          },
+          validFrom: new Date(rightsValidFrom).toISOString(),
+          validUntil: new Date(rightsValidUntil).toISOString(),
+          maxSessionDurationSeconds: 900,
+        }),
+      });
+
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setActionNotice("Studio content rights authorization granted successfully.");
+        setShowAddRightsModal(false);
+        setRightsAssetTitle("");
+        setRightsVideoUrl("");
+        fetchRights(token);
+      } else {
+        setRightsError(json.error || "Failed to grant rights authorization.");
+      }
+    } catch {
+      setRightsError("Network error while granting rights.");
+    } finally {
+      setSavingRights(false);
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -243,7 +330,7 @@ export default function AdminPortalPage() {
   if (!token) {
     return (
       <div className="min-h-screen bg-bg text-ink flex flex-col justify-center items-center p-4 selection:bg-amber-500 selection:text-neutral-950">
-        <div className="w-full max-w-md glass-ios26 glass-ios26-rim glass-ios26-glint border border-white/20 rounded-3xl p-6 sm:p-8 shadow-card text-left">
+        <GlassSurface variant="dock" className="w-full max-w-md border border-white/20 p-6 sm:p-8 shadow-card text-left">
           <div className="text-center pb-6 border-b border-line">
             <div className="w-12 h-12 rounded-2xl bg-bg border border-line flex items-center justify-center mx-auto mb-3 text-amber-400">
               <Lock className="w-6 h-6" />
@@ -333,7 +420,7 @@ export default function AdminPortalPage() {
               Security Notice: Unauthorized access attempts are monitored and logged with origin IP.
             </p>
           </form>
-        </div>
+        </GlassSurface>
       </div>
     );
   }
@@ -384,7 +471,7 @@ export default function AdminPortalPage() {
 
         {/* Global Financial & Accounting KPI Ledger */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          <div className="glass-ios26 glass-ios26-rim glass-ios26-glint p-3.5 rounded-2xl border border-white/10 shadow-card">
+          <GlassSurface variant="panel" className="p-3.5 border border-white/10 shadow-card">
             <span className="text-[10px] font-bold text-muted uppercase">
               Total Usage
             </span>
@@ -392,9 +479,9 @@ export default function AdminPortalPage() {
               {data?.accounting.totalUsageEvents ?? 0}
             </div>
             <span className="text-[10px] text-muted">Break activations</span>
-          </div>
+          </GlassSurface>
 
-          <div className="glass-ios26 glass-ios26-rim glass-ios26-glint p-3.5 rounded-2xl border border-white/10 shadow-card">
+          <GlassSurface variant="panel" className="p-3.5 border border-white/10 shadow-card">
             <span className="text-[10px] font-bold text-muted uppercase">
               Billable Breaks
             </span>
@@ -402,9 +489,9 @@ export default function AdminPortalPage() {
               {data?.accounting.billableUsageEvents ?? 0}
             </div>
             <span className="text-[10px] text-muted">Qualifying sessions</span>
-          </div>
+          </GlassSurface>
 
-          <div className="glass-ios26 glass-ios26-rim glass-ios26-glint p-3.5 rounded-2xl border border-white/10 shadow-card">
+          <GlassSurface variant="panel" className="p-3.5 border border-white/10 shadow-card">
             <span className="text-[10px] font-bold text-muted uppercase">
               Accrued Charges
             </span>
@@ -413,9 +500,9 @@ export default function AdminPortalPage() {
               <span className="text-[10px] font-normal text-muted">TZS</span>
             </div>
             <span className="text-[10px] text-emerald-400 font-semibold">Ledger recorded</span>
-          </div>
+          </GlassSurface>
 
-          <div className="glass-ios26 glass-ios26-rim glass-ios26-glint p-3.5 rounded-2xl border border-white/10 shadow-card">
+          <GlassSurface variant="panel" className="p-3.5 border border-white/10 shadow-card">
             <span className="text-[10px] font-bold text-muted uppercase">
               Invoiced Amount
             </span>
@@ -423,9 +510,9 @@ export default function AdminPortalPage() {
               0 <span className="text-[10px] font-normal text-muted">TZS</span>
             </div>
             <span className="text-[10px] text-muted">Cycle settlement</span>
-          </div>
+          </GlassSurface>
 
-          <div className="glass-ios26 glass-ios26-rim glass-ios26-glint p-3.5 rounded-2xl border border-white/10 shadow-card">
+          <GlassSurface variant="panel" className="p-3.5 border border-white/10 shadow-card">
             <span className="text-[10px] font-bold text-muted uppercase">
               Payments Received
             </span>
@@ -433,9 +520,9 @@ export default function AdminPortalPage() {
               0 <span className="text-[10px] font-normal text-muted">TZS</span>
             </div>
             <span className="text-[10px] text-muted">Separated ledger</span>
-          </div>
+          </GlassSurface>
 
-          <div className="glass-ios26 glass-ios26-rim glass-ios26-glint p-3.5 rounded-2xl border border-white/10 shadow-card">
+          <GlassSurface variant="panel" className="p-3.5 border border-white/10 shadow-card">
             <span className="text-[10px] font-bold text-muted uppercase">
               Outstanding
             </span>
@@ -444,7 +531,7 @@ export default function AdminPortalPage() {
               <span className="text-[10px] font-normal text-muted">TZS</span>
             </div>
             <span className="text-[10px] text-amber-400/80">Pending settlement</span>
-          </div>
+          </GlassSurface>
         </div>
 
         {/* Tab Navigation */}
@@ -452,6 +539,7 @@ export default function AdminPortalPage() {
           {[
             { id: "partners", label: "Partner Applications", count: data?.partnerApplications?.length },
             { id: "cinemas", label: "Approved Cinemas", count: data?.cinemas?.length },
+            { id: "rights", label: "Studio Rights & Assets", count: rights?.length ?? null },
             { id: "sessions", label: "Active & Past Sessions", count: data?.sessions?.length },
             { id: "accounting", label: "Billing Ledger", count: data?.billingEvents?.length },
             { id: "audit", label: "Audit & Security Logs", count: data?.auditEvents?.length },
@@ -638,6 +726,101 @@ export default function AdminPortalPage() {
                       </td>
                     </tr>
                   ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TAB: Content Assets & Studio Rights */}
+        {activeTab === "rights" && (
+          <div className="bg-field rounded-2xl border border-line overflow-hidden shadow-card">
+            <div className="p-4 border-b border-line flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <span className="font-bold uppercase tracking-wider text-muted">
+                  Content Assets & Studio Rights Authorizations
+                </span>
+                <p className="text-[11px] text-muted mt-0.5">
+                  Exhibitor licensing windows authorizing companion video playback across verified cinema auditoriums
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAddRightsModal(true)}
+                className="py-2 px-3.5 rounded-xl text-xs font-bold bg-amber-500 text-neutral-950 hover:bg-amber-400 flex items-center space-x-1.5 transition-all shadow-sm cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Authorize Studio Rights</span>
+              </button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-bg text-muted border-b border-line text-[11px] font-bold uppercase">
+                  <tr>
+                    <th className="p-3">Film / Content Title</th>
+                    <th className="p-3">License Type</th>
+                    <th className="p-3">Authorized Cinema</th>
+                    <th className="p-3">Licensing Window</th>
+                    <th className="p-3">Max Break Limit</th>
+                    <th className="p-3">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-line">
+                  {rights?.map((r: any) => {
+                    const matchedCinema = data?.cinemas?.find((c: any) => c.id === r.cinemaId);
+                    const isExpired = new Date(r.validUntil).getTime() < Date.now();
+                    return (
+                      <tr key={r.id} className="hover:bg-field-raised/50 transition-colors">
+                        <td className="p-3">
+                          <div className="font-bold text-ink">{r.contentAsset?.title || "Film Asset"}</div>
+                          <div className="font-mono text-[10px] text-muted">{r.contentAssetId}</div>
+                        </td>
+                        <td className="p-3">
+                          <span className="px-2 py-0.5 rounded-md bg-field-raised border border-line font-mono text-[10px] text-ink">
+                            {r.contentAsset?.licenseType || "THEATRICAL_COMPANION"}
+                          </span>
+                        </td>
+                        <td className="p-3 font-semibold text-ink">
+                          {matchedCinema ? matchedCinema.name : r.cinemaId}
+                        </td>
+                        <td className="p-3 font-mono text-[11px] text-muted">
+                          {new Date(r.validFrom).toLocaleDateString()} &ndash; {new Date(r.validUntil).toLocaleDateString()}
+                        </td>
+                        <td className="p-3 font-mono text-ink">
+                          {Math.round((r.maxSessionDurationSeconds || 900) / 60)} min
+                        </td>
+                        <td className="p-3">
+                          {isExpired ? (
+                            <span className="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-400 font-bold text-[10px] uppercase">
+                              Expired
+                            </span>
+                          ) : r.isAuthorized ? (
+                            <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 font-bold text-[10px] uppercase">
+                              Authorized
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-md bg-neutral-800 text-neutral-400 font-bold text-[10px] uppercase">
+                              Revoked
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {rights?.length === 0 && !loadingRights && (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-xs text-muted">
+                        No studio content rights authorizations provisioned yet. Click Authorize Studio Rights to provision a film cut for a cinema.
+                      </td>
+                    </tr>
+                  )}
+                  {loadingRights && (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-xs text-muted">
+                        <Loader2 className="w-5 h-5 animate-spin mx-auto text-amber-400" />
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -1024,6 +1207,185 @@ export default function AdminPortalPage() {
                     <>
                       <Building2 className="w-3.5 h-3.5" />
                       <span>Provision Cinema Circuit</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Authorize Studio Rights Modal Dialog */}
+      {showAddRightsModal && (
+        <div className="fixed inset-0 bg-neutral-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-field border border-line rounded-3xl max-w-lg w-full p-6 shadow-card space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2 text-amber-400">
+                <Film className="w-5 h-5" />
+                <h3 className="font-bold text-sm text-ink uppercase tracking-wider">
+                  Authorize Studio Exhibition Rights
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAddRightsModal(false)}
+                className="text-muted hover:text-ink cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <p className="text-xs text-muted leading-relaxed">
+              Provision exhibitor licensing windows authorizing companion video playback across verified cinema auditoriums.
+            </p>
+
+            {rightsError && (
+              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center space-x-2">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span>{rightsError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleGrantRights} className="space-y-3.5 text-xs">
+              <div>
+                <label className="block font-bold text-ink mb-1 uppercase tracking-wider text-[11px]">
+                  Target Cinema Circuit *
+                </label>
+                <select
+                  required
+                  value={rightsCinemaId}
+                  onChange={(e) => setRightsCinemaId(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-line bg-bg text-ink text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                >
+                  <option value="">Select an approved cinema circuit...</option>
+                  {data?.cinemas?.map((c: any) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} ({c.location})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-bold text-ink mb-1 uppercase tracking-wider text-[11px]">
+                  Film / Content Asset Title *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Serengeti Symphony - 4K Companion Cut"
+                  value={rightsAssetTitle}
+                  onChange={(e) => setRightsAssetTitle(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-line bg-bg text-ink text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-ink mb-1 uppercase tracking-wider text-[11px]">
+                  Master Stream Video URL *
+                </label>
+                <input
+                  type="url"
+                  required
+                  placeholder="https://commondatastorage.googleapis.com/.../sample.mp4"
+                  value={rightsVideoUrl}
+                  onChange={(e) => setRightsVideoUrl(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-line bg-bg text-ink text-xs font-mono focus:outline-none focus:ring-1 focus:ring-amber-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-ink mb-1 uppercase tracking-wider text-[11px]">
+                    License Type *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={rightsLicenseType}
+                    onChange={(e) => setRightsLicenseType(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-line bg-bg text-ink text-xs font-mono focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-ink mb-1 uppercase tracking-wider text-[11px]">
+                    Duration (Minutes) *
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min={1}
+                    max={600}
+                    value={rightsDurationMin}
+                    onChange={(e) => setRightsDurationMin(Number(e.target.value))}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-line bg-bg text-ink text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-ink mb-1 uppercase tracking-wider text-[11px]">
+                  License Grantor / Source
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={rightsLicenseSource}
+                  onChange={(e) => setRightsLicenseSource(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-line bg-bg text-ink text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-ink mb-1 uppercase tracking-wider text-[11px]">
+                    Valid From *
+                  </label>
+                  <input
+                    type="datetime-local"
+                    required
+                    value={rightsValidFrom}
+                    onChange={(e) => setRightsValidFrom(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-line bg-bg text-ink text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-ink mb-1 uppercase tracking-wider text-[11px]">
+                    Valid Until *
+                  </label>
+                  <input
+                    type="datetime-local"
+                    required
+                    value={rightsValidUntil}
+                    onChange={(e) => setRightsValidUntil(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-line bg-bg text-ink text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-3 border-t border-line">
+                <button
+                  type="button"
+                  onClick={() => setShowAddRightsModal(false)}
+                  className="py-2.5 px-4 rounded-xl border border-line text-muted hover:text-ink text-xs font-bold cursor-pointer transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingRights}
+                  className="py-2.5 px-5 rounded-xl font-bold text-xs bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-all flex items-center space-x-2 disabled:opacity-50 shadow-sm cursor-pointer"
+                >
+                  {savingRights ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Authorizing Rights...</span>
+                    </>
+                  ) : (
+                    <>
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>Grant Studio Rights</span>
                     </>
                   )}
                 </button>

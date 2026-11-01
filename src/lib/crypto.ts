@@ -8,12 +8,21 @@ export function generateOtpCode(): string {
   return code.toString();
 }
 
+function getDefaultOtpSalt(): string {
+  return (
+    process.env.OTP_HASH_SECRET ||
+    process.env.ADMIN_SESSION_SECRET ||
+    "pottyplay_otp_default_salt"
+  );
+}
+
 /**
  * Computes a SHA-256 hash of the OTP code with a salt.
  */
-export function hashOtp(code: string, salt: string = "pottyplay_otp_salt"): string {
+export function hashOtp(code: string, salt?: string): string {
+  const effectiveSalt = salt || getDefaultOtpSalt();
   return createHash("sha256")
-    .update(`${salt}:${code.trim()}`)
+    .update(`${effectiveSalt}:${code.trim()}`)
     .digest("hex");
 }
 
@@ -23,7 +32,7 @@ export function hashOtp(code: string, salt: string = "pottyplay_otp_salt"): stri
 export function verifyOtpHash(
   candidateCode: string,
   storedHash: string,
-  salt: string = "pottyplay_otp_salt"
+  salt?: string
 ): boolean {
   const candidateHash = hashOtp(candidateCode, salt);
   if (candidateHash.length !== storedHash.length) {
@@ -41,6 +50,14 @@ export function verifyOtpHash(
  */
 export function generateSessionToken(prefix: string = "pstk_"): string {
   return prefix + randomBytes(32).toString("hex");
+}
+
+/**
+ * Computes a SHA-256 hash of a bearer session token.
+ * Enforces zero-trust storage of session tokens at rest in PostgreSQL.
+ */
+export function hashToken(token: string): string {
+  return createHash("sha256").update(token.trim()).digest("hex");
 }
 
 import { hashSync as argon2HashSync, verifySync as argon2VerifySync } from "@node-rs/argon2";

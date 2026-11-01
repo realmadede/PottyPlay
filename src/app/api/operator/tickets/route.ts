@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { OperatorAuthService } from "@/features/operator/operator-auth-service";
+import { requireOperator, maskToken } from "@/lib/auth-guards";
+import { randomBytes } from "crypto";
 import { z } from "zod";
 import { TicketStatus } from "@prisma/client";
 
@@ -12,39 +13,15 @@ const createTicketSchema = z.object({
   claimToken: z.string().optional(),
 });
 
-async function getAuthorizedCinemaId(req: NextRequest): Promise<{ cinemaId: string | null; errorResponse?: NextResponse }> {
-  const authHeader = req.headers.get("authorization");
-  const cookieToken = req.cookies.get("pp_operator_token")?.value;
-  const token = authHeader?.replace("Bearer ", "") || cookieToken;
-
-  if (!token) {
-    return {
-      cinemaId: null,
-      errorResponse: NextResponse.json(
-        { success: false, error: "Unauthorized operator access." },
-        { status: 401 }
-      ),
-    };
+async function getAuthorizedCinemaId(
+  req: NextRequest,
+  requestedCinemaId?: string | null
+): Promise<{ cinemaId: string | null; errorResponse?: NextResponse }> {
+  const guard = await requireOperator(req, { requestedCinemaId });
+  if (!guard.ok) {
+    return { cinemaId: null, errorResponse: guard.response };
   }
-
-  const session = await OperatorAuthService.verifySession(token);
-  const isAdmin = token.startsWith("adm_");
-
-  if (session) {
-    return { cinemaId: session.cinemaId };
-  } else if (isAdmin) {
-    const { searchParams } = new URL(req.url);
-    const requestedCinemaId = searchParams.get("cinemaId") || req.headers.get("x-cinema-id");
-    return { cinemaId: requestedCinemaId };
-  }
-
-  return {
-    cinemaId: null,
-    errorResponse: NextResponse.json(
-      { success: false, error: "Invalid or expired operator session." },
-      { status: 401 }
-    ),
-  };
+  return { cinemaId: guard.ctx.cinemaId };
 }
 
 export async function GET(req: NextRequest) {
@@ -125,19 +102,28 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { cinemaId, errorResponse } = await getAuthorizedCinemaId(req);
+    const body = await req.json();
+    const { cinemaId, errorResponse } = await getAuthorizedCinemaId(
+      req,
+      typeof body?.cinemaId === "string" ? body.cinemaId : null
+    );
     if (errorResponse) return errorResponse;
 
-    const body = await req.json();
     const validated = createTicketSchema.parse(body);
 
-    const targetCinemaId = cinemaId || body.cinemaId;
+    const targetCinemaId = cinemaId;
+    if (!targetCinemaId) {
+      return NextResponse.json(
+        { success: false, error: "Target cinema ID required." },
+        { status: 400 }
+      );
+    }
 
     // Verify screening exists and belongs to cinema
     const screening = await prisma.screening.findFirst({
       where: {
         id: validated.screeningId,
-        ...(targetCinemaId ? { cinemaId: targetCinemaId } : {}),
+        cinemaId: targetCinemaId,
       },
       include: { screen: true, cinema: true },
     });
@@ -155,7 +141,7 @@ export async function POST(req: NextRequest) {
 
     const claimToken =
       validated.claimToken?.trim().toUpperCase() ||
-      `CLM-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+      `CLM-${randomBytes(8).toString("hex").toUpperCase()}`;
 
     const ticket = await prisma.demonstrationTicket.create({
       data: {
@@ -189,7 +175,7 @@ export async function POST(req: NextRequest) {
           ticketNumber: ticket.ticketNumber,
           customerName: ticket.customerName,
           seatNumber: ticket.seatNumber,
-          claimToken: ticket.claimToken,
+          claimToken: maskToken(ticket.claimToken),
           screeningTitle: screening.title,
         }),
       },

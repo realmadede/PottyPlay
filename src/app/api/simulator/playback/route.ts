@@ -3,6 +3,7 @@ import { z } from "zod";
 import { ScreeningService } from "@/features/screenings/screening-service";
 import { prisma } from "@/lib/db";
 import { ScreeningStatus } from "@prisma/client";
+import { requireOperator, maskPhoneNumber } from "@/lib/auth-guards";
 
 const simulatorActionSchema = z.object({
   screeningId: z.string().optional(),
@@ -19,20 +20,28 @@ const simulatorActionSchema = z.object({
 
 export async function GET(req: NextRequest) {
   try {
+    const guard = await requireOperator(req);
+    if (!guard.ok) return guard.response;
+
+    // Operators are bound to their own cinema; admins may optionally scope with ?cinemaId=
+    const scopeCinemaId = guard.ctx.cinemaId;
+    const cinemaScope = scopeCinemaId ? { cinemaId: scopeCinemaId } : {};
+
     const { searchParams } = new URL(req.url);
     const requestedScreeningId = searchParams.get("screeningId");
 
     let screening = null;
     if (requestedScreeningId) {
-      screening = await prisma.screening.findUnique({
-        where: { id: requestedScreeningId },
+      screening = await prisma.screening.findFirst({
+        where: { id: requestedScreeningId, ...cinemaScope },
       });
     }
 
     if (!screening) {
-      // Find currently playing or scheduled screening, or first screening
+      // Find currently playing or scheduled screening, or first screening within the allowed scope
       screening = await prisma.screening.findFirst({
         where: {
+          ...cinemaScope,
           status: { in: [ScreeningStatus.PLAYING, ScreeningStatus.PAUSED, ScreeningStatus.SCHEDULED] },
         },
         orderBy: { scheduledStart: "asc" },
@@ -40,6 +49,7 @@ export async function GET(req: NextRequest) {
 
       if (!screening) {
         screening = await prisma.screening.findFirst({
+          where: cinemaScope,
           orderBy: { scheduledStart: "asc" },
         });
       }
@@ -79,7 +89,7 @@ export async function GET(req: NextRequest) {
       id: s.id,
       seatNumber: s.ticket.seatNumber,
       customerName: s.ticket.customerName,
-      phoneNumber: s.phoneNumber || "",
+      phoneNumber: maskPhoneNumber(s.phoneNumber),
       startedAt: s.startedAt.toISOString(),
       expiresAt: s.expiresAt.toISOString(),
       status: s.status,
@@ -98,6 +108,9 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const guard = await requireOperator(req);
+    if (!guard.ok) return guard.response;
+
     const body = await req.json();
     const parsed = simulatorActionSchema.safeParse(body);
 
@@ -108,17 +121,39 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    let targetScreeningId = parsed.data.screeningId;
-    if (!targetScreeningId) {
-      const activeScreening = await prisma.screening.findFirst({
-        orderBy: { scheduledStart: "asc" },
-      });
-      targetScreeningId = activeScreening?.id;
+    const scopeCinemaId = guard.ctx.cinemaId;
+    const cinemaScope = scopeCinemaId ? { cinemaId: scopeCinemaId } : {};
+
+    const isSimulationAction =
+      parsed.data.action === "simulate_delay" ||
+      parsed.data.action === "simulate_sync_failure";
+    if (
+      isSimulationAction &&
+      process.env.NODE_ENV === "production" &&
+      process.env.ENABLE_SIMULATOR !== "true"
+    ) {
+      return NextResponse.json(
+        { error: "Simulation actions are disabled in this environment." },
+        { status: 403 }
+      );
     }
+
+    // The target screening must belong to the authenticated cinema
+    const targetScreening = parsed.data.screeningId
+      ? await prisma.screening.findFirst({
+          where: { id: parsed.data.screeningId, ...cinemaScope },
+          select: { id: true },
+        })
+      : await prisma.screening.findFirst({
+          where: cinemaScope,
+          orderBy: { scheduledStart: "asc" },
+          select: { id: true },
+        });
+    const targetScreeningId = targetScreening?.id;
 
     if (!targetScreeningId) {
       return NextResponse.json(
-        { error: "No demonstration screening available to control." },
+        { error: "No screening available to control." },
         { status: 404 }
       );
     }

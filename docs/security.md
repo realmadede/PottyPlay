@@ -61,3 +61,19 @@ The public cinema partnership application endpoint (`/api/partner/register`):
 Cinema venue registration is restricted to invite-only administration:
 - **Expiring Links**: Registration invitation links dispatched to verified circuits expire after 48 hours or immediately upon receipt of credentials in the database (single-use token enforcement).
 - **No Public Self-Registration**: The operator portal (`/operator`) provides strictly sign-in and password recovery flows; all cinema tenant provisioning is governed through platform administration (`/x`).
+
+## 8. Operator and Console API Access Control
+
+All operator-facing endpoints (`/api/operator/tickets`, `/api/operator/screenings`, `/api/operator/dashboard`, `/api/operator/revoke`, `/api/operator/pricing`, `/api/simulator/playback`) pass through the shared guard in `src/lib/auth-guards.ts`:
+
+- **Authentication**: a bearer token (or the `pp_operator_token` cookie) is required. A platform administrator token (`adm_...`) is accepted only when its HMAC signature, expiry and active database record are all valid; the prefix alone grants nothing.
+- **Tenant isolation**: an operator is always bound to the cinema stored on its session. Supplying a different cinema through the query string, the `x-cinema-id` header or the request body returns 403. Revoking or controlling a resource of another cinema is indistinguishable from it not existing (404).
+- **Roles**: pricing changes require the `MANAGER` or `ADMIN` operator role (or a platform administrator). Projectionists can control playback but not pricing.
+- **Privacy**: viewer phone numbers returned to the projection console are masked.
+- **Simulation actions** (`simulate_delay`, `simulate_sync_failure`) are rejected in production unless `ENABLE_SIMULATOR=true`.
+- **`/api/screenings/current`** has no anonymous access and no default screening: patrons receive only the screening of their own active session; operators receive screenings of their own cinema.
+- The projection console (`/cinema`) sends the operator token stored by the operator sign-in; without a session it shows a sign-in notice.
+
+### 8.1 Content rights are granted by platform administration only
+
+Operators cannot create content assets or grant themselves rights. Scheduling a screening requires an existing, authorized `RightsAuthorization` for that cinema that covers the scheduled start time. Rights are provisioned through `POST /api/admin/rights` (platform administrator token required), which also records a `CONTENT_RIGHTS_GRANTED` audit event.

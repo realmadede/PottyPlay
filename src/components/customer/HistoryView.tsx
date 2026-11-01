@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { History, Clock, MapPin, CheckCircle2, XCircle, AlertCircle, Loader2 } from "lucide-react";
+import { GlassSurface } from "@/components/GlassSurface";
 
 interface HistoryItem {
   id: string;
@@ -112,7 +113,7 @@ export function HistoryView() {
 
       {/* Truthful Empty State */}
       {!loading && history.length === 0 && (
-        <div className="p-10 rounded-3xl bg-field border border-line text-center space-y-3">
+        <GlassSurface variant="dock" className="p-10 border border-line text-center space-y-3">
           <div className="w-12 h-12 rounded-2xl bg-field-raised text-muted flex items-center justify-center mx-auto">
             <History className="w-6 h-6" />
           </div>
@@ -120,16 +121,17 @@ export function HistoryView() {
           <p className="text-xs text-muted max-w-sm mx-auto">
             You have not activated any companion viewing sessions yet. Completed bathroom breaks will be recorded here.
           </p>
-        </div>
+        </GlassSurface>
       )}
 
       {/* History List */}
       {!loading && history.length > 0 && (
         <div className="space-y-3">
           {history.map((item) => (
-            <div
+            <GlassSurface
               key={item.id}
-              className="p-5 rounded-2xl bg-field border border-line shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+              variant="panel"
+              className="p-5 border border-line shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-3"
             >
               <div className="space-y-1">
                 <div className="flex items-center space-x-2">
@@ -171,7 +173,7 @@ export function HistoryView() {
                   {item.status}
                 </span>
               </div>
-            </div>
+            </GlassSurface>
           ))}
 
           {/* Cursor pagination button */}

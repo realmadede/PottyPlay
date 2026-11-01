@@ -15,8 +15,13 @@ import {
   RefreshCw,
   Sparkles,
   Ticket,
+  Play,
+  Wifi,
 } from "lucide-react";
 import { CinemaCanvasPlayer } from "@/components/CinemaCanvasPlayer";
+import { GlassSurface } from "@/components/GlassSurface";
+import { ReportIssueModal } from "@/components/customer/ReportIssueModal";
+import { NativeMobile } from "@/lib/native-mobile";
 
 interface SessionData {
   sessionToken: string;
@@ -35,6 +40,11 @@ interface SessionData {
     durationSeconds: number;
     isPaused: boolean;
     videoUrl?: string;
+    primaryVideoUrl?: string;
+    edgeVideoUrl?: string | null;
+    venueWifiSsid?: string | null;
+    preferredRoute?: "LAN_EDGE" | "WAN_CDN";
+    isLanClient?: boolean;
   };
 }
 
@@ -79,6 +89,7 @@ function WatchExperience() {
   const [verifiedTicket, setVerifiedTicket] = useState<TicketVerificationData | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [reportModalOpen, setReportModalOpen] = useState<boolean>(false);
 
   // Countdown timer
   const [secondsRemaining, setSecondsRemaining] = useState<number>(0);
@@ -175,9 +186,12 @@ function WatchExperience() {
     }
   }, [initialToken, initialClaim, syncExistingSession, verifyEntitlement]);
 
-  // Periodic synchronization when session is active
+  // Periodic synchronization when session is active with native wake lock and break alerts
   useEffect(() => {
     if (!activeSession) return;
+
+    // Acquire native wake lock to keep display active
+    NativeMobile.requestWakeLock();
 
     setSecondsRemaining(activeSession.remainingSeconds);
     const sessionToken = activeSession.sessionToken;
@@ -186,9 +200,20 @@ function WatchExperience() {
       setSecondsRemaining((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
+          NativeMobile.releaseWakeLock();
           syncExistingSession(sessionToken);
           return 0;
         }
+
+        // 12-Minute Haptic Break Chime (180s left)
+        if (prev === 180) {
+          NativeMobile.triggerHaptic("medium");
+        }
+        // 14-Minute Urgent Haptic Warning (60s left)
+        if (prev === 60) {
+          NativeMobile.triggerHaptic("heavy");
+        }
+
         return prev - 1;
       });
     }, 1000);
@@ -200,12 +225,13 @@ function WatchExperience() {
 
     return () => {
       clearInterval(timer);
+      NativeMobile.releaseWakeLock();
       if (syncIntervalRef.current) clearInterval(syncIntervalRef.current);
     };
   }, [activeSession, syncExistingSession]);
 
   // Direct activation (one-time patron claim)
-  const handleDirectActivate = async () => {
+  const handleDirectActivate = async (skipPhone: boolean = false) => {
     if (!verifiedTicket) return;
 
     setLoading(true);
@@ -219,10 +245,11 @@ function WatchExperience() {
         identifier: verifiedTicket.claimToken || verifiedTicket.ticketNumber,
       };
 
-      if (otpChallengeId && otpSent) {
+      if (!skipPhone && otpChallengeId && otpSent) {
         payload.challengeId = otpChallengeId;
-      } else if (phoneInput.trim()) {
-        payload.phoneNumber = phoneInput.trim();
+        if (phoneInput.trim()) {
+          payload.phoneNumber = phoneInput.trim();
+        }
       }
 
       const res = await fetch("/api/sessions/activate", {
@@ -252,6 +279,11 @@ function WatchExperience() {
             durationSeconds: data.totalDurationSeconds || 1800,
             isPaused: false,
             videoUrl: data.videoUrl,
+            primaryVideoUrl: data.primaryVideoUrl,
+            edgeVideoUrl: data.edgeVideoUrl,
+            venueWifiSsid: data.venueWifiSsid,
+            preferredRoute: data.preferredRoute,
+            isLanClient: data.isLanClient,
           },
         });
         setSecondsRemaining(data.durationSeconds || 900);
@@ -365,8 +397,8 @@ function WatchExperience() {
     return (
       <main className="min-h-screen bg-bg text-ink flex flex-col justify-between selection:bg-amber-500 selection:text-neutral-950">
         {/* Top Session Bar */}
-        <header className="sticky top-0 z-30 glass-ios26 glass-ios26-rim glass-ios26-glint border-b border-white/10 px-4 py-3">
-          <div className="max-w-2xl mx-auto flex items-center justify-between">
+        <header className="sticky top-0 z-30 glass-ios26 glass-ios26-rim glass-ios26-glint border-b border-white/10 px-4 py-3 pt-safe">
+          <div className="max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto flex items-center justify-between">
             <div className="flex items-center space-x-2.5">
               <Image
                 src="/brand-mark.svg"
@@ -404,7 +436,7 @@ function WatchExperience() {
         </header>
 
         {/* Video Player & Synchronized Film Canvas */}
-        <section className="flex-1 max-w-2xl w-full mx-auto p-4 flex flex-col justify-center space-y-4">
+        <section className="flex-1 max-w-2xl md:max-w-3xl lg:max-w-4xl w-full mx-auto p-4 flex flex-col justify-center space-y-4">
           <div className="rounded-2xl overflow-hidden shadow-card border border-line">
             <CinemaCanvasPlayer
               positionSeconds={activeSession.screening.playbackPositionSeconds}
@@ -414,11 +446,32 @@ function WatchExperience() {
               cinemaName={activeSession.screening.cinemaName}
               seatNumber={activeSession.seatNumber}
               patronIdentity={activeSession.phoneNumber || activeSession.customerName || activeSession.ticketNumber}
+              videoUrl={activeSession.screening.videoUrl}
+              edgeVideoUrl={activeSession.screening.edgeVideoUrl}
+              venueWifiSsid={activeSession.screening.venueWifiSsid}
+              preferredRoute={activeSession.screening.preferredRoute}
             />
           </div>
 
+          {/* In-Auditorium Wi-Fi Guidance Card (for Basement & Concrete Restrooms) */}
+          {activeSession.screening.venueWifiSsid && (
+            <GlassSurface variant="panel" className="p-3.5 border border-line shadow-card flex items-center justify-between text-xs">
+              <div className="flex items-center space-x-2.5">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                  <Wifi className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="font-bold text-ink">Basement Restroom Faraday Zone?</p>
+                  <p className="text-[11px] text-muted">
+                    Connect to theater Wi-Fi <span className="font-mono text-amber-400 font-bold">{activeSession.screening.venueWifiSsid}</span> for zero-buffering local streaming.
+                  </p>
+                </div>
+              </div>
+            </GlassSurface>
+          )}
+
           {/* Sync & Theater Advisory Card */}
-          <div className="bg-field rounded-2xl p-4 border border-line shadow-card flex items-start justify-between space-x-3">
+          <GlassSurface variant="panel" className="p-4 border border-line shadow-card flex items-start justify-between space-x-3">
             <div className="space-y-1">
               <div className="flex items-center space-x-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
@@ -441,10 +494,10 @@ function WatchExperience() {
             >
               <RefreshCw className={`w-4 h-4 ${isSyncing ? "animate-spin" : ""}`} />
             </button>
-          </div>
+          </GlassSurface>
 
           {/* Re-entry Guidance */}
-          <div className="bg-field border border-line rounded-2xl p-3.5 flex items-center justify-between text-xs shadow-card">
+          <GlassSurface variant="panel" className="border border-line p-3.5 flex items-center justify-between text-xs shadow-card">
             <div className="flex items-center space-x-2.5">
               <ShieldCheck className="w-4 h-4 text-amber-400 flex-shrink-0" />
               <p className="text-ink leading-tight">
@@ -458,8 +511,28 @@ function WatchExperience() {
               <LogOut className="w-3.5 h-3.5" />
               <span>End Break</span>
             </button>
+          </GlassSurface>
+
+          {/* Issue Reporting Option */}
+          <div className="text-center pt-1">
+            <button
+              type="button"
+              onClick={() => setReportModalOpen(true)}
+              className="text-xs text-muted hover:text-amber-400 transition-colors"
+            >
+              Stream out of sync or buffering? Report issue to cinema
+            </button>
           </div>
         </section>
+
+        <ReportIssueModal
+          isOpen={reportModalOpen}
+          onClose={() => setReportModalOpen(false)}
+          screeningId={activeSession?.screening?.id}
+          screeningTitle={activeSession?.screening?.title}
+          ticketNumber={activeSession?.ticketNumber}
+          cinemaId={activeSession?.screening?.id}
+        />
 
         {/* Footer */}
         <footer className="text-center py-3 text-[11px] text-muted border-t border-line bg-bg">
@@ -475,7 +548,7 @@ function WatchExperience() {
   if (sessionExpiredReason) {
     return (
       <main className="min-h-screen bg-bg text-ink flex flex-col justify-center items-center p-4 selection:bg-amber-500 selection:text-neutral-950">
-        <div className="max-w-md w-full glass-ios26 glass-ios26-rim glass-ios26-glint rounded-3xl border border-white/10 p-6 shadow-card text-center space-y-4">
+        <GlassSurface variant="dock" className="max-w-md w-full border border-white/10 p-6 shadow-card text-center space-y-4">
           <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mx-auto">
             <Clock className="w-6 h-6" />
           </div>
@@ -506,7 +579,7 @@ function WatchExperience() {
           >
             Start New Break Session
           </button>
-        </div>
+        </GlassSurface>
       </main>
     );
   }
@@ -517,8 +590,8 @@ function WatchExperience() {
   return (
     <main className="min-h-screen bg-bg text-ink flex flex-col justify-between selection:bg-amber-500 selection:text-neutral-950">
       {/* Header */}
-      <header className="border-b border-white/10 glass-ios26 glass-ios26-rim glass-ios26-glint px-4 py-3 sticky top-0 z-20">
-        <div className="max-w-md mx-auto flex items-center justify-between">
+      <header className="border-b border-white/10 px-4 py-3 sticky top-0 z-20 bg-bg/40 backdrop-blur-sm">
+        <GlassSurface variant="pill" className="max-w-md mx-auto flex items-center justify-between px-4 py-2 border border-white/10">
           <Link href="/" className="flex items-center space-x-2">
             <Image
               src="/brand-mark.svg"
@@ -534,7 +607,7 @@ function WatchExperience() {
           <span className="text-xs font-mono font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
             Patron Companion
           </span>
-        </div>
+        </GlassSurface>
       </header>
 
       {/* Main Container */}
@@ -558,7 +631,7 @@ function WatchExperience() {
 
         {/* STEP 1: Enter Ticket or Claim Code (if not verified yet) */}
         {!verifiedTicket && (
-          <div className="glass-ios26 glass-ios26-rim glass-ios26-glint rounded-2xl border border-white/10 p-5 shadow-card space-y-4">
+          <GlassSurface variant="dock" className="border border-white/10 p-5 shadow-card space-y-4">
             <div className="space-y-2">
               <label
                 htmlFor="ticketCode"
@@ -596,17 +669,17 @@ function WatchExperience() {
                 </>
               )}
             </button>
-          </div>
+          </GlassSurface>
         )}
 
         {/* STEP 2: Entitlement Confirmed & Ready to Activate */}
         {verifiedTicket && (
-          <div className="glass-ios26 glass-ios26-rim glass-ios26-glint rounded-2xl border border-white/10 p-5 shadow-card space-y-4">
+          <GlassSurface variant="dock" className="border border-white/10 p-5 shadow-card space-y-4">
             {/* Ticket Summary Card */}
             <div className="bg-bg border border-amber-500/30 rounded-xl p-3.5 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                  Entitlement Verified
+                  Admission Verified
                 </span>
                 <span className="text-xs font-mono font-bold text-ink">
                   Seat {verifiedTicket.seatNumber}
@@ -626,137 +699,167 @@ function WatchExperience() {
               </div>
             </div>
 
-            {/* Mandatory Identity Verification Barrier */}
-            <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 space-y-1 text-left">
-              <div className="flex items-center space-x-1.5 font-bold text-amber-400">
-                <ShieldCheck className="w-4 h-4 flex-shrink-0" />
-                <span>Patron Identity Registration Required</span>
-              </div>
-              <p className="text-[11px] text-amber-200/80 leading-relaxed">
-                Studio anti-piracy policies require every companion stream to be registered to a verified telephone identity before authorization.
+            {/* Direct 1-Tap Stream Activation */}
+            <div className="space-y-2">
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => handleDirectActivate(true)}
+                className="w-full py-3.5 px-4 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-black text-sm rounded-xl disabled:opacity-50 transition-all shadow-sm flex items-center justify-center space-x-2 cursor-pointer"
+              >
+                {loading && !otpSent ? (
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    <span>Start Companion Break</span>
+                    <Play className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+              <p className="text-[11px] text-center text-muted">
+                Zero app install or SMS required. Instant frame-synchronized playback.
               </p>
             </div>
 
-            {/* Step A: Request Phone Verification Code */}
-            {!otpSent && (
-              <div className="space-y-3 pt-1 text-left">
-                <label
-                  htmlFor="phoneNumber"
-                  className="block text-xs font-bold uppercase tracking-wider text-muted"
-                >
-                  Patron Mobile Number *
-                </label>
-                <div className="flex space-x-2">
-                  <input
-                    id="phoneNumber"
-                    type="tel"
-                    required
-                    placeholder="+255 7XX XXX XXX"
-                    value={phoneInput}
-                    onChange={(e) => setPhoneInput(e.target.value)}
-                    className="flex-1 px-3.5 py-2.5 rounded-xl border border-line text-xs font-mono focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20 bg-bg text-ink placeholder-muted"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleRequestOtp}
-                    disabled={loading || !phoneInput.trim()}
-                    className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-bold rounded-xl disabled:opacity-50 transition-colors shadow-sm cursor-pointer whitespace-nowrap"
-                  >
-                    {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : "Send Code"}
-                  </button>
-                </div>
-                <p className="text-[10px] text-muted">
-                  SMS verification code will be dispatched via Africa&apos;s Talking Gateway.
-                </p>
-              </div>
-            )}
+            {/* Optional SMS Expiry Reminder Section */}
+            <div className="pt-2 border-t border-line space-y-3">
+              <button
+                type="button"
+                onClick={() => setShowPhoneOptional((prev) => !prev)}
+                className="w-full flex items-center justify-between text-xs text-muted hover:text-ink transition-colors py-1 cursor-pointer"
+              >
+                <span className="font-semibold text-[11px]">
+                  {showPhoneOptional
+                    ? "Hide SMS Alert Setup"
+                    : "Optional: Get SMS countdown alert before break ends"}
+                </span>
+                <span className="text-amber-400 text-xs font-bold">
+                  {showPhoneOptional ? "−" : "+"}
+                </span>
+              </button>
 
-            {/* Step B: Confirm Code and Activate */}
-            {otpSent && (
-              <div className="space-y-3 pt-2 text-left">
-                <div className="space-y-1">
-                  <p className="text-xs font-bold text-ink">
-                    Enter 6-Digit SMS Verification Code
-                  </p>
-                  <p className="text-[11px] text-muted">
-                    Dispatched to <strong className="text-ink">{phoneInput}</strong>.
-                  </p>
-                  {simulatedOtpNotice && (
-                    <p className="text-[11px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 p-2 rounded-xl">
-                      {simulatedOtpNotice}
-                    </p>
+              {showPhoneOptional && (
+                <div className="space-y-3 pt-1">
+                  {!otpSent ? (
+                    <div className="space-y-2 text-left">
+                      <label
+                        htmlFor="optionalPhone"
+                        className="block text-[11px] font-bold uppercase tracking-wider text-muted"
+                      >
+                        Mobile Telephone Number
+                      </label>
+                      <div className="flex space-x-2">
+                        <input
+                          id="optionalPhone"
+                          type="tel"
+                          placeholder="+255 7XX XXX XXX"
+                          value={phoneInput}
+                          onChange={(e) => setPhoneInput(e.target.value)}
+                          className="flex-1 px-3.5 py-2.5 rounded-xl border border-line text-xs font-mono focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20 bg-bg text-ink placeholder-muted"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleRequestOtp}
+                          disabled={loading || !phoneInput.trim()}
+                          className="px-4 py-2.5 bg-field-raised border border-line hover:border-amber-500/50 text-ink text-xs font-bold rounded-xl disabled:opacity-50 transition-colors shadow-sm cursor-pointer whitespace-nowrap"
+                        >
+                          {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : "Send Code"}
+                        </button>
+                      </div>
+                      <p className="text-[10px] text-muted">
+                        Dispatches 6-digit code via Africa&apos;s Talking Gateway for automated reminders.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 text-left">
+                      <div className="space-y-1">
+                        <p className="text-xs font-bold text-ink">
+                          Enter 6-Digit SMS Verification Code
+                        </p>
+                        <p className="text-[11px] text-muted">
+                          Dispatched to <strong className="text-ink">{phoneInput}</strong>.
+                        </p>
+                        {simulatedOtpNotice && (
+                          <p className="text-[11px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 p-2 rounded-xl">
+                            {simulatedOtpNotice}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <input
+                          type="text"
+                          maxLength={6}
+                          placeholder="••••••"
+                          value={otpCode}
+                          onChange={(e) => setOtpCode(e.target.value)}
+                          className="w-full px-4 py-3 rounded-xl border border-line text-sm font-mono tracking-widest text-center focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20 bg-bg text-ink placeholder-muted"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleVerifyOtp}
+                          disabled={loading || otpCode.length < 6}
+                          className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-black rounded-xl disabled:opacity-50 transition-colors shadow-sm flex items-center justify-center space-x-1.5 cursor-pointer"
+                        >
+                          {loading ? (
+                            <RefreshCw className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <>
+                              <ShieldCheck className="w-4 h-4" />
+                              <span>Verify Phone & Start Break</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setOtpSent(false)}
+                        className="w-full text-center text-[11px] text-muted hover:text-ink hover:underline cursor-pointer"
+                      >
+                        Change telephone number
+                      </button>
+                    </div>
                   )}
                 </div>
-
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    maxLength={6}
-                    placeholder="••••••"
-                    value={otpCode}
-                    onChange={(e) => setOtpCode(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-line text-sm font-mono tracking-widest text-center focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20 bg-bg text-ink placeholder-muted"
-                  />
-                  <button
-                    onClick={handleVerifyOtp}
-                    disabled={loading || otpCode.length < 6}
-                    className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-black rounded-xl disabled:opacity-50 transition-colors shadow-sm flex items-center justify-center space-x-1.5 cursor-pointer"
-                  >
-                    {loading ? (
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <>
-                        <ShieldCheck className="w-4 h-4" />
-                        <span>Verify Identity & Start Companion Break</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setOtpSent(false)}
-                  className="w-full text-center text-[11px] text-muted hover:text-ink hover:underline"
-                >
-                  Change telephone number
-                </button>
-              </div>
-            )}
+              )}
+            </div>
 
             <div className="pt-2 border-t border-line">
               <button
+                type="button"
                 onClick={() => {
                   setVerifiedTicket(null);
                   setOtpSent(false);
                   setShowPhoneOptional(false);
                 }}
-                className="w-full text-center text-xs text-muted hover:underline"
+                className="w-full text-center text-xs text-muted hover:underline cursor-pointer"
               >
                 Use a different ticket barcode
               </button>
             </div>
-          </div>
+          </GlassSurface>
         )}
 
         {/* Feature Highlights */}
         <div className="grid grid-cols-2 gap-3 text-left">
-          <div className="bg-field p-3 rounded-xl border border-line space-y-1">
+          <GlassSurface variant="panel" className="p-3 border border-line space-y-1">
             <Clock className="w-4 h-4 text-amber-400" />
             <p className="text-xs font-bold text-ink">15-Minute Limit</p>
             <p className="text-[11px] text-muted">
               Strict maximum viewing window to encourage returning to your seat.
             </p>
-          </div>
-          <div className="bg-field p-3 rounded-xl border border-line space-y-1">
+          </GlassSurface>
+          <GlassSurface variant="panel" className="p-3 border border-line space-y-1">
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
             <p className="text-xs font-bold text-ink">Auditorium Sync</p>
             <p className="text-[11px] text-muted">
               Playback is matched directly with the main cinema projector.
             </p>
-          </div>
+          </GlassSurface>
         </div>
         {/* Native App Banner with Truthful Store State */}
-        <div className="bg-field p-4 rounded-2xl border border-line text-left shadow-card space-y-2">
+        <GlassSurface variant="panel" className="p-4 border border-line text-left shadow-card space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-ink">
               Frequent Cinema Patron?
@@ -791,7 +894,7 @@ function WatchExperience() {
               </Link>
             )}
           </div>
-        </div>
+        </GlassSurface>
       </section>
 
       {/* Footer */}

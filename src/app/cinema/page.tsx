@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { NavigationHeader } from "@/components/NavigationHeader";
 import { CinemaCanvasPlayer } from "@/components/CinemaCanvasPlayer";
+import { GlassSurface } from "@/components/GlassSurface";
 import {
   Tv,
   Play,
@@ -44,6 +45,15 @@ interface ActiveViewer {
   status: string;
 }
 
+const AUTH_REQUIRED_NOTICE =
+  "Sign in to the operator workspace first. The projection console requires an authenticated cinema operator session.";
+
+function authHeaders(): Record<string, string> {
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("pp_operator_token") : null;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export default function CinemaControlPage() {
   const [playback, setPlayback] = useState<PlaybackState | null>(null);
   const [activeViewers, setActiveViewers] = useState<ActiveViewer[]>([]);
@@ -52,11 +62,16 @@ export default function CinemaControlPage() {
 
   const fetchState = async () => {
     try {
-      const res = await fetch("/api/simulator/playback");
+      const res = await fetch("/api/simulator/playback", { headers: authHeaders() });
       if (res.ok) {
         const data = await res.json();
         setPlayback(data.playback);
         setActiveViewers(data.activeViewers || []);
+        setStatusNotice((prev) =>
+          prev === AUTH_REQUIRED_NOTICE ? null : prev
+        );
+      } else if (res.status === 401 || res.status === 403) {
+        setStatusNotice(AUTH_REQUIRED_NOTICE);
       }
     } catch {
       // silent background poll
@@ -75,7 +90,7 @@ export default function CinemaControlPage() {
     try {
       const res = await fetch("/api/simulator/playback", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({
           screeningId: playback?.screeningId,
           action,
@@ -218,7 +233,7 @@ export default function CinemaControlPage() {
 
           {/* Projection Controls Column */}
           <div className="space-y-4">
-            <div className="p-4 rounded-2xl bg-field border border-line shadow-card space-y-3">
+            <GlassSurface variant="panel" className="p-4 border border-line shadow-card space-y-3">
               <h3 className="text-xs font-bold text-ink uppercase tracking-wider flex items-center space-x-2">
                 <Sliders className="w-4 h-4 text-amber-400" />
                 <span>Auditorium Projection Controls</span>
@@ -293,10 +308,10 @@ export default function CinemaControlPage() {
                   </button>
                 </div>
               )}
-            </div>
+            </GlassSurface>
 
             {/* Projection Drift & Sync Telemetry */}
-            <div className="p-4 rounded-2xl bg-field border border-line shadow-card space-y-3">
+            <GlassSurface variant="panel" className="p-4 border border-line shadow-card space-y-3">
               <h3 className="text-xs font-bold text-ink uppercase tracking-wider flex items-center space-x-2">
                 <Radio className="w-4 h-4 text-emerald-400" />
                 <span>Synchronization Telemetry</span>
@@ -321,12 +336,12 @@ export default function CinemaControlPage() {
                   <span className="font-bold text-ink">15 Minutes Hard Stop</span>
                 </div>
               </div>
-            </div>
+            </GlassSurface>
           </div>
         </div>
 
         {/* Live Active Break Viewers in Auditorium */}
-        <div className="p-5 rounded-2xl bg-field border border-line shadow-card space-y-4">
+        <GlassSurface variant="panel" className="p-5 border border-line shadow-card space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2.5">
               <Users className="w-5 h-5 text-amber-400" />
@@ -386,7 +401,7 @@ export default function CinemaControlPage() {
               </table>
             </div>
           )}
-        </div>
+        </GlassSurface>
       </main>
     </div>
   );

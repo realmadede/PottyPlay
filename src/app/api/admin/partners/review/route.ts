@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { hashPassword } from "@/lib/crypto";
+import { hashPassword, generateSessionToken } from "@/lib/crypto";
 import { AdminAuthService } from "@/features/admin/admin-auth-service";
+import { randomBytes } from "crypto";
 import { z } from "zod";
 
 const reviewSchema = z.object({
@@ -78,18 +79,25 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      // 5. Provision manager operator user
+      // 5. Provision manager operator user with an expiring one-time setup token (no hardcoded password)
       const cleanEmail = application.contactEmail.toLowerCase().trim();
       const existingOp = await prisma.operatorUser.findUnique({
         where: { email: cleanEmail },
       });
+      let setupToken: string | null = null;
       if (!existingOp) {
+        setupToken = generateSessionToken("opr_rst_");
+        const setupExpires = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 hours
+        const randomTempSecret = randomBytes(32).toString("hex");
+
         await prisma.operatorUser.create({
           data: {
             cinemaId: cinema.id,
             email: cleanEmail,
             name: application.contactName.trim(),
-            passwordHash: hashPassword("CinemaPass2026!"),
+            passwordHash: hashPassword(randomTempSecret),
+            passwordResetToken: setupToken,
+            passwordResetExpiresAt: setupExpires,
             role: "MANAGER",
             isActive: true,
           },
@@ -116,7 +124,9 @@ export async function POST(req: NextRequest) {
         success: true,
         decision: "APPROVED",
         provisionedCinemaId: cinema.id,
-        message: "Cinema approved and operational workspace provisioned.",
+        managerEmail: cleanEmail,
+        ...(setupToken ? { invitationUrl: `/operator?resetToken=${setupToken}` } : {}),
+        message: "Cinema approved and operational workspace provisioned with secure onboarding.",
       });
     } else {
       // REJECTED

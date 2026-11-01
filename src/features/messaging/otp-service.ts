@@ -3,6 +3,7 @@ import { config } from "@/lib/config";
 import { generateOtpCode, hashOtp, verifyOtpHash } from "@/lib/crypto";
 import { isValidPhoneNumber, normalizePhoneNumber } from "@/lib/phone";
 import { smsService } from "./sms-service";
+import { maskPhoneNumber } from "@/lib/auth-guards";
 
 export interface RequestOtpResult {
   success: boolean;
@@ -92,20 +93,23 @@ export class OtpService {
         entityId: challenge.id,
         actor: "CUSTOMER",
         details: JSON.stringify({
-          phoneNumber,
+          phoneNumber: maskPhoneNumber(phoneNumber),
           provider: smsResult.provider,
           ip: ipAddress || "unknown",
         }),
       },
     });
 
+    const isDevSimulator =
+      process.env.NODE_ENV !== "production" && smsService.isSimulator();
+
     return {
       success: true,
       challengeId: challenge.id,
       phoneNumber,
       expiresInSeconds: config.otpExpirySeconds,
-      simulatedCode: smsResult.simulatedCode,
-      isSimulator: smsService.isSimulator(),
+      ...(isDevSimulator ? { simulatedCode: smsResult.simulatedCode } : {}),
+      isSimulator: isDevSimulator,
     };
   }
 
@@ -185,7 +189,7 @@ export class OtpService {
         entityId: challengeId,
         actor: "CUSTOMER",
         details: JSON.stringify({
-          phoneNumber: challenge.phoneNumber,
+          phoneNumber: maskPhoneNumber(challenge.phoneNumber),
         }),
       },
     });

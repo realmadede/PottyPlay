@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
+import { GlassSurface } from "@/components/GlassSurface";
 import { OnboardingCarousel } from "@/components/customer/OnboardingCarousel";
 import { CustomerAuthModal } from "@/components/customer/CustomerAuthModal";
 import { DiscoveryView } from "@/components/customer/DiscoveryView";
@@ -24,6 +25,7 @@ import {
 } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
 import { PrivacyScreen } from "@capacitor-community/privacy-screen";
+import { NativeMobile } from "@/lib/native-mobile";
 
 type ActiveTab = "discovery" | "reminders" | "bathroom" | "history" | "profile" | "settings";
 
@@ -40,11 +42,31 @@ interface CustomerProfile {
 
 export default function CustomerApplication() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("bathroom");
+
+  const handleTabChange = (tab: ActiveTab) => {
+    NativeMobile.triggerHaptic(tab === "bathroom" ? "medium" : "light");
+    setActiveTab(tab);
+  };
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [customer, setCustomer] = useState<CustomerProfile | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [currentTheme, setCurrentTheme] = useState<"LIGHT" | "DARK" | "SYSTEM">("SYSTEM");
+  const [isOffline, setIsOffline] = useState(false);
+
+  // Monitor network connectivity
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    if (!navigator.onLine) setIsOffline(true);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
 
   // Initialize theme from storage
   useEffect(() => {
@@ -88,14 +110,26 @@ export default function CustomerApplication() {
     }
 
     async function initApp() {
-      // 1. Check local storage for onboarding completion
+      // 1. Instant offline-first cache hydration
       const storedOnboarding = typeof window !== "undefined" ? localStorage.getItem("pp_onboarding_done") : null;
+      const cachedProfile = typeof window !== "undefined" ? localStorage.getItem("pp_cust_profile") : null;
+      if (cachedProfile) {
+        try {
+          const parsed = JSON.parse(cachedProfile);
+          setCustomer(parsed);
+          setLoadingProfile(false);
+          if (parsed.themePreference) {
+            applyTheme(parsed.themePreference as any);
+          }
+        } catch {
+          // silent fallback
+        }
+      }
 
       // 2. Fetch authenticated profile
       try {
         const token = typeof window !== "undefined" ? localStorage.getItem("pp_cust_token") : null;
         if (!token) {
-          // If unauthenticated, show onboarding if not done, or show auth modal immediately
           if (!storedOnboarding) {
             setShowOnboarding(true);
           } else {
@@ -113,6 +147,7 @@ export default function CustomerApplication() {
           const data = await res.json();
           if (data.success && data.customer) {
             setCustomer(data.customer);
+            localStorage.setItem("pp_cust_profile", JSON.stringify(data.customer));
             if (data.customer.themePreference) {
               applyTheme(data.customer.themePreference as any);
             }
@@ -120,17 +155,18 @@ export default function CustomerApplication() {
               setShowOnboarding(true);
             }
           } else {
-            // Token expired or invalid
             localStorage.removeItem("pp_cust_token");
+            localStorage.removeItem("pp_cust_profile");
             setAuthModalOpen(true);
           }
-        } else {
+        } else if (res.status === 401) {
           localStorage.removeItem("pp_cust_token");
+          localStorage.removeItem("pp_cust_profile");
           setAuthModalOpen(true);
         }
       } catch (err) {
-        console.error("Profile check error:", err);
-        setAuthModalOpen(true);
+        // Network offline: maintain cached profile
+        setIsOffline(true);
       } finally {
         setLoadingProfile(false);
       }
@@ -170,6 +206,7 @@ export default function CustomerApplication() {
       });
       if (typeof window !== "undefined") {
         localStorage.removeItem("pp_cust_token");
+        localStorage.removeItem("pp_cust_profile");
       }
       setCustomer(null);
       setAuthModalOpen(true); // Mandatory authentication gating
@@ -209,14 +246,19 @@ export default function CustomerApplication() {
       />
 
       {/* Top Application Bar */}
-      <header className="sticky top-0 z-40 glass-ios26 glass-ios26-rim glass-ios26-glint border-b border-white/10 px-4 sm:px-6 h-16 flex items-center justify-between">
+      <GlassSurface variant="dock" className="sticky top-0 z-40 border-b border-white/10 px-4 sm:px-6 pt-safe min-h-16 flex items-center justify-between">
         <BrandLogo size="sm" variant="full" href="/app" />
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2 sm:space-x-3">
+          {isOffline && (
+            <span className="hidden min-[380px]:inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+              Offline Cache
+            </span>
+          )}
           {customer && (
             <button
               type="button"
-              onClick={() => setActiveTab("profile")}
+              onClick={() => handleTabChange("profile")}
               className="flex items-center space-x-2 p-1.5 rounded-xl hover:bg-field border border-transparent hover:border-line transition-all text-left"
               title="View Account Profile"
             >
@@ -238,11 +280,11 @@ export default function CustomerApplication() {
             </button>
           )}
         </div>
-      </header>
+      </GlassSurface>
 
       {/* Main Tab Content View */}
       {customer ? (
-        <main className="flex-1 max-w-4xl mx-auto w-full p-4 sm:p-6 pb-28">
+        <main className="flex-1 max-w-4xl lg:max-w-5xl mx-auto w-full p-3 min-[380px]:p-4 sm:p-6 pb-28 md:pb-32">
           {activeTab === "discovery" && <DiscoveryView />}
           {activeTab === "reminders" && <RemindersView />}
           {activeTab === "bathroom" && <BathroomView />}
@@ -259,7 +301,7 @@ export default function CustomerApplication() {
               onLogout={handleLogout}
               onUpdateTheme={applyTheme}
               currentTheme={currentTheme}
-              onNavigateToProfile={() => setActiveTab("profile")}
+              onNavigateToProfile={() => handleTabChange("profile")}
             />
           )}
         </main>
@@ -287,100 +329,96 @@ export default function CustomerApplication() {
 
       {/* Fixed Floating Bottom Mobile Navigation Dock with 6 Tabs */}
       {customer && (
-        <div className="fixed bottom-2.5 sm:bottom-4 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:max-w-md w-auto z-40">
-          <nav
+        <div className="fixed bottom-safe-dock left-2 right-2 min-[380px]:left-4 min-[380px]:right-4 sm:left-1/2 sm:-translate-x-1/2 sm:max-w-md md:max-w-lg w-auto z-40">
+          <GlassSurface
+            variant="dock"
             aria-label="Main customer navigation"
-            onPointerMove={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              e.currentTarget.style.setProperty("--glint-x", `${e.clientX - rect.left}px`);
-              e.currentTarget.style.setProperty("--glint-y", `${e.clientY - rect.top}px`);
-            }}
-            className="glass-ios26 glass-ios26-rim glass-ios26-glint rounded-2xl sm:rounded-3xl p-1.5 flex items-center justify-around shadow-2xl"
+            className="p-1 sm:p-1.5 flex items-center justify-around shadow-2xl border border-white/10"
           >
           {/* Tab 1: Cinemas */}
           <button
             type="button"
-            onClick={() => setActiveTab("discovery")}
-            className={`flex flex-col items-center py-1 px-1.5 sm:px-2 rounded-xl transition-all ${
+            onClick={() => handleTabChange("discovery")}
+            className={`flex flex-col items-center py-1 px-1 min-[360px]:px-1.5 sm:px-2 rounded-xl transition-all cursor-pointer ${
               activeTab === "discovery"
                 ? "text-ink font-bold"
                 : "text-muted hover:text-ink"
             }`}
           >
             <Building2 className={`w-4 h-4 sm:w-5 sm:h-5 ${activeTab === "discovery" ? "text-amber-400" : ""}`} />
-            <span className="text-[9px] sm:text-[10px] mt-0.5">Cinemas</span>
+            <span className="text-[8px] min-[360px]:text-[9px] sm:text-[10px] mt-0.5">Cinemas</span>
           </button>
 
           {/* Tab 2: Reminders */}
           <button
             type="button"
-            onClick={() => setActiveTab("reminders")}
-            className={`flex flex-col items-center py-1 px-1.5 sm:px-2 rounded-xl transition-all ${
+            onClick={() => handleTabChange("reminders")}
+            className={`flex flex-col items-center py-1 px-1 min-[360px]:px-1.5 sm:px-2 rounded-xl transition-all cursor-pointer ${
               activeTab === "reminders"
                 ? "text-ink font-bold"
                 : "text-muted hover:text-ink"
             }`}
           >
             <Bell className={`w-4 h-4 sm:w-5 sm:h-5 ${activeTab === "reminders" ? "text-amber-400" : ""}`} />
-            <span className="text-[9px] sm:text-[10px] mt-0.5">Reminders</span>
+            <span className="text-[8px] min-[360px]:text-[9px] sm:text-[10px] mt-0.5">Reminders</span>
           </button>
 
           {/* Tab 3: Center Golden Button for Bathroom Mode */}
           <button
             type="button"
-            onClick={() => setActiveTab("bathroom")}
-            className={`flex flex-col items-center py-1.5 px-3 sm:px-4 rounded-2xl transition-all ${
+            onClick={() => handleTabChange("bathroom")}
+            className={`flex flex-col items-center py-1.5 px-2.5 min-[360px]:px-3 sm:px-4 rounded-2xl transition-all cursor-pointer ${
               activeTab === "bathroom"
                 ? "bg-amber-500 text-neutral-950 shadow-sm font-black"
                 : "text-muted hover:text-ink"
             }`}
           >
             <Film className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="text-[9px] sm:text-[10px] mt-0.5 font-bold">Bathroom</span>
+            <span className="text-[8px] min-[360px]:text-[9px] sm:text-[10px] mt-0.5 font-bold">Bathroom</span>
           </button>
 
           {/* Tab 4: History */}
           <button
             type="button"
-            onClick={() => setActiveTab("history")}
-            className={`flex flex-col items-center py-1 px-1.5 sm:px-2 rounded-xl transition-all ${
+            onClick={() => handleTabChange("history")}
+            className={`flex flex-col items-center py-1 px-1 min-[360px]:px-1.5 sm:px-2 rounded-xl transition-all cursor-pointer ${
               activeTab === "history"
                 ? "text-ink font-bold"
                 : "text-muted hover:text-ink"
             }`}
           >
             <History className={`w-4 h-4 sm:w-5 sm:h-5 ${activeTab === "history" ? "text-amber-400" : ""}`} />
-            <span className="text-[9px] sm:text-[10px] mt-0.5">History</span>
+            <span className="text-[8px] min-[360px]:text-[9px] sm:text-[10px] mt-0.5">History</span>
           </button>
 
           {/* Tab 5: Account Profile */}
           <button
             type="button"
-            onClick={() => setActiveTab("profile")}
-            className={`flex flex-col items-center py-1 px-1.5 sm:px-2 rounded-xl transition-all ${
+            onClick={() => handleTabChange("profile")}
+            className={`flex flex-col items-center py-1 px-1 min-[360px]:px-1.5 sm:px-2 rounded-xl transition-all cursor-pointer ${
               activeTab === "profile"
                 ? "text-ink font-bold"
                 : "text-muted hover:text-ink"
             }`}
           >
             <User className={`w-4 h-4 sm:w-5 sm:h-5 ${activeTab === "profile" ? "text-amber-400" : ""}`} />
-            <span className="text-[9px] sm:text-[10px] mt-0.5">Account</span>
+            <span className="text-[8px] min-[360px]:text-[9px] sm:text-[10px] mt-0.5">Account</span>
           </button>
 
           {/* Tab 6: Settings */}
           <button
             type="button"
-            onClick={() => setActiveTab("settings")}
-            className={`flex flex-col items-center py-1 px-1.5 sm:px-2 rounded-xl transition-all ${
+            onClick={() => handleTabChange("settings")}
+            className={`flex flex-col items-center py-1 px-1 min-[360px]:px-1.5 sm:px-2 rounded-xl transition-all cursor-pointer ${
               activeTab === "settings"
                 ? "text-ink font-bold"
                 : "text-muted hover:text-ink"
             }`}
           >
             <Settings className={`w-4 h-4 sm:w-5 sm:h-5 ${activeTab === "settings" ? "text-amber-400" : ""}`} />
-            <span className="text-[9px] sm:text-[10px] mt-0.5">Settings</span>
+            <span className="text-[8px] min-[360px]:text-[9px] sm:text-[10px] mt-0.5">Settings</span>
           </button>
-        </nav>
+        </GlassSurface>
       </div>
       )}
     </div>

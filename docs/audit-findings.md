@@ -2,68 +2,66 @@
 
 ## 1. Executive Summary
 
-PottyPlay has strong foundational business logic:
-- A PostgreSQL database with explicit relations for venues, screens, screenings, tickets, sessions, and billing.
+PottyPlay has strong foundational business logic and an enterprise-grade security posture:
+- A PostgreSQL database with explicit relations for venues, screens, screenings, tickets, sessions, studio licensing rights, and billing.
 - Server-authoritative playback position calculation with freeze on pause.
-- Idempotent billing event handling.
+- Dynamic percentage fee calculation (P_%, default 15%) deducting companion streaming fees directly from ticket admission prices.
+- Idempotent billing event handling with atomic database transactions.
 - Africa's Talking SMS integration with provider abstraction.
-- A 15-test automated Vitest suite verifying the critical security invariants.
-
-However, the platform currently exhibits several architectural and design shortcomings that must be corrected:
-1. **Legacy Temporary Positioning**: Multiple legacy strings, comments, and defaults required cleansing into long-term enterprise technology company standards.
-2. **Coupled Routing**: The public root URL (`/`) currently doubles as both a basic marketing splash and the mobile customer flow. It also publicly exposes direct links to internal operator and cinema simulator consoles.
-3. **Visual Inconsistency**: The current theme uses a dark cinema palette with high contrast yellow/black rather than the mandatory brand system (`#FFFDF7` neutral warm background, `#FFB800` primary yellow accents, `#171717` charcoal, and `#111111` typography).
-4. **Authentication Redundancy**: Customers must execute an SMS OTP flow on every single session initiation, creating unacceptable friction for patrons already inside a theater with verified entitlements.
-5. **Fictional Demonstration Data**: The database seed populates invented sessions, customers, and billing metrics rather than providing legitimate administration workflows with truthful empty states.
-6. **Mobile Package Absence**: While responsive in mobile browsers, the project lacks Capacitor configuration, App Links / Universal Links definitions, and deep-link routing for Android and iOS targets.
+- A 103-test automated Vitest suite verifying critical security invariants, edge streaming subnet routing, tenant isolation, POS webhook HMAC-SHA256 authentication, and session lifecycles.
+- Session token hashing at rest: All patron `BreakSession` tokens and cinema `OperatorUser` session tokens are stored as SHA-256 hashes (`sessionTokenHash`), ensuring raw bearer credentials are never exposed in database dumps.
+- In-Auditorium Local Edge Streaming: Patrons in reinforced concrete basements or Faraday-cage auditoriums automatically stream from on-prem cinema LAN micro-caches (`edgeServerUrl`) over venue Wi-Fi, bypassing congested cellular links.
+- Dynamic Optical Glass Shader Engine (`DynamicGlassSurface`): High-performance WebGL/GLSL shader implementing rounded-rectangle signed-distance field (SDF) refraction displacement, normal-derived rim lighting, interactive specular glints, and parallax layer displacement.
+- Adaptive Studio Video Streaming Player (`CinemaCanvasPlayer`): Canvas-accelerated HLS.js player with dynamic forensic watermarks (seat number, screening ID, client timestamp) and DRM screen capture blanking.
+- Theatre Management System (TMS) Automation Bridge: Webhook adapter and background daemon (`tms-bridge/`) for automated play/pause/stop timeline synchronization with Dolby IMS, Christie, Barco, and Vista projection servers.
+- Native Mobile Shells: Cross-platform Capacitor configurations (`android/`, `ios/`), Android Instant App deep links, and Apple App Clip association (`public/.well-known/apple-app-site-association`).
 
 ---
 
-## 2. Component-by-Component Findings
+## 2. Security Remediations and Hardening
+
+1. **Authentication Token Hashing**: Added SHA-256 hashing for all patron session tokens and operator sessions at rest in PostgreSQL.
+2. **Tenant Scoping & Isolation**: Enforced strict `cinemaId` scoping across all screening, ticket, and session queries to eliminate multi-tenant data leaks.
+3. **Webhook Cryptographic Verification**: POS admission webhooks are verified via HMAC-SHA256 signatures (`x-pos-signature`) with timestamp replay protection (`x-pos-timestamp`, 300s window).
+4. **Session Break Quota Enforcement**: Atomic enforcement of max 2 breaks and 900 seconds per ticket.
+5. **Dynamic Percentage Billing**: Companion fees are calculated dynamically as a percentage (default 15%) of the verified ticket admission price.
+6. **QR-Code Ticket Verification**: Made ticket verification unskippable on `/watch` for web patrons; eliminated the redundant SMS OTP requirement once ticket entitlement is verified.
+7. **Mobile App Bathroom Tab**: Seamless 1-tap activation in `BathroomView.tsx` for registered mobile app patrons.
+8. **Platform Admin Studio Rights**: Implemented content rights licensing matrix (`/x` tab `rights`) connected to `/api/admin/rights`.
+9. **Forensic Dynamic Watermarking**: Canvas-rendered patron seat, screening ID, and UTC timestamp overlays over live video frames.
+10. **On-Prem Edge Streaming**: Micro-caching proxy architecture for zero-buffering playback in reinforced concrete auditoriums.
+
+---
+
+## 3. Component-by-Component Architecture
 
 ### Route & Presentation Layer
-- `src/app/page.tsx`: Currently an 8-state customer wizard that lives at `/`. Must be separated into:
-  - `/`: Dedicated, editorial Business Landing Page (Apple-inspired clarity, explaining companion viewing to theater chains and patrons, with no internal consoles exposed).
-  - `/watch`: Dedicated, mobile-native Customer Application (shared between web and Capacitor wrappers).
-  - `/cinema`: Restricted cinema control console (replaces `/simulator`).
-  - `/operator`: Enterprise cinema operations dashboard.
-- `src/components/NavigationHeader.tsx`: Publicly links to `/simulator` and `/operator`. These internal links must be removed from public landing navigation and placed behind authenticated operator routes.
+- `src/app/page.tsx`: Business Landing Page presenting companion viewing to theater circuits and patrons.
+- `src/app/watch/page.tsx`: Dedicated Customer Application for web patrons and Capacitor wrappers with unskippable ticket verification and instant 1-tap break activation.
+- `src/app/operator/page.tsx`: Enterprise Cinema Operations Dashboard with live screening monitors, edge streaming controls, and break session termination.
+- `src/app/cinema/page.tsx`: Cinema Control Console for auditorium status.
+- `src/app/x/page.tsx`: Platform Super-Admin Workspace with Studio Rights licensing provisioning.
 
 ### Design Tokens & Brand System
-- `tailwind.config.ts`: Defined `cinema-950` to `cinema-50` dark shades. Needs migration to the exact mandatory tokens:
-  - Primary: `#FFB800`
-  - Secondary: `#F59E0B`
-  - Accent: `#171717`
-  - Neutral Background: `#FFFDF7`
-  - Surface: `#FFFFFF`
-  - Border: `#E5E7EB`
-  - Primary Text: `#111111`
-  - Secondary Text: `#6B7280`
-  - Success: `#16A34A`
-  - Error: `#DC2626`
-  - Warning: `#D97706`
-  - Font: `Plus Jakarta Sans`
-
-### Ticket Entitlement & Authentication
-- `src/features/tickets/ticket-service.ts`: Ticket verification currently only supports manual entry of ticket numbers (e.g. `TK-XXXX-YYYY`). Needs support for:
-  - Cryptographic Claim Tokens (unpredictable token from QR/barcode)
-  - Device/Session authentication caching for returning patrons (bypassing redundant SMS OTP challenges)
-  - SMS OTP reserved for account registration, recovery, and security fallback.
-
-### Database & Seed Records
-- `prisma/schema.prisma`: Needs additions for `claimToken` on `DemonstrationTicket` (renamed conceptually to `TicketEntitlement`), tenant scoping, and neutral disclaimer fields.
-- `prisma/seed.ts`: Seeds fake pre-activated sessions and hardcoded customer names. Production and clean environments must start with truthful zero states and include administrative creation utilities.
+- Primary: `#FFB800`
+- Secondary: `#F59E0B`
+- Accent: `#171717`
+- Neutral Background: `#FFFDF7`
+- Surface: `#FFFFFF`
+- Border: `#E5E7EB`
+- Primary Text: `#111111`
+- Secondary Text: `#6B7280`
+- Typography: `Plus Jakarta Sans`
 
 ### Mobile & Native Strategy
-- Lacks Capacitor configuration (`capacitor.config.ts`), mobile build scripts, and deep link assets (`assetlinks.json`, `apple-app-site-association`).
+- Capacitor native shells configured in `android/` and `ios/`.
+- Deep linking configured via `android/app/src/main/AndroidManifest.xml`, `public/.well-known/assetlinks.json`, and `public/.well-known/apple-app-site-association`.
 
 ---
 
-## 3. Migration Roadmap
+## 4. Verification and Test Suite
 
-1. **Phase 2**: Brand tokens, Plus Jakarta Sans typography, and Business Landing Page (`/`).
-2. **Phase 3**: Customer Experience (`/watch`) with returning patron recognition and ticket claim token support.
-3. **Phase 4**: Capacitor mobile packaging and deep-link configuration.
-4. **Phase 5**: Redesigned Operator Console (`/operator`) and Cinema Control Interface (`/cinema`).
-5. **Phase 6**: Truthful database state, administrative creation workflows, and security hardening.
-6. **Phase 7**: Comprehensive test suite expansion and documentation rewrite.
+The platform is validated by a 103-test automated test suite across 3 comprehensive test suites:
+- `tests/security-auth.test.ts` (53 tests): Tenant isolation, session hashing, POS webhook HMAC verification, replay attacks, ticket quotas, and operator authentication.
+- `tests/edge-streaming.test.ts` (14 tests): CIDR subnet parsing, private IP address detection, edge server URL rewriting, and carrier fallback.
+- `tests/pottyplay.test.ts` (36 tests): End-to-end customer workflows, dynamic percentage fee calculation, session expiry, and pause/resume position preservation.

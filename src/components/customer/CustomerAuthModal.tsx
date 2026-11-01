@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import Link from "next/link";
+import { NativeMobile } from "@/lib/native-mobile";
 import {
   X,
   Smartphone,
@@ -18,6 +19,7 @@ import {
   EyeOff,
 } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
+import { GlassSurface } from "@/components/GlassSurface";
 
 interface CustomerAuthModalProps {
   isOpen: boolean;
@@ -69,6 +71,8 @@ export function CustomerAuthModal({
 
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [dragY, setDragY] = useState(0);
+  const touchStartY = useRef<number | null>(null);
 
   if (!isOpen) return null;
 
@@ -281,9 +285,45 @@ export function CustomerAuthModal({
     }
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (mandatory || !onClose) return;
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (mandatory || !onClose || touchStartY.current === null) return;
+    const currentY = e.touches[0].clientY;
+    const delta = currentY - touchStartY.current;
+    if (delta > 0) {
+      setDragY(delta * 0.75);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (dragY > 85 && !mandatory && onClose) {
+      NativeMobile.triggerHaptic("light");
+      onClose();
+    }
+    setDragY(0);
+    touchStartY.current = null;
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
-      <div className="relative w-full max-w-md my-8 rounded-3xl glass-ios26 glass-ios26-rim glass-ios26-glint border border-white/20 shadow-elevated p-6 sm:p-8 text-left text-ink">
+      <GlassSurface
+        variant="dock"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        className="w-full max-w-md my-8 border border-white/20 shadow-elevated p-6 sm:p-8 text-left text-ink transition-transform duration-100 ease-out"
+        style={{
+          transform: `translateY(${dragY}px)`,
+        }}
+      >
+        {/* Native Pull Handle if dismissible */}
+        {!mandatory && (
+          <div className="w-12 h-1.5 rounded-full bg-white/25 mx-auto -mt-2 mb-4 cursor-grab active:cursor-grabbing" />
+        )}
         {/* Close Button (if non-mandatory) */}
         {!mandatory && onClose && (
           <button
@@ -806,7 +846,7 @@ export function CustomerAuthModal({
             </div>
           </div>
         )}
-      </div>
+      </GlassSurface>
     </div>
   );
 }

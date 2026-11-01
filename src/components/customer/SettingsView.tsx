@@ -18,7 +18,10 @@ import {
   ExternalLink,
   HelpCircle,
   Loader2,
+  MessageSquare,
 } from "lucide-react";
+import { GlassSurface } from "@/components/GlassSurface";
+import { ReportIssueModal } from "@/components/customer/ReportIssueModal";
 
 interface SettingsViewProps {
   customer: {
@@ -47,6 +50,7 @@ export function SettingsView({
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [vibrationAlerts, setVibrationAlerts] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -98,7 +102,7 @@ export function SettingsView({
   return (
     <div className="space-y-6 max-w-xl mx-auto text-left pb-12">
       {/* 1. Profile Overview */}
-      <div className="p-5 sm:p-6 rounded-3xl bg-field border border-line shadow-card">
+      <GlassSurface variant="dock" className="p-5 sm:p-6 border border-line shadow-card">
         <div className="flex items-center space-x-4">
           <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center font-black text-xl flex-shrink-0">
             {customer.name ? customer.name.charAt(0).toUpperCase() : "P"}
@@ -134,10 +138,10 @@ export function SettingsView({
             )}
           </div>
         </div>
-      </div>
+      </GlassSurface>
 
       {/* 2. Theme Preferences */}
-      <div className="p-5 sm:p-6 rounded-3xl bg-field border border-line shadow-card space-y-3">
+      <GlassSurface variant="dock" className="p-5 sm:p-6 border border-line shadow-card space-y-3">
         <h4 className="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider">
           Appearance & Theme
         </h4>
@@ -184,7 +188,7 @@ export function SettingsView({
         <div className="text-[11px] text-muted pt-1">
           Theme preference persists across browser sessions and native mobile app launches without flashing.
         </div>
-      </div>
+      </GlassSurface>
 
       {/* 3. Notification Preferences */}
       <div className="p-5 sm:p-6 rounded-3xl bg-field border border-line shadow-card space-y-4">
@@ -276,14 +280,45 @@ export function SettingsView({
           </p>
         </div>
 
+        {/* Dedicated Support Page */}
+        <Link
+          href="/support"
+          className="p-3.5 rounded-2xl bg-bg border border-line hover:bg-field-raised transition-colors flex items-center justify-between text-xs"
+        >
+          <div className="flex items-center space-x-2">
+            <HelpCircle className="w-4 h-4 text-amber-400" />
+            <span className="font-bold text-ink">Help Center & Frequently Asked Questions</span>
+          </div>
+          <ChevronRight className="w-3.5 h-3.5 text-muted" />
+        </Link>
+
+        {/* Comment and Report Issue Trigger */}
+        <button
+          type="button"
+          onClick={() => setFeedbackModalOpen(true)}
+          className="w-full p-3.5 rounded-2xl bg-bg border border-line hover:bg-field-raised transition-colors flex items-center justify-between text-xs"
+        >
+          <div className="flex items-center space-x-2">
+            <MessageSquare className="w-4 h-4 text-amber-400" />
+            <span className="font-bold text-ink">Comment or Report an Issue</span>
+          </div>
+          <ChevronRight className="w-3.5 h-3.5 text-muted" />
+        </button>
+
         <div className="p-3.5 rounded-2xl bg-bg border border-line flex items-center justify-between text-xs">
           <div className="flex items-center space-x-2">
             <HelpCircle className="w-4 h-4 text-amber-400" />
-            <span className="font-bold text-ink">Usher Assistance</span>
+            <span className="font-bold text-ink">Auditorium Usher Assistance</span>
           </div>
           <span className="text-muted text-[11px]">Ask cinema floor staff</span>
         </div>
       </div>
+
+      {/* Report Issue / Feedback Modal */}
+      <ReportIssueModal
+        isOpen={feedbackModalOpen}
+        onClose={() => setFeedbackModalOpen(false)}
+      />
 
       {/* 6. Account Actions */}
       <div className="p-5 sm:p-6 rounded-3xl bg-field border border-line shadow-card space-y-3">

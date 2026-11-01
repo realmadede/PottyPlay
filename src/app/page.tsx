@@ -6,6 +6,7 @@ import { LandingHeader } from "@/components/LandingHeader";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import { PartnerRegistrationForm } from "@/components/PartnerRegistrationForm";
 import { BrandLogo } from "@/components/BrandLogo";
+import { GlassSurface } from "@/components/GlassSurface";
 import {
   Film,
   Clock,
@@ -154,7 +155,7 @@ export default function BusinessLandingPage() {
 
           <div className="mt-12 sm:mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 relative">
             {/* Step 1 */}
-            <div className="p-6 rounded-2xl bg-field border border-line shadow-card flex flex-col justify-between text-left relative group hover:border-amber-500/30 transition-all">
+            <GlassSurface variant="panel" className="p-6 border border-line shadow-card flex flex-col justify-between text-left relative group hover:border-amber-500/30 transition-all">
               <div>
                 <div className="flex items-center justify-between pb-3 border-b border-line">
                   <span className="text-xs font-mono font-bold text-amber-400">STEP 01</span>
@@ -170,10 +171,10 @@ export default function BusinessLandingPage() {
               <div className="mt-6 pt-3 border-t border-line text-[11px] text-muted font-mono">
                 POS Webhook Sync
               </div>
-            </div>
+            </GlassSurface>
 
             {/* Step 2 */}
-            <div className="p-6 rounded-2xl bg-field border border-line shadow-card flex flex-col justify-between text-left relative group hover:border-amber-500/30 transition-all">
+            <GlassSurface variant="panel" className="p-6 border border-line shadow-card flex flex-col justify-between text-left relative group hover:border-amber-500/30 transition-all">
               <div>
                 <div className="flex items-center justify-between pb-3 border-b border-line">
                   <span className="text-xs font-mono font-bold text-amber-400">STEP 02</span>
@@ -189,10 +190,10 @@ export default function BusinessLandingPage() {
               <div className="mt-6 pt-3 border-t border-line text-[11px] text-muted font-mono">
                 One-Tap Activation
               </div>
-            </div>
+            </GlassSurface>
 
             {/* Step 3 */}
-            <div className="p-6 rounded-2xl bg-field border border-line shadow-card flex flex-col justify-between text-left relative group hover:border-amber-500/30 transition-all">
+            <GlassSurface variant="panel" className="p-6 border border-line shadow-card flex flex-col justify-between text-left relative group hover:border-amber-500/30 transition-all">
               <div>
                 <div className="flex items-center justify-between pb-3 border-b border-line">
                   <span className="text-xs font-mono font-bold text-amber-400">STEP 03</span>
@@ -208,10 +209,10 @@ export default function BusinessLandingPage() {
               <div className="mt-6 pt-3 border-t border-line text-[11px] text-muted font-mono">
                 Live Projection Lock
               </div>
-            </div>
+            </GlassSurface>
 
             {/* Step 4 */}
-            <div className="p-6 rounded-2xl bg-field border border-line shadow-card flex flex-col justify-between text-left relative group hover:border-amber-500/30 transition-all">
+            <GlassSurface variant="panel" className="p-6 border border-line shadow-card flex flex-col justify-between text-left relative group hover:border-amber-500/30 transition-all">
               <div>
                 <div className="flex items-center justify-between pb-3 border-b border-line">
                   <span className="text-xs font-mono font-bold text-amber-400">STEP 04</span>
@@ -227,7 +228,7 @@ export default function BusinessLandingPage() {
               <div className="mt-6 pt-3 border-t border-line text-[11px] text-muted font-mono">
                 15m Server Revocation
               </div>
-            </div>
+            </GlassSurface>
           </div>
         </section>
 
@@ -288,7 +289,7 @@ export default function BusinessLandingPage() {
             </div>
 
             {/* Right Theatrical Preview Frame */}
-            <div className="lg:col-span-6 glass-ios26 glass-ios26-rim glass-ios26-glint text-ink p-6 sm:p-8 rounded-3xl shadow-elevated text-left">
+            <GlassSurface variant="dock" className="lg:col-span-6 text-ink p-6 sm:p-8 shadow-elevated text-left">
               <div className="flex items-center justify-between pb-4 border-b border-line text-xs">
                 <div className="flex items-center space-x-2">
                   <Smartphone className="w-4 h-4 text-amber-400" />
@@ -326,7 +327,7 @@ export default function BusinessLandingPage() {
                   <span className="font-bold text-emerald-400">Auditorium Admitted</span>
                 </div>
               </div>
-            </div>
+            </GlassSurface>
           </div>
         </section>
 
@@ -673,7 +674,7 @@ export default function BusinessLandingPage() {
                 </div>
               </div>
 
-              <div className="lg:col-span-6 rounded-3xl bg-[#040507] border border-neutral-800 overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
+              <GlassSurface variant="dock" className="lg:col-span-6 bg-[#040507] border border-neutral-800 overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
                 <div className="bg-neutral-900/90 border-b border-neutral-800 px-4 py-2.5 flex items-center justify-between text-[11px] font-mono text-neutral-400">
                   <div className="flex items-center space-x-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-red-500/80 inline-block" />
@@ -699,7 +700,7 @@ X-PottyPlay-Signature: sha256=...
   "maxSessionSeconds": 900
 }`}</pre>
                 </div>
-              </div>
+              </GlassSurface>
             </div>
           </div>
         </section>
@@ -742,6 +743,9 @@ X-PottyPlay-Signature: sha256=...
             </Link>
             <Link href="/terms" className="hover:text-ink transition-colors">
               Terms of Service
+            </Link>
+            <Link href="/support" className="hover:text-ink transition-colors">
+              Support & Help Center
             </Link>
             <Link href="/developers" className="hover:text-ink transition-colors">
               Developer Documentation

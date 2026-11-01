@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { ScreeningStatus } from "@prisma/client";
+import { resolvePlaybackStreamUrls } from "@/lib/edge-streaming";
 
 export interface AuthoritativePlaybackState {
   screeningId: string;
@@ -15,6 +16,11 @@ export interface AuthoritativePlaybackState {
   unreliableSync: boolean;
   assetTitle: string;
   videoUrl: string;
+  primaryVideoUrl?: string;
+  edgeVideoUrl?: string | null;
+  venueWifiSsid?: string | null;
+  preferredRoute?: "LAN_EDGE" | "WAN_CDN";
+  isLanClient?: boolean;
   licenseType: string;
   serverTimestamp: number;
 }
@@ -65,7 +71,8 @@ export class ScreeningService {
    * Fetches the authoritative playback state for a screening.
    */
   static async getAuthoritativePlaybackState(
-    screeningId: string
+    screeningId: string,
+    clientIp?: string | null
   ): Promise<AuthoritativePlaybackState | null> {
     const screening = await prisma.screening.findUnique({
       where: { id: screeningId },
@@ -83,6 +90,12 @@ export class ScreeningService {
       screening.status === ScreeningStatus.PLAYING ||
       screening.status === ScreeningStatus.PAUSED;
 
+    const resolvedStreams = resolvePlaybackStreamUrls({
+      contentAsset: screening.contentAsset,
+      cinema: screening.cinema,
+      clientIp,
+    });
+
     return {
       screeningId: screening.id,
       screeningTitle: screening.title,
@@ -97,6 +110,11 @@ export class ScreeningService {
       unreliableSync: false,
       assetTitle: screening.contentAsset.title,
       videoUrl: screening.contentAsset.videoUrl,
+      primaryVideoUrl: resolvedStreams.primaryVideoUrl,
+      edgeVideoUrl: resolvedStreams.edgeVideoUrl,
+      venueWifiSsid: resolvedStreams.venueWifiSsid,
+      preferredRoute: resolvedStreams.preferredRoute,
+      isLanClient: resolvedStreams.isLanClient,
       licenseType: screening.contentAsset.licenseType,
       serverTimestamp: Date.now(),
     };

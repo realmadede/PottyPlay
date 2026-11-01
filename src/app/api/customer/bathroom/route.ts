@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { CustomerAuthService } from "@/features/auth/customer-auth-service";
 import { SessionService } from "@/features/sessions/session-service";
 import { z } from "zod";
+import { extractClientIp, resolvePlaybackStreamUrls } from "@/lib/edge-streaming";
 
 const activateSchema = z.object({
   ticketNumber: z.string().min(1, "Ticket number required"),
@@ -39,9 +40,24 @@ export async function GET(req: NextRequest) {
         ticket: { select: { ticketNumber: true, seatNumber: true, breakCount: true, maxBreaks: true } },
         screening: {
           include: {
-            cinema: { select: { name: true, location: true } },
+            cinema: {
+              select: {
+                name: true,
+                location: true,
+                edgeStreamingEnabled: true,
+                edgeServerUrl: true,
+                venueWifiSsid: true,
+                lanIpSubnets: true,
+              },
+            },
             screen: { select: { name: true } },
-            contentAsset: { select: { durationSeconds: true, videoUrl: true } },
+            contentAsset: {
+              select: {
+                durationSeconds: true,
+                videoUrl: true,
+                edgeRelativePath: true,
+              },
+            },
           },
         },
       },
@@ -51,6 +67,13 @@ export async function GET(req: NextRequest) {
       const now = Date.now();
       const expires = new Date(activeSession.expiresAt).getTime();
       const remainingSeconds = Math.max(0, Math.floor((expires - now) / 1000));
+
+      const clientIp = extractClientIp(req);
+      const resolvedStreams = resolvePlaybackStreamUrls({
+        contentAsset: activeSession.screening.contentAsset,
+        cinema: activeSession.screening.cinema,
+        clientIp,
+      });
 
       return NextResponse.json({
         success: true,
@@ -71,6 +94,11 @@ export async function GET(req: NextRequest) {
             durationSeconds: activeSession.screening.contentAsset.durationSeconds,
             isPaused: activeSession.screening.isPaused,
             videoUrl: activeSession.screening.contentAsset.videoUrl,
+            primaryVideoUrl: resolvedStreams.primaryVideoUrl,
+            edgeVideoUrl: resolvedStreams.edgeVideoUrl,
+            venueWifiSsid: resolvedStreams.venueWifiSsid,
+            preferredRoute: resolvedStreams.preferredRoute,
+            isLanClient: resolvedStreams.isLanClient,
           },
         },
       });
@@ -191,10 +219,14 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { ticketNumber, deviceInfo } = activateSchema.parse(body);
 
+    const clientIp = extractClientIp(req);
     const activationResult = await SessionService.activateSession({
       ticketNumber: ticketNumber.trim().toUpperCase(),
       phoneNumber: customerSession.phoneNumber || undefined,
       deviceInfo: deviceInfo || "Customer Mobile Application",
+      customerId: customerSession.customerId,
+      phoneAlreadyVerified: customerSession.phoneVerified,
+      clientIp,
     });
 
     if (!activationResult.success) {

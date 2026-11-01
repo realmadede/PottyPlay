@@ -12,6 +12,11 @@
       }
     ]
   },
+  "appclips": {
+    "apps": [
+      "K5P84Z9R92.com.pottyplay.companion.Clip"
+    ]
+  },
   "webcredentials": {
     "apps": [
       "K5P84Z9R92.com.pottyplay.companion"

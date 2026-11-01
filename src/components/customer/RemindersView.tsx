@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Bell, Plus, Trash2, Calendar, Clock, Ticket, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { GlassSurface } from "@/components/GlassSurface";
 
 interface ReminderItem {
   id: string;
@@ -246,7 +247,7 @@ export function RemindersView() {
 
       {/* Empty State */}
       {!loading && reminders.length === 0 && (
-        <div className="p-10 rounded-3xl bg-field border border-line text-center space-y-3">
+        <GlassSurface variant="dock" className="p-10 border border-line text-center space-y-3">
           <div className="w-12 h-12 rounded-2xl bg-field-raised text-muted flex items-center justify-center mx-auto">
             <Bell className="w-6 h-6" />
           </div>
@@ -254,16 +255,17 @@ export function RemindersView() {
           <p className="text-xs text-muted max-w-sm mx-auto">
             You have no upcoming screening reminders configured. Add your cinema ticket to receive notifications before showtime.
           </p>
-        </div>
+        </GlassSurface>
       )}
 
       {/* Reminders list */}
       {!loading && reminders.length > 0 && (
         <div className="space-y-3">
           {reminders.map((reminder) => (
-            <div
+            <GlassSurface
               key={reminder.id}
-              className="p-4 sm:p-5 rounded-2xl bg-field border border-line shadow-card flex items-center justify-between gap-3"
+              variant="panel"
+              className="p-4 sm:p-5 border border-line shadow-card flex items-center justify-between gap-3"
             >
               <div className="flex items-start space-x-3.5">
                 <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -297,7 +299,7 @@ export function RemindersView() {
               >
                 <Trash2 className="w-4 h-4" />
               </button>
-            </div>
+            </GlassSurface>
           ))}
         </div>
       )}
