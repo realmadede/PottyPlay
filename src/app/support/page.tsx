@@ -20,6 +20,7 @@ import {
   Clock,
   MessageSquare,
   Building2,
+  Smartphone,
 } from "lucide-react";
 
 interface FaqItem {
@@ -168,12 +169,10 @@ export default function SupportPage() {
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Return to Homepage</span>
           </Link>
-          <Link
-            href="/app"
-            className="inline-flex items-center space-x-1.5 text-xs font-semibold text-amber-400 hover:text-amber-300 transition-colors"
-          >
-            <span>Open Patron Web App</span>
-          </Link>
+          <span className="inline-flex items-center space-x-1.5 text-xs font-semibold text-muted">
+            <Smartphone className="w-3.5 h-3.5 text-amber-400" />
+            <span>Patron App Available on Android & iOS</span>
+          </span>
         </div>
 
         {/* Page Header */}

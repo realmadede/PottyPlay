@@ -69,6 +69,22 @@ export function middleware(req: NextRequest) {
     return new NextResponse("Not Found", { status: 404 });
   }
 
+  // 4. Native-Only Perimeter for Patron Companion App (/app)
+  // Standard web browser requests are rejected with 404 Not Found.
+  // Access is permitted exclusively through the native mobile emulator/app shell or explicit emulator query.
+  if (pathname === "/app" || pathname.startsWith("/app/")) {
+    const isNativeClient =
+      Boolean(req.headers.get("x-capacitor-platform")) ||
+      req.headers.get("x-requested-with") === "com.pottyplay.companion" ||
+      req.headers.get("x-pottyplay-native") === "true" ||
+      (req.headers.get("user-agent") || "").toLowerCase().includes("capacitor") ||
+      req.nextUrl.searchParams.get("emulator") === "true";
+
+    if (!isNativeClient) {
+      return new NextResponse("Not Found", { status: 404 });
+    }
+  }
+
   return NextResponse.next();
 }
 

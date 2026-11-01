@@ -55,7 +55,8 @@ const html = `<!DOCTYPE html>
   <script>
     const serverUrl = window.CAPACITOR_SERVER_URL || window.location.origin;
     if (serverUrl && serverUrl !== "file://") {
-      window.location.replace(serverUrl + "/app");
+      // Launch into companion app within native emulator boundary
+      window.location.replace(serverUrl + "/app?emulator=true");
     }
   </script>
 </body>

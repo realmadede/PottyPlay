@@ -54,34 +54,53 @@ export default function CustomerApplication() {
   const [currentTheme, setCurrentTheme] = useState<"LIGHT" | "DARK" | "SYSTEM">("SYSTEM");
   const [isOffline, setIsOffline] = useState(false);
 
-  // Monitor network connectivity
+  // Monitor network connectivity via NativeMobile
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const handleOnline = () => setIsOffline(false);
-    const handleOffline = () => setIsOffline(true);
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-    if (!navigator.onLine) setIsOffline(true);
-    return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
+    NativeMobile.getNetworkStatus().then((status) => {
+      setIsOffline(!status.connected);
+    });
+    const sub = NativeMobile.onNetworkStatusChange((status) => {
+      setIsOffline(!status.connected);
+    });
+    return () => sub.remove();
   }, []);
+
+  // Hardware back button handler for Android
+  useEffect(() => {
+    const sub = NativeMobile.onHardwareBack(() => {
+      if (authModalOpen && customer) {
+        setAuthModalOpen(false);
+        return true;
+      }
+      if (showOnboarding && customer) {
+        setShowOnboarding(false);
+        return true;
+      }
+      if (activeTab !== "bathroom") {
+        setActiveTab("bathroom");
+        return true;
+      }
+      return false;
+    });
+    return () => sub.remove();
+  }, [authModalOpen, customer, showOnboarding, activeTab]);
 
   // Initialize theme from storage
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const savedTheme = localStorage.getItem("pp_theme") as "LIGHT" | "DARK" | "SYSTEM" | null;
-    if (savedTheme) {
-      applyTheme(savedTheme);
+    async function loadTheme() {
+      const savedTheme = (await NativeMobile.getStorageItem("pp_theme")) as "LIGHT" | "DARK" | "SYSTEM" | null;
+      if (savedTheme) {
+        applyTheme(savedTheme);
+      }
     }
+    loadTheme();
   }, []);
 
   const applyTheme = (theme: "LIGHT" | "DARK" | "SYSTEM") => {
     setCurrentTheme(theme);
-    if (typeof window === "undefined") return;
-    localStorage.setItem("pp_theme", theme);
+    NativeMobile.setStorageItem("pp_theme", theme);
 
+    if (typeof window === "undefined") return;
     const root = document.documentElement;
     if (theme === "DARK") {
       root.classList.add("dark");
@@ -110,9 +129,9 @@ export default function CustomerApplication() {
     }
 
     async function initApp() {
-      // 1. Instant offline-first cache hydration
-      const storedOnboarding = typeof window !== "undefined" ? localStorage.getItem("pp_onboarding_done") : null;
-      const cachedProfile = typeof window !== "undefined" ? localStorage.getItem("pp_cust_profile") : null;
+      // 1. Instant offline-first cache hydration from native secure preferences
+      const storedOnboarding = await NativeMobile.getStorageItem("pp_onboarding_done");
+      const cachedProfile = await NativeMobile.getStorageItem("pp_cust_profile");
       if (cachedProfile) {
         try {
           const parsed = JSON.parse(cachedProfile);
@@ -128,7 +147,7 @@ export default function CustomerApplication() {
 
       // 2. Fetch authenticated profile
       try {
-        const token = typeof window !== "undefined" ? localStorage.getItem("pp_cust_token") : null;
+        const token = await NativeMobile.getStorageItem("pp_cust_token");
         if (!token) {
           if (!storedOnboarding) {
             setShowOnboarding(true);
@@ -147,7 +166,7 @@ export default function CustomerApplication() {
           const data = await res.json();
           if (data.success && data.customer) {
             setCustomer(data.customer);
-            localStorage.setItem("pp_cust_profile", JSON.stringify(data.customer));
+            await NativeMobile.setStorageItem("pp_cust_profile", JSON.stringify(data.customer));
             if (data.customer.themePreference) {
               applyTheme(data.customer.themePreference as any);
             }
@@ -155,13 +174,13 @@ export default function CustomerApplication() {
               setShowOnboarding(true);
             }
           } else {
-            localStorage.removeItem("pp_cust_token");
-            localStorage.removeItem("pp_cust_profile");
+            await NativeMobile.removeStorageItem("pp_cust_token");
+            await NativeMobile.removeStorageItem("pp_cust_profile");
             setAuthModalOpen(true);
           }
         } else if (res.status === 401) {
-          localStorage.removeItem("pp_cust_token");
-          localStorage.removeItem("pp_cust_profile");
+          await NativeMobile.removeStorageItem("pp_cust_token");
+          await NativeMobile.removeStorageItem("pp_cust_profile");
           setAuthModalOpen(true);
         }
       } catch (err) {
@@ -177,16 +196,14 @@ export default function CustomerApplication() {
 
   const handleOnboardingComplete = async () => {
     setShowOnboarding(false);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("pp_onboarding_done", "true");
-    }
+    await NativeMobile.setStorageItem("pp_onboarding_done", "true");
 
     // After onboarding, transition directly to mandatory registration if unauthenticated
     if (!customer) {
       setAuthModalOpen(true);
     } else {
       try {
-        const token = localStorage.getItem("pp_cust_token");
+        const token = await NativeMobile.getStorageItem("pp_cust_token");
         await fetch("/api/auth/customer/onboarding", {
           method: "POST",
           headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -199,15 +216,13 @@ export default function CustomerApplication() {
 
   const handleLogout = async () => {
     try {
-      const token = typeof window !== "undefined" ? localStorage.getItem("pp_cust_token") : null;
+      const token = await NativeMobile.getStorageItem("pp_cust_token");
       await fetch("/api/auth/customer/logout", {
         method: "POST",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("pp_cust_token");
-        localStorage.removeItem("pp_cust_profile");
-      }
+      await NativeMobile.removeStorageItem("pp_cust_token");
+      await NativeMobile.removeStorageItem("pp_cust_profile");
       setCustomer(null);
       setAuthModalOpen(true); // Mandatory authentication gating
     } catch (err) {

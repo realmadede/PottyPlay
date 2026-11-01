@@ -105,12 +105,15 @@ export function BathroomView() {
 
     // Acquire wake lock to keep display active in restroom
     NativeMobile.requestWakeLock();
+    // Schedule native OS alarms (12m warning, 14m final) in system notification tray
+    NativeMobile.scheduleBreakAlarms(remainingTimer);
 
     const interval = setInterval(() => {
       setRemainingTimer((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
           NativeMobile.releaseWakeLock();
+          NativeMobile.cancelBreakAlarms();
           setActiveSession(null);
           checkStatus();
           return 0;
@@ -118,7 +121,7 @@ export function BathroomView() {
 
         // 12-Minute Haptic Break Chime (180s left)
         if (prev === 180) {
-          NativeMobile.triggerHaptic("medium");
+          NativeMobile.triggerHaptic("warning");
         }
         // 14-Minute Urgent Haptic Warning (60s left)
         if (prev === 60) {
@@ -164,6 +167,9 @@ export function BathroomView() {
           );
         } else if (res.ok && !data.isValid) {
           // Hard expiration or operator revocation
+          clearInterval(syncInterval);
+          NativeMobile.releaseWakeLock();
+          NativeMobile.cancelBreakAlarms();
           setActiveSession(null);
           checkStatus();
         }
@@ -177,6 +183,8 @@ export function BathroomView() {
 
   const handleEndBreak = async () => {
     if (!activeSession) return;
+    NativeMobile.releaseWakeLock();
+    NativeMobile.cancelBreakAlarms();
     try {
       await fetch("/api/sessions/complete", {
         method: "POST",

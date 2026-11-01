@@ -886,12 +886,14 @@ function WatchExperience() {
                 Get the App
               </a>
             ) : (
-              <Link
-                href="/app"
+              <a
+                href={process.env.NEXT_PUBLIC_APP_STORE_URL || "https://play.google.com/store/apps/details?id=com.pottyplay.companion"}
+                target="_blank"
+                rel="noreferrer"
                 className="py-2 px-3.5 rounded-xl font-black text-xs bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-all shadow-sm"
               >
-                Open Mobile App
-              </Link>
+                Download Patron App
+              </a>
             )}
           </div>
         </GlassSurface>

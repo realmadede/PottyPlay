@@ -25,6 +25,11 @@ const config: CapacitorConfig = {
     PrivacyScreen: {
       enable: true,
     },
+    LocalNotifications: {
+      smallIcon: "ic_launcher_round",
+      iconColor: "#F59E0B",
+      sound: "beep.wav",
+    },
   },
 };
 
