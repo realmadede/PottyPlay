@@ -20,7 +20,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
 RUN npx prisma generate
-RUN npm run build
+RUN DATABASE_URL="postgresql://build:build@127.0.0.1:5432/build?schema=public" npm run build
 
 # Stage 3: Production runner
 FROM node:24-alpine AS runner

@@ -2,6 +2,8 @@
 .gitignore
 .env
 .env*.local
+/temurin/
+/temurin21.tar.gz
 node_modules
 .next
 out
