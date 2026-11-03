@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
+import React, { useEffect, useState } from "react";
 import {
   User,
   Moon,
@@ -10,7 +9,6 @@ import {
   Bell,
   Shield,
   FileText,
-  Star,
   LogOut,
   Trash2,
   CheckCircle2,
@@ -22,6 +20,8 @@ import {
 } from "lucide-react";
 import { GlassSurface } from "@/components/GlassSurface";
 import { ReportIssueModal } from "@/components/customer/ReportIssueModal";
+import { customerFetch, customerUrl } from "@/lib/customer-mobile-url";
+import { NativeMobile } from "@/lib/native-mobile";
 
 interface SettingsViewProps {
   customer: {
@@ -32,8 +32,12 @@ interface SettingsViewProps {
     phoneVerified: boolean;
     emailVerified: boolean;
     themePreference?: string;
+    notificationPreferences?: {
+      showtimeRemindersEnabled: boolean;
+      breakAlertsEnabled: boolean;
+    };
   };
-  onLogout: () => void;
+  onLogout: (notice?: string) => void;
   onUpdateTheme: (theme: "LIGHT" | "DARK" | "SYSTEM") => void;
   currentTheme: "LIGHT" | "DARK" | "SYSTEM";
   onNavigateToProfile?: () => void;
@@ -47,25 +51,85 @@ export function SettingsView({
   onNavigateToProfile,
 }: SettingsViewProps) {
   const [theme, setTheme] = useState<"LIGHT" | "DARK" | "SYSTEM">(currentTheme);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [vibrationAlerts, setVibrationAlerts] = useState(true);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(customer.notificationPreferences?.showtimeRemindersEnabled ?? true);
+  const [breakAlertsEnabled, setBreakAlertsEnabled] = useState(customer.notificationPreferences?.breakAlertsEnabled ?? true);
+  const [notificationPermission, setNotificationPermission] = useState<boolean | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const showtimeEnabled = customer.notificationPreferences?.showtimeRemindersEnabled ?? true;
+    const breakEnabled = customer.notificationPreferences?.breakAlertsEnabled ?? true;
+    setNotificationsEnabled(showtimeEnabled);
+    setBreakAlertsEnabled(breakEnabled);
+    void NativeMobile.setStorageItem("pp_break_alerts_enabled", String(breakEnabled));
+    const refreshPermission = () => {
+      void NativeMobile.getNotificationPermission().then(setNotificationPermission);
+    };
+    refreshPermission();
+    let active = true;
+    let appStateListener: { remove: () => Promise<void> } | null = null;
+    void NativeMobile.onAppStateChange((isActive) => {
+      if (active && isActive) refreshPermission();
+    }).then((listener) => {
+      if (!active) void listener.remove();
+      else appStateListener = listener;
+    });
+    return () => {
+      active = false;
+      if (appStateListener) void appStateListener.remove();
+    };
+  }, [customer.customerId, customer.notificationPreferences?.showtimeRemindersEnabled, customer.notificationPreferences?.breakAlertsEnabled]);
+
+  const saveNotificationPreferences = async (
+    next: { showtimeRemindersEnabled: boolean; breakAlertsEnabled: boolean },
+    previous: { showtimeRemindersEnabled: boolean; breakAlertsEnabled: boolean }
+  ) => {
+    setMessage(null);
+    setNotificationsEnabled(next.showtimeRemindersEnabled);
+    setBreakAlertsEnabled(next.breakAlertsEnabled);
+    await NativeMobile.setStorageItem("pp_break_alerts_enabled", String(next.breakAlertsEnabled));
+    window.dispatchEvent(new CustomEvent("pottyplay:break-alerts-changed", {
+      detail: { enabled: next.breakAlertsEnabled },
+    }));
+    try {
+      const response = await customerFetch("/api/auth/customer/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notificationPreferences: next }),
+      });
+      if (!response.ok) throw new Error("Notification preferences could not be saved.");
+    } catch (error) {
+      setNotificationsEnabled(previous.showtimeRemindersEnabled);
+      setBreakAlertsEnabled(previous.breakAlertsEnabled);
+      await NativeMobile.setStorageItem("pp_break_alerts_enabled", String(previous.breakAlertsEnabled));
+      setMessage(error instanceof Error ? error.message : "Notification preferences could not be saved.");
+    }
+  };
+
+  const handleBreakAlertsChange = async (enabled: boolean) => {
+    const previous = { showtimeRemindersEnabled: notificationsEnabled, breakAlertsEnabled };
+    if (enabled && NativeMobile.isNative()) {
+      const granted = await NativeMobile.requestNotificationPermission();
+      setNotificationPermission(granted);
+      const previous = { showtimeRemindersEnabled: notificationsEnabled, breakAlertsEnabled };
+      await saveNotificationPreferences({ ...previous, breakAlertsEnabled: enabled }, previous);
+      if (!granted) setMessage("Break reminders are turned off. You can enable them in your device settings; notifications are not required to use PottyPlay.");
+      return;
+    }
+    await saveNotificationPreferences({ ...previous, breakAlertsEnabled: enabled }, previous);
+  };
 
   const handleThemeChange = async (newTheme: "LIGHT" | "DARK" | "SYSTEM") => {
     setTheme(newTheme);
     onUpdateTheme(newTheme);
 
     try {
-      const token = typeof window !== "undefined" ? localStorage.getItem("pp_cust_token") : null;
-      await fetch("/api/auth/customer/settings", {
+      await customerFetch("/api/auth/customer/settings", {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ themePreference: newTheme }),
       });
     } catch {
@@ -76,18 +140,14 @@ export function SettingsView({
   const handleDeleteAccount = async () => {
     setDeleting(true);
     try {
-      const token = typeof window !== "undefined" ? localStorage.getItem("pp_cust_token") : null;
-      const res = await fetch("/api/auth/customer/settings", {
+      const res = await customerFetch("/api/auth/customer/settings", {
         method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "delete_account" }),
       });
 
       if (res.ok) {
-        onLogout();
+        onLogout("Deletion confirmed. Account access is revoked. Account identifiers and linked support details are scheduled for anonymization after 30 days; cinema or legally required records may be retained in anonymized form.");
       } else {
         setMessage("Failed to submit deletion request. Please contact support.");
       }
@@ -186,7 +246,7 @@ export function SettingsView({
           </button>
         </div>
         <div className="text-[11px] text-muted pt-1">
-          Theme preference persists across browser sessions and native mobile app launches without flashing.
+          Your appearance preference is saved on this device.
         </div>
       </GlassSurface>
 
@@ -200,13 +260,16 @@ export function SettingsView({
           <div className="pr-4">
             <div className="text-sm font-bold text-ink">Showtime Reminders</div>
             <div className="text-xs text-muted mt-0.5">
-              Receive alert 30 minutes before your ticketed screening begins.
+              Allow configured ticket reminders by SMS and email before showtime.
             </div>
           </div>
           <input
             type="checkbox"
             checked={notificationsEnabled}
-            onChange={(e) => setNotificationsEnabled(e.target.checked)}
+            onChange={(e) => {
+              const previous = { showtimeRemindersEnabled: notificationsEnabled, breakAlertsEnabled };
+              void saveNotificationPreferences({ ...previous, showtimeRemindersEnabled: e.target.checked }, previous);
+            }}
             className="h-5 w-5 rounded border-line text-amber-500 focus:ring-amber-500 bg-bg cursor-pointer"
           />
         </div>
@@ -215,16 +278,24 @@ export function SettingsView({
           <div className="pr-4">
             <div className="text-sm font-bold text-ink">Break Return Warnings</div>
             <div className="text-xs text-muted mt-0.5">
-              Gentle vibration chime at 12 and 14 minutes during bathroom breaks.
+              Get a reminder near the end of an active break.
             </div>
           </div>
           <input
             type="checkbox"
-            checked={vibrationAlerts}
-            onChange={(e) => setVibrationAlerts(e.target.checked)}
+            checked={breakAlertsEnabled}
+            onChange={(e) => void handleBreakAlertsChange(e.target.checked)}
             className="h-5 w-5 rounded border-line text-amber-500 focus:ring-amber-500 bg-bg cursor-pointer"
           />
         </div>
+        <p className="border-t border-line pt-3 text-[11px] leading-relaxed text-muted">
+          {notificationPermission === null
+            ? "Enable notifications to receive a reminder when your break is nearly over. You can change this preference at any time."
+            : notificationPermission
+            ? "Notifications are enabled for break reminders on this device. You can change this preference at any time."
+            : "Notifications are turned off. You can still use PottyPlay without them."}
+        </p>
+        {message && <p role="status" className="text-xs text-amber-300">{message}</p>}
       </div>
 
       {/* 4. Legal & Compliance */}
@@ -233,8 +304,8 @@ export function SettingsView({
           Legal & Privacy
         </h4>
 
-        <Link
-          href="/privacy"
+        <a
+          href="/privacy/"
           target="_blank"
           className="p-3 rounded-2xl bg-bg border border-line hover:bg-field-raised transition-colors flex items-center justify-between text-xs"
         >
@@ -243,10 +314,10 @@ export function SettingsView({
             <span className="font-semibold text-ink">Privacy Policy</span>
           </div>
           <ExternalLink className="w-3.5 h-3.5 text-muted" />
-        </Link>
+        </a>
 
-        <Link
-          href="/terms"
+        <a
+          href="/terms/"
           target="_blank"
           className="p-3 rounded-2xl bg-bg border border-line hover:bg-field-raised transition-colors flex items-center justify-between text-xs"
         >
@@ -255,34 +326,18 @@ export function SettingsView({
             <span className="font-semibold text-ink">Terms of Service</span>
           </div>
           <ExternalLink className="w-3.5 h-3.5 text-muted" />
-        </Link>
+        </a>
       </div>
 
       {/* 5. Support & Feedback */}
       <div className="p-5 sm:p-6 rounded-3xl bg-field border border-line shadow-card space-y-3">
         <h4 className="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider">
-          Support & App Rating
+          Support & Feedback
         </h4>
 
-        {/* Rate Application action */}
-        <div className="p-3.5 rounded-2xl bg-bg border border-line text-xs space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Star className="w-4 h-4 text-amber-400" />
-              <span className="font-bold text-ink">Rate PottyPlay</span>
-            </div>
-            <span className="text-[10px] uppercase font-bold text-muted bg-field px-2 py-0.5 rounded border border-line">
-              Pending Store Release
-            </span>
-          </div>
-          <p className="text-[11px] text-muted leading-relaxed">
-            The native store listing is awaiting certification by our theater pilot partner. Rating links will become active when published on Google Play and Apple App Store.
-          </p>
-        </div>
-
         {/* Dedicated Support Page */}
-        <Link
-          href="/support"
+        <a
+          href="/support/"
           className="p-3.5 rounded-2xl bg-bg border border-line hover:bg-field-raised transition-colors flex items-center justify-between text-xs"
         >
           <div className="flex items-center space-x-2">
@@ -290,7 +345,7 @@ export function SettingsView({
             <span className="font-bold text-ink">Help Center & Frequently Asked Questions</span>
           </div>
           <ChevronRight className="w-3.5 h-3.5 text-muted" />
-        </Link>
+        </a>
 
         {/* Comment and Report Issue Trigger */}
         <button
@@ -328,7 +383,7 @@ export function SettingsView({
 
         <button
           type="button"
-          onClick={onLogout}
+          onClick={() => onLogout()}
           className="w-full py-3 px-4 rounded-xl border border-line text-xs font-bold text-ink hover:bg-field-raised transition-colors flex items-center justify-center space-x-2"
         >
           <LogOut className="w-4 h-4 text-muted" />
@@ -343,6 +398,12 @@ export function SettingsView({
           <Trash2 className="w-3.5 h-3.5" />
           <span>Request Account Deletion</span>
         </button>
+        <a
+          href={customerUrl("/account-deletion")}
+          className="block text-center text-[11px] text-muted underline underline-offset-2"
+        >
+          Request deletion without access to the app
+        </a>
       </div>
 
       {/* Delete Confirmation Modal */}
@@ -353,8 +414,8 @@ export function SettingsView({
               <Trash2 className="w-6 h-6" />
             </div>
             <h3 className="text-lg font-bold text-ink">Request Account Deletion?</h3>
-            <p className="text-xs text-muted leading-relaxed">
-              In compliance with the Personal Data Protection Act, 2022, all your personal details, verified phone records, and viewing history will be queued for permanent erasure.
+                  <p className="text-xs text-muted leading-relaxed">
+                    Confirming revokes your account access and active companion sessions immediately. Account identifiers and linked support details are scheduled for anonymization after a 30-day grace period. Cinema, billing, security, or legally required records may be retained in anonymized form.
             </p>
             <div className="flex items-center space-x-3 pt-2">
               <button

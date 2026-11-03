@@ -35,7 +35,7 @@ export default function PresentationExperiencePage() {
   return (
     <div className="min-h-screen bg-bg text-ink flex flex-col overflow-x-clip selection:bg-amber-500 selection:text-neutral-950">
       {/* Top Banner */}
-      <header className="bg-field/90 backdrop-blur-md border-b border-line px-3 sm:px-6 h-16 flex items-center justify-between sticky top-0 z-40 min-w-0">
+      <header className="glass-ios26 glass-ios26-rim glass-ios26-iridescent glass-ios26-glint border-b border-line px-3 sm:px-6 h-16 flex items-center justify-between sticky top-0 z-40 min-w-0">
         <BrandLogo size="sm" variant="full" href="/" />
 
         <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">

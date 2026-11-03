@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useRef } from "react";
-import Link from "next/link";
+import React, { useEffect, useState, useRef } from "react";
 import { NativeMobile } from "@/lib/native-mobile";
+import { customerFetch } from "@/lib/customer-mobile-url";
 import {
   X,
   Smartphone,
@@ -27,6 +27,7 @@ interface CustomerAuthModalProps {
   onSuccess: (session: any) => void;
   initialMode?: "register" | "login";
   mandatory?: boolean;
+  notice?: string | null;
 }
 
 export function CustomerAuthModal({
@@ -35,6 +36,7 @@ export function CustomerAuthModal({
   onSuccess,
   initialMode = "register",
   mandatory = false,
+  notice,
 }: CustomerAuthModalProps) {
   const [view, setView] = useState<"register" | "login" | "verify" | "forgot">("register");
 
@@ -74,6 +76,10 @@ export function CustomerAuthModal({
   const [dragY, setDragY] = useState(0);
   const touchStartY = useRef<number | null>(null);
 
+  useEffect(() => {
+    if (notice) setView("login");
+  }, [notice]);
+
   if (!isOpen) return null;
 
   // 1. Submit Registration Form
@@ -88,7 +94,7 @@ export function CustomerAuthModal({
 
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/customer/register", {
+      const res = await customerFetch("/api/auth/customer/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -126,7 +132,7 @@ export function CustomerAuthModal({
 
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/customer/verify-phone", {
+      const res = await customerFetch("/api/auth/customer/verify-phone", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -145,7 +151,7 @@ export function CustomerAuthModal({
 
       if (data.isFullyActivated && data.session) {
         if (typeof window !== "undefined" && data.session.sessionToken) {
-          localStorage.setItem("pp_cust_token", data.session.sessionToken);
+          await NativeMobile.setStorageItem("pp_cust_token", data.session.sessionToken);
         }
         onSuccess(data.session);
         if (onClose) onClose();
@@ -165,7 +171,7 @@ export function CustomerAuthModal({
 
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/customer/verify-email", {
+      const res = await customerFetch("/api/auth/customer/verify-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -183,7 +189,7 @@ export function CustomerAuthModal({
 
       if (data.isFullyActivated && data.session) {
         if (typeof window !== "undefined" && data.session.sessionToken) {
-          localStorage.setItem("pp_cust_token", data.session.sessionToken);
+          await NativeMobile.setStorageItem("pp_cust_token", data.session.sessionToken);
         }
         onSuccess(data.session);
         if (onClose) onClose();
@@ -202,7 +208,7 @@ export function CustomerAuthModal({
     setLoading(true);
 
     try {
-      const res = await fetch("/api/auth/customer/login", {
+      const res = await customerFetch("/api/auth/customer/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -222,7 +228,7 @@ export function CustomerAuthModal({
       }
 
       if (typeof window !== "undefined" && data.session?.sessionToken) {
-        localStorage.setItem("pp_cust_token", data.session.sessionToken);
+        await NativeMobile.setStorageItem("pp_cust_token", data.session.sessionToken);
       }
 
       onSuccess(data.session);
@@ -241,7 +247,7 @@ export function CustomerAuthModal({
     setLoading(true);
 
     try {
-      const res = await fetch("/api/auth/customer/forgot-password", {
+      const res = await customerFetch("/api/auth/customer/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "request", identifier: forgotIdentifier }),
@@ -264,7 +270,7 @@ export function CustomerAuthModal({
     setLoading(true);
 
     try {
-      const res = await fetch("/api/auth/customer/forgot-password", {
+      const res = await customerFetch("/api/auth/customer/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "reset", token: resetToken, newPassword }),
@@ -348,7 +354,7 @@ export function CustomerAuthModal({
             {view === "forgot" && "Reset Password"}
           </h2>
           <p className="mt-1 text-xs sm:text-sm text-muted">
-            {view === "register" && "Mandatory verification required for companion viewing."}
+            {view === "register" && "Verify your phone number and email to start using PottyPlay."}
             {view === "login" && "Access your saved tickets, screening alerts, and breaks."}
             {view === "verify" && "Confirm your phone and email to activate viewing access."}
             {view === "forgot" && "Recover secure access to your account."}
@@ -356,6 +362,11 @@ export function CustomerAuthModal({
         </div>
 
         {/* Error Banner */}
+        {notice && (
+          <div className="mb-4 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3.5 text-xs text-emerald-300" role="status">
+            {notice}
+          </div>
+        )}
         {errorMessage && (
           <div className="mb-4 p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-start space-x-2.5">
             <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-400" />
@@ -401,7 +412,7 @@ export function CustomerAuthModal({
                 />
               </div>
               <span className="text-[10px] text-muted mt-0.5 block">
-                SMS verification OTP will be sent to this number.
+                We will text a verification code to this number.
               </span>
             </div>
 
@@ -470,21 +481,21 @@ export function CustomerAuthModal({
                 />
                 <span className="text-xs text-muted leading-snug">
                   I agree to the{" "}
-                  <Link
-                    href="/terms"
+                  <a
+                    href="/terms/"
                     target="_blank"
                     className="font-bold text-ink underline hover:text-amber-400"
                   >
                     Terms of Service
-                  </Link>{" "}
+                  </a>{" "}
                   and{" "}
-                  <Link
-                    href="/privacy"
+                  <a
+                    href="/privacy/"
                     target="_blank"
                     className="font-bold text-ink underline hover:text-amber-400"
                   >
                     Privacy Policy
-                  </Link>
+                  </a>
                   . *
                 </span>
               </label>
@@ -530,11 +541,11 @@ export function CustomerAuthModal({
         {view === "verify" && (
           <div className="space-y-5">
             {/* Simulation Helpers for Evaluation in Dev */}
-            {(simulatedSms || simulatedEmail) && (
+            {process.env.NODE_ENV === "development" && (simulatedSms || simulatedEmail) && (
               <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[11px] space-y-1">
-                <div className="font-bold uppercase tracking-wider text-[10px]">Verification Codes Dispatched</div>
+                <div className="font-bold uppercase tracking-wider text-[10px]">Development test codes</div>
                 {simulatedSms && (
-                  <div>SMS OTP: <span className="font-mono font-bold text-amber-400">{simulatedSms}</span></div>
+                  <div>Phone code: <span className="font-mono font-bold text-amber-400">{simulatedSms}</span></div>
                 )}
                 {simulatedEmail && (
                   <div>Email Code: <span className="font-mono font-bold text-amber-400">{simulatedEmail}</span></div>
@@ -547,7 +558,7 @@ export function CustomerAuthModal({
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-ink flex items-center space-x-1.5">
                   <Smartphone className="w-3.5 h-3.5 text-amber-400" />
-                  <span>1. Phone SMS OTP</span>
+                  <span>1. Verify phone number</span>
                 </span>
                 {phoneVerified ? (
                   <span className="text-[11px] font-bold text-emerald-400 flex items-center space-x-1">
@@ -565,7 +576,7 @@ export function CustomerAuthModal({
                     type="text"
                     required
                     maxLength={6}
-                    placeholder="Enter 6-digit SMS code"
+                    placeholder="Enter the 6-digit text message code"
                     value={phoneCode}
                     onChange={(e) => setPhoneCode(e.target.value)}
                     className="w-full px-3.5 py-2 rounded-xl border border-line bg-bg text-ink placeholder-muted text-sm font-mono tracking-widest text-center focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
@@ -575,11 +586,11 @@ export function CustomerAuthModal({
                     disabled={loading || phoneCode.length !== 6}
                     className="w-full py-2 rounded-lg text-xs font-black bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-colors disabled:opacity-50"
                   >
-                    Confirm Phone Code
+                    Confirm Phone Number
                   </button>
                 </div>
               ) : (
-                <div className="text-xs text-muted">Phone ownership successfully validated.</div>
+                <div className="text-xs text-muted">Phone number verified.</div>
               )}
             </form>
 
@@ -588,7 +599,7 @@ export function CustomerAuthModal({
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-ink flex items-center space-x-1.5">
                   <Mail className="w-3.5 h-3.5 text-amber-400" />
-                  <span>2. Email Ownership Code</span>
+                  <span>2. Verify email address</span>
                 </span>
                 {emailVerified ? (
                   <span className="text-[11px] font-bold text-emerald-400 flex items-center space-x-1">
@@ -606,7 +617,7 @@ export function CustomerAuthModal({
                     type="text"
                     required
                     maxLength={6}
-                    placeholder="Enter 6-digit email code"
+                    placeholder="Enter the 6-digit code from your email"
                     value={emailCode}
                     onChange={(e) => setEmailCode(e.target.value)}
                     className="w-full px-3.5 py-2 rounded-xl border border-line bg-bg text-ink placeholder-muted text-sm font-mono tracking-widest text-center focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
@@ -616,16 +627,16 @@ export function CustomerAuthModal({
                     disabled={loading || emailCode.length !== 6}
                     className="w-full py-2 rounded-lg text-xs font-black bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-colors disabled:opacity-50"
                   >
-                    Confirm Email Code
+                    Confirm Email Address
                   </button>
                 </div>
               ) : (
-                <div className="text-xs text-muted">Email ownership successfully validated.</div>
+                <div className="text-xs text-muted">Email address verified.</div>
               )}
             </form>
 
             <div className="text-center text-xs text-muted">
-              Both verifications are strictly mandatory before viewing authorization is granted.
+                Verify your phone number and email address to continue.
             </div>
           </div>
         )}

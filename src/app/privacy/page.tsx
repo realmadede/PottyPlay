@@ -29,7 +29,7 @@ export default function PrivacyPolicyPage() {
             Privacy Policy
           </h1>
           <p className="mt-2 text-xs sm:text-sm text-muted">
-            Version 2026-10-v1 &bull; Effective Date: October 28, 2026 &bull; Governing Jurisdiction: United Republic of Tanzania
+            Version 2026-11-v1 &bull; Effective Date: November 3, 2026 &bull; Governing Jurisdiction: United Republic of Tanzania
           </p>
         </div>
 
@@ -43,7 +43,7 @@ export default function PrivacyPolicyPage() {
               PottyPlay (&ldquo;we&rdquo;, &ldquo;our&rdquo;, or &ldquo;the Platform&rdquo;) provides authoritative cinema companion viewing services. We process personal data in strict compliance with the laws of the United Republic of Tanzania, including the <strong>Personal Data Protection Act, 2022 (Act No. 11 of 2022)</strong>, the <strong>Personal Data Protection Regulations</strong>, the <strong>Electronic Transactions Act, 2015</strong>, and applicable regulatory directives of the Tanzania Communications Regulatory Authority (TCRA) and the Personal Data Protection Commission (PDPC).
             </p>
             <p className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs">
-              <strong>Notice Regarding Corporate Details:</strong> PottyPlay operates as a specialized theatrical technology platform. Specific BRELA company incorporation numbers, registered office municipal details, and formal data protection officer appointments will be updated upon finalization of partner circuit rollout and formal commission registration.
+              <strong>Service operator contact:</strong> The legal name and postal address of the organization operating PottyPlay must be added here before this policy is published.
             </p>
           </section>
 
@@ -56,11 +56,13 @@ export default function PrivacyPolicyPage() {
               We adhere strictly to the principle of data minimization under Section 5 of the Personal Data Protection Act, 2022. We collect only what is necessary to authenticate patrons and deliver synchronized companion playback:
             </p>
             <ul className="list-disc pl-5 space-y-1.5">
-              <li><strong>Customer Account Credentials:</strong> Full name, telephone number, email address, and cryptographically hashed passwords (Argon2id). Plaintext passwords are never stored or transmitted.</li>
-              <li><strong>Verification Records:</strong> SMS one-time password (OTP) verification records and email ownership verification challenge timestamps.</li>
+              <li><strong>Customer Account Details:</strong> Full name, telephone number, email address, and protected password records. Passwords are not stored in readable form.</li>
+              <li><strong>Verification Records:</strong> Phone and email verification records, including whether a code was verified and when.</li>
               <li><strong>Ticket & Screening Data:</strong> Cinema ticket barcodes, claim tokens, seat assignments, screening titles, screen identifiers, and cinema venue identifiers.</li>
-              <li><strong>Viewing & Telemetry Records:</strong> Break session start time, duration (strictly capped at 900 seconds), last playback position timestamp, heartbeat pings, and session status (Active, Expired, Revoked).</li>
-              <li><strong>Technical Identifiers:</strong> Operating system, browser user agent, IP address for security rate-limiting, and screen dimensions to calibrate video playback.</li>
+              <li><strong>Break and playback details:</strong> Break start time and duration (up to 15 minutes), playback timing information used to keep the stream aligned, and whether a break is active, ended, or expired.</li>
+              <li><strong>Technical and support data:</strong> IP address and basic browser/device information sent when you use the service, plus any device details or contact information you choose to include in a support request.</li>
+              <li><strong>Support requests:</strong> Message text and any optional ticket, screening, or contact details submitted through the support form.</li>
+              <li><strong>Camera access:</strong> If you choose Scan ticket QR, the scanner accesses the camera to decode a ticket or claim code. PottyPlay does not save camera images; manual ticket entry remains available if you decline or cannot grant camera permission.</li>
             </ul>
           </section>
 
@@ -86,7 +88,7 @@ export default function PrivacyPolicyPage() {
               4. SMS and Email Communications
             </h2>
             <p>
-              Telephone verification SMS messages are transmitted via authorized telecommunication aggregators, including Africa&apos;s Talking. OTP verification codes expire within 5 minutes. We do not transmit unsolicited commercial marketing messages without explicit separate consent.
+              Account emails are sent through Resend and phone verification messages through Africa&apos;s Talking. Verification codes are time-limited. These providers receive recipient addresses or phone numbers and message content as needed to deliver the requested verification or account email. We do not send marketing messages through these verification flows.
             </p>
           </section>
 
@@ -96,11 +98,11 @@ export default function PrivacyPolicyPage() {
               5. Data Sharing and Theatrical Circuit Partners
             </h2>
             <p>
-              PottyPlay is not a data broker. We do not sell, rent, or trade patron personal information. We share data only with:
+              PottyPlay is not a data broker. We do not sell, rent, or trade patron personal information. Data is processed by Resend for email, Africa&apos;s Talking for text messages, and the hosting and database providers selected for the deployed service. The service operator must identify the actual hosting/database providers and processing locations in this policy before publication. Cinema partners receive information required to validate ticket eligibility and operate authorized breaks.
             </p>
             <ul className="list-disc pl-5 space-y-1.5">
-              <li><strong>The Participating Cinema Venue:</strong> Only the specific exhibitor where you hold a ticket receives verification confirmations, seat numbers, and break telemetry for usher management.</li>
-              <li><strong>Infrastructure Processors:</strong> Secured cloud infrastructure providers and telecommunication aggregators bound by strict confidentiality and data protection agreements.</li>
+              <li><strong>The participating cinema venue:</strong> Ticket and session information needed to validate admission and support an authorized session.</li>
+              <li><strong>Service providers:</strong> Resend for email, Africa&apos;s Talking for SMS, and the hosting/database providers configured by the service operator.</li>
               <li><strong>Law Enforcement or Statutory Authorities:</strong> Only when strictly mandated by valid legal process or court order under Tanzanian jurisdiction.</li>
             </ul>
           </section>
@@ -111,7 +113,7 @@ export default function PrivacyPolicyPage() {
               6. Data Retention and Account Deletion
             </h2>
             <p>
-              We retain personal data only for as long as your account remains active. Patrons may submit an account deletion request at any time through the Customer Application Settings tab. Upon receipt of a deletion request, personal identifiers, contact credentials, and viewing histories are queued for permanent deletion within 30 business days, subject to statutory retention requirements.
+              You can request account deletion through Settings or the public account deletion page. After confirmation, account access and active breaks are stopped. After a 30-day grace period, account contact details, linked support content, ticket-holder names, claim codes, device information, and personal details linked to breaks are anonymized. Cinema ticket numbers and related session or billing records may remain for exhibitor reconciliation or legal obligations. The service operator must publish applicable retention periods and reasons here.
             </p>
           </section>
 
@@ -124,11 +126,11 @@ export default function PrivacyPolicyPage() {
               We implement comprehensive technical and organizational safeguards:
             </p>
             <ul className="list-disc pl-5 space-y-1.5">
-              <li>Passphrases hashed using memory-hard Argon2id.</li>
-              <li>All network transmissions encrypted using TLS 1.3 / HTTPS.</li>
-              <li>Database tenant isolation separating cinema circuits.</li>
-              <li>Signed, ephemeral video stream manifests expiring every 6 seconds.</li>
-              <li>Strict server-side 900-second automatic disconnection.</li>
+              <li>Passwords are stored using one-way protection and are not kept in readable form.</li>
+              <li>HTTPS is used to protect information sent between your device and the service.</li>
+              <li>Access controls limit cinema partners to information needed for their own screenings.</li>
+              <li>Video access links are signed and expire quickly.</li>
+              <li>Breaks end automatically after 15 minutes.</li>
             </ul>
           </section>
 
@@ -138,12 +140,9 @@ export default function PrivacyPolicyPage() {
               8. Your Statutory Rights and Complaints
             </h2>
             <p>
-              Under the Personal Data Protection Act, 2022, you have the right to request access to your personal data, request rectification of inaccurate records, object to processing, or request data deletion. To exercise these rights or lodge an inquiry, contact our data privacy team at:
+              To ask about personal data or submit a privacy request, use the public support form. The service operator&apos;s legal name and postal contact details must be published here before this policy is used.
             </p>
-            <div className="p-4 rounded-xl bg-field border border-line font-mono text-xs text-ink">
-              Email: privacy@pottyplay.internal<br />
-              Subject: Data Protection Inquiry / PDPA Request
-            </div>
+            <a href="/support/#contact" className="inline-flex p-3 rounded-xl bg-field border border-line text-xs font-semibold text-ink underline">Open the privacy and support request form</a>
             <p className="text-xs text-muted">
               If you believe your personal data has been handled inconsistently with the law, you retain the right to lodge a complaint with the Personal Data Protection Commission (PDPC) of Tanzania.
             </p>
@@ -152,7 +151,7 @@ export default function PrivacyPolicyPage() {
       </main>
 
       <footer className="border-t border-line bg-bg py-6 px-4 text-center text-xs text-muted">
-        PottyPlay &bull; Legal Department &bull; United Republic of Tanzania
+        PottyPlay &bull; United Republic of Tanzania
       </footer>
     </div>
   );

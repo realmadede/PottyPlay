@@ -1,14 +1,15 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
+const emulatorDev = process.env.CAPACITOR_EMULATOR_DEV === "true";
+
 const config: CapacitorConfig = {
   appId: "com.pottyplay.companion",
   appName: "PottyPlay",
   webDir: "out",
   server: {
-    androidScheme: "https",
+    androidScheme: emulatorDev ? "http" : "https",
     iosScheme: "https",
-    cleartext: process.env.NODE_ENV !== "production",
-    url: process.env.CAPACITOR_SERVER_URL || undefined,
+    cleartext: emulatorDev,
   },
   plugins: {
     SplashScreen: {
@@ -23,7 +24,7 @@ const config: CapacitorConfig = {
       backgroundColor: "#0D0F12",
     },
     PrivacyScreen: {
-      enable: true,
+      enable: !emulatorDev,
     },
     LocalNotifications: {
       smallIcon: "ic_launcher_round",

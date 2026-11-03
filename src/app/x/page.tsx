@@ -428,7 +428,7 @@ export default function AdminPortalPage() {
   return (
     <div className="min-h-screen bg-bg text-ink flex flex-col selection:bg-amber-500 selection:text-neutral-950">
       {/* Admin Top Header */}
-      <header className="bg-field/90 backdrop-blur-md text-ink px-4 sm:px-6 h-16 flex items-center justify-between border-b border-line sticky top-0 z-50">
+      <header className="glass-ios26 glass-ios26-rim glass-ios26-iridescent glass-ios26-glint text-ink px-4 sm:px-6 h-16 flex items-center justify-between border-b border-line sticky top-0 z-50">
         <div className="flex items-center space-x-3">
           <BrandLogo size="sm" variant="full" />
           <span className="hidden sm:inline-block px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">

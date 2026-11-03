@@ -60,4 +60,6 @@ Thumbs.db
 **/android/.gradle/
 **/android/app/build/
 **/ios/App/Pods/
+/temurin/
+/temurin21.tar.gz
 

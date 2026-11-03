@@ -2,7 +2,8 @@
  * Native Mobile Polish & Capacitor Hardware Utilities
  *
  * Provides native bridge capabilities with graceful web fallbacks:
- * - Persistent secure storage via @capacitor/preferences (Android KeyStore / iOS Keychain)
+ * - Encrypted customer credentials/profile via KeyStore/Keychain secure storage
+ * - Non-sensitive app preferences via @capacitor/preferences
  * - Hardware Taptic Engine and vibration via @capacitor/haptics
  * - Native OS break alarm scheduling (12m/14m warnings) via @capacitor/local-notifications
  * - Real-time connection detection (Wi-Fi vs Cellular) via @capacitor/network
@@ -12,6 +13,7 @@
 
 import { Capacitor } from "@capacitor/core";
 import { Preferences } from "@capacitor/preferences";
+import { SecureStorage } from "@aparajita/capacitor-secure-storage";
 import { Haptics, ImpactStyle, NotificationType } from "@capacitor/haptics";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { Network, ConnectionStatus } from "@capacitor/network";
@@ -25,6 +27,10 @@ export interface NetworkState {
 export class NativeMobile {
   private static wakeLockSentinel: any = null;
   private static backButtonListenerAttached = false;
+
+  private static usesSecureStorage(key: string): boolean {
+    return key === "pp_cust_token" || key === "pp_cust_profile" || key === "pp_pending_ticket";
+  }
 
   /**
    * Check if running inside a native iOS or Android shell.
@@ -49,13 +55,31 @@ export class NativeMobile {
    * Falls back to localStorage on standard browsers.
    */
   public static async getStorageItem(key: string): Promise<string | null> {
-    try {
-      if (this.isNative()) {
-        const { value } = await Preferences.get({ key });
-        return value;
+    if (this.isNative()) {
+      if (this.usesSecureStorage(key)) {
+        try {
+          const secureValue = await SecureStorage.getItem(key);
+          if (secureValue !== null) return secureValue;
+
+          const { value: legacyPreference } = await Preferences.get({ key });
+          const legacyValue = legacyPreference ?? window.localStorage?.getItem(key);
+          if (!legacyValue) return null;
+
+          await SecureStorage.setItem(key, legacyValue);
+          await Preferences.remove({ key });
+          window.localStorage?.removeItem(key);
+          return legacyValue;
+        } catch {
+          return null;
+        }
       }
-    } catch {
-      // fallback
+
+      try {
+        const { value } = await Preferences.get({ key });
+        if (value !== null) return value;
+      } catch {
+        // fallback
+      }
     }
 
     if (typeof window !== "undefined" && window.localStorage) {
@@ -65,6 +89,12 @@ export class NativeMobile {
   }
 
   public static async setStorageItem(key: string, value: string): Promise<void> {
+    if (this.isNative() && this.usesSecureStorage(key)) {
+      await SecureStorage.setItem(key, value);
+      window.localStorage?.removeItem(key);
+      return;
+    }
+
     try {
       if (this.isNative()) {
         await Preferences.set({ key, value });
@@ -79,6 +109,16 @@ export class NativeMobile {
   }
 
   public static async removeStorageItem(key: string): Promise<void> {
+    if (this.isNative() && this.usesSecureStorage(key)) {
+      try {
+        await SecureStorage.removeItem(key);
+      } finally {
+        await Preferences.remove({ key }).catch(() => {});
+        window.localStorage?.removeItem(key);
+      }
+      return;
+    }
+
     try {
       if (this.isNative()) {
         await Preferences.remove({ key });
@@ -90,6 +130,26 @@ export class NativeMobile {
     if (typeof window !== "undefined" && window.localStorage) {
       localStorage.removeItem(key);
     }
+  }
+
+  public static async getLaunchUrl(): Promise<string | null> {
+    if (!this.isNative()) return null;
+    try {
+      const launch = await App.getLaunchUrl();
+      return launch?.url || null;
+    } catch {
+      return null;
+    }
+  }
+
+  public static async onAppUrlOpen(callback: (url: string) => void) {
+    if (!this.isNative()) return { remove: async () => {} };
+    return App.addListener("appUrlOpen", ({ url }) => callback(url));
+  }
+
+  public static async onAppStateChange(callback: (isActive: boolean) => void) {
+    if (!this.isNative()) return { remove: async () => {} };
+    return App.addListener("appStateChange", ({ isActive }) => callback(isActive));
   }
 
   /**
@@ -141,13 +201,18 @@ export class NativeMobile {
    * Schedule Native OS Alarms for Break Countdown (12-minute and 14-minute alerts)
    * These alerts ring even when the screen is locked or the app is backgrounded.
    */
-  public static async scheduleBreakAlarms(remainingSeconds: number): Promise<void> {
+  public static async scheduleBreakAlarms(remainingSeconds: number, enabled = true): Promise<void> {
     try {
       if (!this.isNative()) return;
+      if (!enabled) {
+        await this.cancelBreakAlarms();
+        return;
+      }
 
       const perm = await LocalNotifications.checkPermissions();
       if (perm.display !== "granted") {
-        await LocalNotifications.requestPermissions();
+        await this.cancelBreakAlarms();
+        return;
       }
 
       // Cancel any existing break alarms
@@ -189,6 +254,28 @@ export class NativeMobile {
       }
     } catch {
       // Local notifications unavailable
+    }
+  }
+
+  public static async getNotificationPermission(): Promise<boolean | null> {
+    if (!this.isNative()) return null;
+    try {
+      const permissions = await LocalNotifications.checkPermissions();
+      return permissions.display === "granted";
+    } catch {
+      return false;
+    }
+  }
+
+  public static async requestNotificationPermission(): Promise<boolean> {
+    if (!this.isNative()) return false;
+    try {
+      const current = await LocalNotifications.checkPermissions();
+      if (current.display === "granted") return true;
+      const requested = await LocalNotifications.requestPermissions();
+      return requested.display === "granted";
+    } catch {
+      return false;
     }
   }
 

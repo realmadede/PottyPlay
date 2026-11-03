@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { Volume2, VolumeX, ShieldCheck, ShieldAlert, Wifi, Globe } from "lucide-react";
+import { Volume2, VolumeX, ShieldCheck, ShieldAlert, Wifi, Globe, AlertCircle, Loader2 } from "lucide-react";
 
 interface CinemaCanvasPlayerProps {
   positionSeconds: number;
@@ -52,6 +52,16 @@ export function CinemaCanvasPlayer({
   );
   const [edgeFailed, setEdgeFailed] = useState<boolean>(false);
   const [showWifiTip, setShowWifiTip] = useState<boolean>(false);
+  const [isBuffering, setIsBuffering] = useState(Boolean(activeStreamUrl));
+  const [streamError, setStreamError] = useState<string | null>(null);
+  const [streamRetryCount, setStreamRetryCount] = useState(0);
+
+  useEffect(() => {
+    setStreamError(
+      activeStreamUrl ? null : "No authorized video stream is available for this screening."
+    );
+    setIsBuffering(Boolean(activeStreamUrl));
+  }, [activeStreamUrl]);
 
   // Fallback handler if local edge server is unreachable
   const handleStreamError = useCallback(() => {
@@ -62,11 +72,23 @@ export function CinemaCanvasPlayer({
       setEdgeFailed(true);
       setActiveSourceType("WAN_CDN");
       setActiveStreamUrl(videoUrl);
+      setStreamError(null);
+      setIsBuffering(true);
       if (venueWifiSsid) {
         setShowWifiTip(true);
       }
+      return;
     }
+    setIsBuffering(false);
+    setStreamError("The cinema stream could not be loaded. Check your connection and retry.");
   }, [activeSourceType, videoUrl, venueWifiSsid]);
+
+  const handleRetryStream = () => {
+    if (!activeStreamUrl) return;
+    setStreamError(null);
+    setIsBuffering(true);
+    setStreamRetryCount((count) => count + 1);
+  };
 
   // Keep activeStreamUrl in sync if props update
   useEffect(() => {
@@ -249,6 +271,9 @@ export function CinemaCanvasPlayer({
     const video = videoRef.current;
     if (!video || !activeStreamUrl) return;
 
+    setStreamError(null);
+    setIsBuffering(true);
+
     if (hlsRef.current) {
       hlsRef.current.destroy();
       hlsRef.current = null;
@@ -271,11 +296,9 @@ export function CinemaCanvasPlayer({
         hls.attachMedia(video);
 
         hls.on(HlsConstructor.Events.MANIFEST_PARSED, () => {
-          if (!isPaused && !captureBlocked) {
-            video.play().catch(() => {});
-          }
-          if (Math.abs(video.currentTime - positionSeconds) > 1.2) {
-            video.currentTime = positionSeconds;
+          const serverPosition = lastSyncRef.current.serverPos;
+          if (Math.abs(video.currentTime - serverPosition) > 1.2) {
+            video.currentTime = serverPosition;
           }
         });
 
@@ -295,39 +318,26 @@ export function CinemaCanvasPlayer({
       if (video.canPlayType("application/vnd.apple.mpegurl")) {
         // Native HLS for Safari (iOS/macOS)
         video.src = activeStreamUrl;
-      } else if (typeof window !== "undefined" && (window as any).Hls && (window as any).Hls.isSupported()) {
-        attachHlsInstance((window as any).Hls);
-      } else if (typeof document !== "undefined") {
-        // Load HLS.js dynamically for desktop Chrome/Firefox/Edge
-        const scriptId = "hls-js-engine";
-        let script = document.getElementById(scriptId) as HTMLScriptElement | null;
-        if (!script) {
-          script = document.createElement("script");
-          script.id = scriptId;
-          script.src = "https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js";
-          script.async = true;
-          document.head.appendChild(script);
-        }
-
-        const onScriptLoad = () => {
-          if ((window as any).Hls && (window as any).Hls.isSupported()) {
-            attachHlsInstance((window as any).Hls);
-          } else {
-            video.src = activeStreamUrl;
-          }
-        };
-
-        if ((window as any).Hls) {
-          onScriptLoad();
-        } else {
-          script.addEventListener("load", onScriptLoad, { once: true });
-        }
+        video.load();
       } else {
-        video.src = activeStreamUrl;
+        import("hls.js")
+          .then(({ default: HlsConstructor }) => {
+            if (HlsConstructor.isSupported()) {
+              attachHlsInstance(HlsConstructor);
+            } else {
+              video.src = activeStreamUrl;
+              video.load();
+            }
+          })
+          .catch(() => {
+            setIsBuffering(false);
+            setStreamError("The playback engine could not be loaded. Check your connection and retry.");
+          });
       }
     } else {
       // Standard MP4 / WebM progressive video stream
       video.src = activeStreamUrl;
+      video.load();
     }
 
     return () => {
@@ -336,7 +346,7 @@ export function CinemaCanvasPlayer({
         hlsRef.current = null;
       }
     };
-  }, [activeStreamUrl, handleStreamError, isPaused, captureBlocked, positionSeconds]);
+  }, [activeStreamUrl, handleStreamError, streamRetryCount]);
 
   // Synchronize playback timeline, drift compensation, and paused states
   useEffect(() => {
@@ -346,7 +356,10 @@ export function CinemaCanvasPlayer({
     if (isPaused || captureBlocked) {
       video.pause();
     } else {
-      video.play().catch(() => {});
+      video.play().catch(() => {
+        setIsBuffering(false);
+        setStreamError("Playback did not start. Check the connection and retry.");
+      });
     }
 
     const drift = Math.abs(video.currentTime - positionSeconds);
@@ -386,6 +399,8 @@ export function CinemaCanvasPlayer({
         return;
       }
 
+      ctx.clearRect(0, 0, width, height);
+
       // Calculate smooth time
       let curTime = lastSyncRef.current.serverPos;
       if (!isPaused) {
@@ -393,118 +408,6 @@ export function CinemaCanvasPlayer({
         curTime = Math.min(durationSeconds, lastSyncRef.current.serverPos + delta);
       }
       setInternalTime(curTime);
-
-      // Background - Cinema Projection Environment
-      const gradient = ctx.createLinearGradient(0, 0, width, height);
-      // Day/sunset tone based on scene progress
-      const cycle = (curTime % 120) / 120;
-      if (cycle < 0.33) {
-        gradient.addColorStop(0, "#08101a");
-        gradient.addColorStop(0.5, "#152438");
-        gradient.addColorStop(1, "#0a1320");
-      } else if (cycle < 0.66) {
-        gradient.addColorStop(0, "#1f0f18");
-        gradient.addColorStop(0.5, "#421b2c");
-        gradient.addColorStop(1, "#180c14");
-      } else {
-        gradient.addColorStop(0, "#0a1816");
-        gradient.addColorStop(0.5, "#16342f");
-        gradient.addColorStop(1, "#091412");
-      }
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, width, height);
-
-      // Cinema Projector Beam Vignette
-      const beamGrad = ctx.createRadialGradient(
-        width / 2,
-        height / 2,
-        width * 0.1,
-        width / 2,
-        height / 2,
-        width * 0.7
-      );
-      beamGrad.addColorStop(0, "rgba(255, 235, 180, 0.08)");
-      beamGrad.addColorStop(0.6, "rgba(0, 0, 0, 0.2)");
-      beamGrad.addColorStop(1, "rgba(0, 0, 0, 0.75)");
-      ctx.fillStyle = beamGrad;
-      ctx.fillRect(0, 0, width, height);
-
-      // Animated Savannah Silhouettes / Visual demonstration motion
-      ctx.save();
-      // Distant rolling hills
-      ctx.fillStyle = "rgba(10, 15, 24, 0.6)";
-      ctx.beginPath();
-      ctx.moveTo(0, height * 0.65);
-      for (let x = 0; x <= width; x += 40) {
-        const y = height * 0.65 + Math.sin((x + curTime * 15) * 0.008) * 16;
-        ctx.lineTo(x, y);
-      }
-      ctx.lineTo(width, height);
-      ctx.lineTo(0, height);
-      ctx.closePath();
-      ctx.fill();
-
-      // Midground Acacia Tree silhouette
-      const treeX = width * 0.22;
-      const treeBaseY = height * 0.76;
-      ctx.fillStyle = "rgba(6, 10, 16, 0.88)";
-      ctx.beginPath();
-      ctx.moveTo(treeX - 10, treeBaseY);
-      ctx.lineTo(treeX + 10, treeBaseY);
-      ctx.lineTo(treeX + 4, treeBaseY - 55);
-      ctx.lineTo(treeX - 4, treeBaseY - 55);
-      ctx.closePath();
-      ctx.fill();
-
-      // Canopy
-      ctx.beginPath();
-      ctx.ellipse(treeX + 2, treeBaseY - 58, 45, 14, -0.05, 0, Math.PI * 2);
-      ctx.ellipse(treeX - 15, treeBaseY - 65, 30, 10, 0.08, 0, Math.PI * 2);
-      ctx.ellipse(treeX + 25, treeBaseY - 62, 28, 9, -0.1, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Flying birds in distance
-      const birdOffset = (curTime * 28) % (width + 60);
-      const birdX = width - birdOffset;
-      const birdY = height * 0.28 + Math.sin(curTime * 2) * 8;
-      ctx.strokeStyle = "rgba(230, 240, 255, 0.4)";
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(birdX - 8, birdY - 3);
-      ctx.quadraticCurveTo(birdX - 4, birdY, birdX, birdY - 4);
-      ctx.quadraticCurveTo(birdX + 4, birdY, birdX + 8, birdY - 3);
-      ctx.stroke();
-
-      ctx.restore();
-
-      // Synthetic Audio Spectrum Waveform
-      if (!isPaused) {
-        ctx.fillStyle = "rgba(245, 158, 11, 0.65)";
-        const barCount = 32;
-        const barWidth = 3;
-        const startX = width * 0.05;
-        const bottomY = height * 0.92;
-
-        for (let i = 0; i < barCount; i++) {
-          const freq = Math.sin(curTime * 8 + i * 0.4) * 0.5 + 0.5;
-          const barHeight = 4 + freq * 26 * (isMuted ? 0.1 : 1);
-          ctx.fillRect(
-            startX + i * (barWidth + 3),
-            bottomY - barHeight,
-            barWidth,
-            barHeight
-          );
-        }
-      }
-
-      // Film Grain Effect
-      const grainCount = 300;
-      ctx.fillStyle = "rgba(255, 255, 255, 0.02)";
-      for (let i = 0; i < grainCount; i++) {
-        const gx = Math.random() * width;
-        const gy = Math.random() * height;
-        ctx.fillRect(gx, gy, 1, 1);
-      }
 
       // Watermark and Cinema Identifier
       ctx.font = "10px 'Familjen Grotesk', -apple-system, BlinkMacSystemFont, sans-serif";
@@ -594,6 +497,13 @@ export function CinemaCanvasPlayer({
             playsInline
             muted={isMuted}
             onError={handleStreamError}
+            onLoadStart={() => {
+              setIsBuffering(true);
+              setStreamError(null);
+            }}
+            onCanPlay={() => setIsBuffering(false)}
+            onPlaying={() => setIsBuffering(false)}
+            onWaiting={() => setIsBuffering(true)}
             className="absolute inset-0 w-full h-full object-contain"
           />
         )}
@@ -603,6 +513,34 @@ export function CinemaCanvasPlayer({
           height={360}
           className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10"
         />
+
+        {(isBuffering || streamError) && !captureBlocked && (
+          <div
+            role={streamError ? "alert" : "status"}
+            className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-black/75 p-6 text-center text-white"
+          >
+            {streamError ? (
+              <>
+                <AlertCircle className="h-6 w-6 text-amber-400" />
+                <p className="max-w-sm text-sm">{streamError}</p>
+                {activeStreamUrl && (
+                  <button
+                    type="button"
+                    onClick={handleRetryStream}
+                    className="rounded-lg bg-amber-500 px-4 py-2 text-xs font-bold text-neutral-950 hover:bg-amber-400"
+                  >
+                    Retry stream
+                  </button>
+                )}
+              </>
+            ) : (
+              <>
+                <Loader2 className="h-6 w-6 animate-spin text-amber-400" />
+                <p className="text-sm">Connecting to the authorized cinema stream...</p>
+              </>
+            )}
+          </div>
+        )}
 
         {/* Studio Content Capture Block Warning Overlay */}
         {captureBlocked && (
@@ -659,7 +597,7 @@ export function CinemaCanvasPlayer({
           <div className="flex items-center space-x-2">
             <Wifi className="w-3.5 h-3.5 text-amber-400 shrink-0" />
             <span>
-              Low cellular reception in restroom? Connect to theater Wi-Fi: <strong>{venueWifiSsid}</strong> for zero buffering.
+              Weak mobile signal? If available, connect to cinema Wi-Fi: <strong>{venueWifiSsid}</strong>. Playback can still depend on connection quality.
             </span>
           </div>
           <button
@@ -678,11 +616,23 @@ export function CinemaCanvasPlayer({
           <div className="flex items-center space-x-1.5">
             <span
               className={`w-2 h-2 rounded-full ${
-                isPaused ? "bg-rose-500" : "bg-emerald-400 animate-pulse"
+                streamError
+                  ? "bg-red-500"
+                  : isBuffering
+                  ? "bg-amber-400 animate-pulse"
+                  : isPaused
+                  ? "bg-rose-500"
+                  : "bg-emerald-400 animate-pulse"
               }`}
             />
             <span className="font-mono text-[11px] text-neutral-300 font-bold">
-              {isPaused ? "PROJECTION PAUSED" : "THEATER LIVE"}
+                {streamError
+                  ? "STREAM UNAVAILABLE"
+                  : isBuffering
+                  ? "CONNECTING TO STREAM"
+                  : isPaused
+                  ? "PROJECTION PAUSED"
+                  : "THEATER LIVE"}
             </span>
           </div>
           <span className="text-neutral-600">|</span>

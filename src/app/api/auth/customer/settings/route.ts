@@ -58,6 +58,19 @@ export async function PUT(req: NextRequest) {
     }
 
     const body = await req.json();
+    if (body.notificationPreferences !== undefined) {
+      const preferences = body.notificationPreferences;
+      if (
+        !preferences ||
+        typeof preferences.showtimeRemindersEnabled !== "boolean" ||
+        typeof preferences.breakAlertsEnabled !== "boolean"
+      ) {
+        return NextResponse.json({ success: false, error: "Invalid notification preferences." }, { status: 400 });
+      }
+      await CustomerAuthService.updateNotificationPreferences(session.customerId, preferences);
+      return NextResponse.json({ success: true, notificationPreferences: preferences });
+    }
+
     const theme = body.themePreference || body.theme;
 
     if (!theme || !["LIGHT", "DARK", "SYSTEM"].includes(theme)) {

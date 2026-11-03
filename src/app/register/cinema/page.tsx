@@ -180,12 +180,12 @@ function CinemaRegistrationContent() {
             Cinema Circuit Registered!
           </h1>
           <p className="text-xs text-muted leading-relaxed">
-            Congratulations! <strong className="text-ink">{invitation.organizationName}</strong> and your floor manager account have been provisioned in the platform database.
+            Your cinema, <strong className="text-ink">{invitation.organizationName}</strong>, is registered and your manager account is ready.
           </p>
           <div className="p-3.5 rounded-xl bg-bg border border-line text-xs text-left text-muted space-y-1">
             <div><strong className="text-ink">Manager Email:</strong> {invitation.contactEmail}</div>
             <div><strong className="text-ink">Screen:</strong> {screenName} ({totalSeats} Seats)</div>
-            <div><strong className="text-ink">Next Step:</strong> Sign in at the Operator Portal</div>
+            <div><strong className="text-ink">Next Step:</strong> Sign in to the cinema operations portal.</div>
           </div>
           <div className="pt-2">
             <Link
@@ -193,7 +193,7 @@ function CinemaRegistrationContent() {
               className="w-full py-3 px-4 rounded-xl font-black text-xs bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-all flex items-center justify-center space-x-2 shadow-sm"
             >
               <Sliders className="w-4 h-4" />
-              <span>Proceed to Operator Sign In</span>
+              <span>Sign In</span>
             </Link>
           </div>
         </div>
@@ -353,7 +353,7 @@ function CinemaRegistrationContent() {
           {/* Manager Account Setup */}
           <div className="pt-3 border-t border-line space-y-3">
             <div className="font-bold uppercase tracking-wider text-[11px] text-amber-400">
-              Configure Manager Credentials (For /operator Sign In)
+              Create Manager Sign-In Details
             </div>
             <div>
               <label className="block font-bold text-ink mb-1 uppercase tracking-wider text-[11px]">

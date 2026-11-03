@@ -1,3 +1,4 @@
+import "dotenv/config";
 import {
   PrismaClient,
   AdminRole,
@@ -7,9 +8,12 @@ import {
   PricingStatus,
   OperatorRole,
 } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { hashPassword } from "../src/lib/crypto";
 
-const prisma = new PrismaClient();
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) throw new Error("DATABASE_URL must be configured before seeding.");
+const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
 
 async function main() {
   if (process.env.NODE_ENV === "production" && process.env.ALLOW_PRODUCTION_SEED !== "true") {

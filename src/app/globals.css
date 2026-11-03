@@ -128,46 +128,37 @@ button:active:not(:disabled) {
   font-variant-numeric: tabular-nums;
 }
 
-/* ==========================================================================
-   iOS 26 Optical Refractive Glass Engine
+/* ========================================================================
+   Shared optical glass material for web and native WebViews
    ========================================================================== */
 
 .glass-ios26 {
   position: relative;
   isolation: isolate;
   background:
-    radial-gradient(ellipse at 50% 50%, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 65%),
-    radial-gradient(
-      130% 120% at 50% 10%,
-      rgba(255, 255, 255, 0.14) 0%,
-      rgba(255, 255, 255, 0.04) 45%,
-      rgba(14, 18, 24, 0.76) 100%
-    );
-  backdrop-filter: blur(28px) saturate(210%) contrast(108%);
-  -webkit-backdrop-filter: blur(28px) saturate(210%) contrast(108%);
+    linear-gradient(145deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.025) 38%, rgba(255, 255, 255, 0.075)),
+    rgb(var(--field) / 0.38);
+  backdrop-filter: blur(12px) saturate(175%) contrast(104%);
+  -webkit-backdrop-filter: blur(12px) saturate(175%) contrast(104%);
   box-shadow:
-    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.6),
-    inset 1px 0 1px 0 rgba(255, 255, 255, 0.2),
-    inset -1px 0 1px 0 rgba(255, 255, 255, 0.1),
-    inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.55),
-    0 20px 45px -12px rgba(0, 0, 0, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+    inset 0 1px 0 rgba(255, 255, 255, 0.42),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.22),
+    0 14px 36px -18px rgba(0, 0, 0, 0.72);
+  border: 1px solid rgba(255,  255, 255, 0.16);
   overflow: hidden;
 }
 
-/* Thin Luminous Specular Caustic Rim */
 .glass-ios26-rim {
-  border-color: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.2);
   box-shadow:
-    inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.7),
-    inset 1px 0 1px 0 rgba(255, 255, 255, 0.28),
-    inset -1px 0 1px 0 rgba(255, 255, 255, 0.12),
-    inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.65),
-    0 24px 50px -12px rgba(0, 0, 0, 0.75);
+    inset 0 1px 0 rgba(255, 255, 255, 0.48),
+    inset 1px 0 0 rgba(255, 255, 255, 0.13),
+    inset -1px 0 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.28),
+    0 16px 40px -20px rgba(0,  0, 0, 0.78);
 }
 
-/* Thin-Film Spectral Iridescent Optical Coating */
-.glass-ios26-iridescent::before {
+.glass-ios26-rim::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -175,21 +166,22 @@ button:active:not(:disabled) {
   pointer-events: none;
   z-index: 1;
   padding: 1px;
-  background: linear-gradient(
-    calc(135deg + var(--tilt-x, 0deg)),
-    rgba(255, 255, 255, 0.5) 0%,
-    rgba(192, 132, 252, 0.3) 25%,
-    rgba(96, 165, 250, 0.25) 50%,
-    rgba(251, 191, 36, 0.3) 75%,
-    rgba(255, 255, 255, 0.4) 100%
+  background: conic-gradient(
+    from var(--glint-angle, 205deg) at var(--glint-x, 50%) var(--glint-y, 24%),
+    rgba(255, 255, 255, 0.62),
+    rgba(80, 225, 255, 0.38) 16%,
+    rgba(244, 114, 182, 0.28) 32%,
+    rgba(255, 255, 255, 0.12) 48%,
+    rgba(255, 210, 105, 0.36) 68%,
+    rgba(115, 245, 220, 0.28) 84%,
+    rgba(255, 255, 255, 0.62)
   );
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
-  opacity: 0.85;
+  opacity: 0.76;
 }
 
-/* Moving Specular Glint */
 .glass-ios26-glint::after {
   content: "";
   position: absolute;
@@ -197,56 +189,89 @@ button:active:not(:disabled) {
   border-radius: inherit;
   pointer-events: none;
   z-index: 2;
-  background: radial-gradient(
-    circle 260px at var(--glint-x, 40%) var(--glint-y, 25%),
-    rgba(255, 255, 255, 0.42) 0%,
-    rgba(255, 255, 255, 0.14) 35%,
-    rgba(255, 255, 255, 0) 70%
-  );
-  mix-blend-mode: color-dodge;
-  transition: opacity 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
-  opacity: 0.88;
+  background:
+    radial-gradient(ellipse 180px 110px at var(--glint-x, 40%) var(--glint-y, 25%), rgba(255, 255, 255, 0.34), transparent 72%),
+    linear-gradient(112deg, transparent 38%, rgba(255, 255, 255, 0.08) 46%, rgba(255, 255, 255, 0.22) 49%, rgba(255, 255, 255, 0.07) 52%, transparent 62%);
+  background-size: auto, 240% 240%;
+  background-position: center, var(--glint-x, 50%) var(--glint-y, 50%);
+  mix-blend-mode: screen;
+  transition: opacity 240ms var(--ease-out), background-position 180ms var(--ease-out);
+  opacity: 0.72;
 }
 
 .glass-ios26-glint:hover::after {
   opacity: 1;
 }
 
-/* Subtle continuous ambient glint sweep */
 .glass-ios26-ambient::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
+  background:
+    radial-gradient(ellipse 190px 120px at var(--glint-x, 35%) var(--glint-y, 20%), rgba(255, 255, 255, 0.28), transparent 72%),
+    linear-gradient(112deg, transparent 38%, rgba(255, 255, 255, 0.08) 46%, rgba(255, 255, 255, 0.2) 49%, rgba(255, 255, 255, 0.06) 52%, transparent 62%);
+  background-size: auto, 240% 240%;
+  animation: ios26-glint-drift 16s ease-in-out infinite;
+  mix-blend-mode: screen;
   pointer-events: none;
-  z-index: 2;
-  background: radial-gradient(
-    circle 280px at var(--glint-x, 35%) var(--glint-y, 20%),
-    rgba(255, 255, 255, 0.35) 0%,
-    rgba(255, 255, 255, 0.1) 40%,
-    rgba(255, 255, 255, 0) 70%
-  );
-  mix-blend-mode: color-dodge;
-  animation: ios26-glint-drift 14s ease-in-out infinite;
 }
 
 @keyframes ios26-glint-drift {
-  0% {
-    transform: translate(-15%, -15%);
-    opacity: 0.75;
+  0% { background-position: center, 0% 50%; opacity: 0.58; }
+  50% { background-position: center, 100% 50%; opacity: 0.9; }
+  100% { background-position: center, 0% 50%; opacity: 0.58; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-ios26-ambient::after {
+    animation: none;
   }
-  50% {
-    transform: translate(15%, 15%);
+}
+
+/* Legacy names remain stable while all surfaces share this material. */
+.glass-optic-container > canvas {
+  opacity: 0.9;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-ios26 {
+    background: rgb(var(--field) / 0.92);
+  }
+}
+
+.scroll-forming-word {
+  display: inline-block;
+}
+
+html.has-scroll-forming .scroll-forming:not(.is-visible) .scroll-forming-word {
+  opacity: 0;
+  transform: translate3d(0, 0.38em, 0);
+}
+
+html.has-scroll-forming .scroll-forming.is-visible .scroll-forming-word {
+  animation: scroll-word-form 520ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
+  animation-delay: calc(var(--word-index, 0) * 24ms);
+}
+
+@keyframes scroll-word-form {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 0.38em, 0);
+    filter: blur(5px);
+  }
+  to {
     opacity: 1;
-  }
-  100% {
-    transform: translate(-15%, -15%);
-    opacity: 0.75;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
   }
 }
 
 /* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
+  html.has-scroll-forming .scroll-forming-word {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+    filter: none !important;
+  }
+
   *, ::before, ::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;

@@ -15,12 +15,14 @@
     "db:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "db:generate": "prisma generate",
-    "cap:build": "tsx scripts/prepare-mobile-shell.ts && cap sync",
+    "cap:build": "npm run build && tsx scripts/prepare-mobile-shell.ts && cap sync",
     "cap:sync": "tsx scripts/prepare-mobile-shell.ts && cap sync"
   },
   "dependencies": {
+    "@aparajita/capacitor-secure-storage": "^8.0.1",
     "@capacitor-community/privacy-screen": "^8.0.0",
     "@capacitor/app": "^8.1.2",
+    "@capacitor/barcode-scanner": "^3.1.3",
     "@capacitor/core": "^8.5.3",
     "@capacitor/haptics": "^8.0.2",
     "@capacitor/local-notifications": "^8.3.1",
@@ -28,32 +30,40 @@
     "@capacitor/preferences": "^8.0.1",
     "@fontsource/plus-jakarta-sans": "^5.3.0",
     "@node-rs/argon2": "^2.2.2",
-    "@prisma/client": "^6.3.0",
+    "@prisma/adapter-pg": "^7.10.1",
+    "@prisma/client": "^7.10.1",
     "clsx": "^2.1.1",
+    "dotenv": "^18.0.9",
+    "hls.js": "^1.7.4",
     "lucide-react": "^0.475.0",
     "next": "^15.5.28",
+    "pg": "^8.23.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "resend": "^6.35.0",
     "tailwind-merge": "^3.0.1",
-    "zod": "^3.24.1"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@capacitor/android": "^8.5.3",
     "@capacitor/cli": "^8.5.3",
     "@capacitor/ios": "^8.5.3",
     "@types/node": "^22.13.1",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.19.0",
     "eslint-config-next": "^15.5.28",
-    "postcss": "^8.5.1",
-    "prisma": "^6.3.0",
+    "postcss": "^8.5.32",
+    "prisma": "^7.10.1",
     "puppeteer-core": "^25.16.0",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3",
-    "vitest": "^3.0.5"
+    "vitest": "^5.1.0"
+  },
+  "overrides": {
+    "postcss": "^8.5.32"
   }
 }

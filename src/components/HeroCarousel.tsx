@@ -38,11 +38,11 @@ export function HeroCarousel() {
   const slides: SlideData[] = [
     {
       id: 0,
-      badge: "Real-Time Playback Synchronization",
+      badge: "Keep Your Place During a Break",
       headlinePrefix: "Never lose your",
       headlineHighlight: "place.",
       subheadline:
-        "PottyPlay connects patrons to the authoritative projection timeline on their mobile phone for a strictly capped 15-minute intermission.",
+        "If you need to step out, eligible ticket holders can follow the cinema screening on a phone for up to 15 minutes.",
       ctaText: "Register Cinema",
       ctaHref: "#register",
       secondaryCtaText: "Explore How It Works",
@@ -77,7 +77,7 @@ export function HeroCarousel() {
                   FEATURE SCREENING
                 </span>
                 <span className="font-mono text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                  SYNCED 0.0s
+                  IN SYNC
                 </span>
               </div>
 
@@ -87,7 +87,7 @@ export function HeroCarousel() {
                   <Film className="w-5 h-5" />
                 </div>
                 <div className="text-[10px] uppercase tracking-wider text-muted font-medium">
-                  Authoritative Clock
+                  Screening time
                 </div>
                 <div className="font-mono text-xl sm:text-2xl font-black text-ink tracking-widest tabular-nums">
                   00:42:15.08
@@ -96,7 +96,7 @@ export function HeroCarousel() {
 
               {/* Live Audio / Video Telemetry */}
               <div className="flex items-center justify-between text-[10px] text-muted pt-2 border-t border-line">
-                <span>PCM Stereo &bull; Low-Latency HLS</span>
+                <span>Live companion playback</span>
                 <div className="flex items-center space-x-1">
                   <span className="w-1 h-2 bg-emerald-400 rounded-full animate-pulse" />
                   <span className="w-1 h-3.5 bg-amber-400 rounded-full animate-pulse" style={{ animationDelay: "75ms" }} />
@@ -177,7 +177,7 @@ export function HeroCarousel() {
               <div className="p-3 rounded-xl bg-field border border-line text-left">
                 <div className="flex items-center justify-between text-xs font-bold text-ink">
                   <span>Re-entry Confidence</span>
-                  <span className="text-emerald-400 font-mono">100% Timeline Match</span>
+                  <span className="text-emerald-400 font-mono">Screen-aligned playback</span>
                 </div>
                 <p className="text-[11px] text-muted mt-1">
                   Patrons walk back to their exact seat without asking companions what happened.
@@ -324,7 +324,7 @@ export function HeroCarousel() {
             <div className="mt-3 p-3 rounded-2xl bg-bg border border-line text-ink text-xs space-y-1.5">
               <div className="flex justify-between items-center text-[10px] sm:text-[11px] text-muted">
                 <span>Auditorium 1: Live Feed</span>
-                <span className="font-mono text-emerald-400 font-bold">ZERO DRIFT</span>
+                <span className="font-mono text-emerald-400 font-bold">IN SYNC</span>
               </div>
               <div className="w-full bg-neutral-800 h-1.5 rounded-full overflow-hidden">
                 <div className="bg-amber-500 h-full w-[65%]" />

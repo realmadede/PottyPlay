@@ -1,10 +1,10 @@
 import { prisma } from "@/lib/db";
 import { config } from "@/lib/config";
-import { generateSessionToken, generateOtpCode, hashPassword, verifyPassword } from "@/lib/crypto";
+import { generateSessionToken, generateOtpCode, hashPassword, verifyPassword, hashToken } from "@/lib/crypto";
 import { OtpService } from "@/features/messaging/otp-service";
 import { resendService } from "@/features/email/resend-service";
 import { normalizePhoneNumber, isValidPhoneNumber } from "@/lib/phone";
-import { AuthProvider, Prisma } from "@prisma/client";
+import { AuthProvider, Prisma, SessionStatus } from "@prisma/client";
 
 export interface CustomerAuthSession {
   customerId: string;
@@ -16,6 +16,10 @@ export interface CustomerAuthSession {
   onboardingDone: boolean;
   status: string;
   themePreference: string;
+  notificationPreferences: {
+    showtimeRemindersEnabled: boolean;
+    breakAlertsEnabled: boolean;
+  };
   authProvider: AuthProvider;
   sessionToken: string;
   tokenExpiresAt: Date;
@@ -491,6 +495,17 @@ export class CustomerAuthService {
     return true;
   }
 
+  static async updateNotificationPreferences(
+    customerId: string,
+    preferences: CustomerAuthSession["notificationPreferences"]
+  ): Promise<boolean> {
+    await prisma.customerAccount.update({
+      where: { id: customerId },
+      data: { notificationPreferences: preferences },
+    });
+    return true;
+  }
+
   /**
    * Updates customer full name with validation.
    */
@@ -692,47 +707,228 @@ export class CustomerAuthService {
    * Initiates an account deletion request.
    */
   static async requestDeletion(customerId: string): Promise<boolean> {
-    await prisma.customerAccount.update({
-      where: { id: customerId },
-      data: {
-        status: "DELETION_REQUESTED",
-        deletionRequestedAt: new Date(),
-        sessionToken: null,
-        tokenExpiresAt: null,
+    return prisma.$transaction(async (tx) => {
+      const customer = await tx.customerAccount.findUnique({
+        where: { id: customerId },
+        select: { id: true, status: true, deletionRequestedAt: true, phoneNumber: true },
+      });
+      if (!customer || customer.status === "DELETED") return false;
+      if (customer.status !== "ACTIVE" && customer.status !== "DELETION_REQUESTED") return false;
+
+      const requestedAt = customer.deletionRequestedAt || new Date();
+      await tx.customerAccount.update({
+        where: { id: customerId },
+        data: {
+          status: "DELETION_REQUESTED",
+          deletionRequestedAt: requestedAt,
+          sessionToken: null,
+          tokenExpiresAt: null,
+          passwordResetToken: null,
+          passwordResetExpiresAt: null,
+          deletionConfirmationTokenHash: null,
+          deletionConfirmationExpiresAt: null,
+        },
+      });
+
+      await tx.breakSession.updateMany({
+        where: {
+          status: SessionStatus.ACTIVE,
+          OR: [
+            { customerId },
+            ...(customer.phoneNumber ? [{ phoneNumber: customer.phoneNumber }] : []),
+          ],
+        },
+        data: {
+          status: SessionStatus.REVOKED,
+          endedAt: new Date(),
+          revokedReason: "Account deletion requested.",
+        },
+      });
+      return true;
+    });
+  }
+
+  static async requestExternalDeletion(emailAddress: string): Promise<void> {
+    const email = emailAddress.trim().toLowerCase();
+    if (!email || !email.includes("@")) return;
+
+    const customer = await prisma.customerAccount.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        status: true,
+        deletionConfirmationRequestedAt: true,
       },
     });
-    return true;
+    if (!customer || customer.status !== "ACTIVE" || !customer.email) return;
+
+    const now = new Date();
+    const cooldown = 10 * 60 * 1000;
+    if (
+      customer.deletionConfirmationRequestedAt &&
+      now.getTime() - customer.deletionConfirmationRequestedAt.getTime() < cooldown
+    ) {
+      return;
+    }
+
+    const token = generateSessionToken("delete_");
+    const expiresAt = new Date(now.getTime() + 60 * 60 * 1000);
+    await prisma.customerAccount.update({
+      where: { id: customer.id },
+      data: {
+        deletionConfirmationTokenHash: hashToken(token),
+        deletionConfirmationExpiresAt: expiresAt,
+        deletionConfirmationRequestedAt: now,
+      },
+    });
+
+    const delivery = await resendService.sendCustomerAccountDeletionConfirmation(
+      customer.email,
+      token
+    );
+    if (!delivery.success) {
+      await prisma.customerAccount.updateMany({
+        where: { id: customer.id, deletionConfirmationTokenHash: hashToken(token) },
+        data: {
+          deletionConfirmationTokenHash: null,
+          deletionConfirmationExpiresAt: null,
+        },
+      });
+      console.error("[ACCOUNT-DELETION-EMAIL] Confirmation delivery failed.");
+    }
+  }
+
+  static async confirmExternalDeletion(token: string): Promise<boolean> {
+    if (!token.startsWith("delete_")) return false;
+    const customer = await prisma.customerAccount.findFirst({
+      where: {
+        deletionConfirmationTokenHash: hashToken(token),
+        deletionConfirmationExpiresAt: { gt: new Date() },
+        status: "ACTIVE",
+      },
+      select: { id: true },
+    });
+    if (!customer) return false;
+    return this.requestDeletion(customer.id);
   }
 
   /**
    * Permanently scrubs all PII and anonymizes a customer account.
    */
   static async anonymizeCustomerAccount(customerId: string): Promise<boolean> {
-    await prisma.screeningReminder.deleteMany({
-      where: { customerId },
-    });
+    return prisma.$transaction(async (tx) => {
+      const customer = await tx.customerAccount.findUnique({
+        where: { id: customerId },
+        select: { id: true, phoneNumber: true },
+      });
+      if (!customer) return false;
 
-    await prisma.customerAccount.update({
-      where: { id: customerId },
-      data: {
-        status: "DELETED",
-        name: "Anonymized Patron",
-        phoneNumber: null,
-        email: null,
-        passwordHash: null,
-        passwordResetToken: null,
-        passwordResetExpiresAt: null,
-        emailVerificationCode: null,
-        emailVerificationExpiresAt: null,
-        notificationPreferences: Prisma.DbNull,
-        sessionToken: null,
-        tokenExpiresAt: null,
-        phoneVerified: false,
-        emailVerified: false,
-      },
-    });
+      const sessionWhere = {
+        OR: [
+          { customerId },
+          ...(customer.phoneNumber ? [{ phoneNumber: customer.phoneNumber }] : []),
+        ],
+      };
+      const sessions = await tx.breakSession.findMany({
+        where: sessionWhere,
+        select: { id: true, ticketId: true, ticket: { select: { ticketNumber: true } } },
+      });
+      const sessionIds = sessions.map((session) => session.id);
+      const reminders = await tx.screeningReminder.findMany({
+        where: { customerId },
+        select: { ticketNumber: true },
+      });
+      const ticketNumbers = [...new Set([
+        ...sessions.map((session) => session.ticket.ticketNumber),
+        ...reminders.map((reminder) => reminder.ticketNumber).filter((value): value is string => Boolean(value)),
+      ])];
 
-    return true;
+      await tx.screeningReminder.deleteMany({ where: { customerId } });
+      if (ticketNumbers.length) {
+        await tx.demonstrationTicket.updateMany({
+          where: { ticketNumber: { in: ticketNumbers } },
+          data: { customerName: "Deleted customer", claimToken: null },
+        });
+      }
+      await tx.otpChallenge.deleteMany({
+        where: customer.phoneNumber ? { phoneNumber: customer.phoneNumber } : { id: "" },
+      });
+      await tx.smsDeliveryAttempt.deleteMany({
+        where: customer.phoneNumber ? { phoneNumber: customer.phoneNumber } : { id: "" },
+      });
+
+      const feedbackWhere = {
+        OR: [
+          { customerId },
+          ...(ticketNumbers.length ? [{ ticketNumber: { in: ticketNumbers } }] : []),
+        ],
+      };
+      await tx.patronFeedback.updateMany({
+        where: feedbackWhere,
+        data: {
+          customerId: null,
+          ticketNumber: null,
+          message: "Customer-submitted content removed following an account deletion request.",
+          deviceInfo: null,
+          operatorNotes: null,
+        },
+      });
+
+      if (sessionIds.length) {
+        const auditEvents = await tx.auditEvent.findMany({
+          where: { sessionId: { in: sessionIds } },
+          select: { id: true },
+        });
+        for (const auditEvent of auditEvents) {
+          await tx.auditEvent.update({
+            where: { id: auditEvent.id },
+            data: { details: "{}" },
+          });
+        }
+
+        for (const session of sessions) {
+          const invalidatedToken = generateSessionToken("deleted_");
+          await tx.breakSession.update({
+            where: { id: session.id },
+            data: {
+              customerId: null,
+              phoneNumber: null,
+              deviceInfo: null,
+              sessionToken: invalidatedToken,
+              sessionTokenHash: hashToken(invalidatedToken),
+              lastPositionSeconds: 0,
+              status: SessionStatus.REVOKED,
+              endedAt: new Date(),
+              revokedReason: "Account data anonymized after deletion request.",
+            },
+          });
+        }
+      }
+
+      await tx.customerAccount.update({
+        where: { id: customerId },
+        data: {
+          status: "DELETED",
+          name: "Deleted customer",
+          phoneNumber: null,
+          email: null,
+          passwordHash: null,
+          passwordResetToken: null,
+          passwordResetExpiresAt: null,
+          emailVerificationCode: null,
+          emailVerificationExpiresAt: null,
+          notificationPreferences: Prisma.DbNull,
+          sessionToken: null,
+          tokenExpiresAt: null,
+          phoneVerified: false,
+          emailVerified: false,
+          deletionConfirmationTokenHash: null,
+          deletionConfirmationExpiresAt: null,
+        },
+      });
+      return true;
+    });
   }
 
   /**
@@ -766,6 +962,7 @@ export class CustomerAuthService {
   }
 
   private static toSession(account: any): CustomerAuthSession {
+    const savedPreferences = account.notificationPreferences as Partial<CustomerAuthSession["notificationPreferences"]> | null;
     return {
       customerId: account.id,
       name: account.name,
@@ -776,6 +973,10 @@ export class CustomerAuthService {
       onboardingDone: account.onboardingDone,
       status: account.status,
       themePreference: account.themePreference,
+      notificationPreferences: {
+        showtimeRemindersEnabled: savedPreferences?.showtimeRemindersEnabled !== false,
+        breakAlertsEnabled: savedPreferences?.breakAlertsEnabled !== false,
+      },
       authProvider: account.authProvider,
       sessionToken: account.sessionToken || "",
       tokenExpiresAt: account.tokenExpiresAt || new Date(),

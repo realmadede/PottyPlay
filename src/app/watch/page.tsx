@@ -317,14 +317,14 @@ function WatchExperience() {
       if (res.ok && data.success) {
         setOtpChallengeId(data.challengeId);
         setOtpSent(true);
-        if (data.simulatedCode) {
-          setSimulatedOtpNotice(`Demonstration OTP: ${data.simulatedCode}`);
+        if (data.simulatedCode && process.env.NODE_ENV === "development") {
+          setSimulatedOtpNotice(`Development test code: ${data.simulatedCode}`);
         }
       } else {
         setErrorMessage(data.error || "Failed to send SMS code.");
       }
     } catch {
-      setErrorMessage("SMS service error. Please try direct activation.");
+          setErrorMessage("Could not send a text message. Please try again or ask cinema staff for help.");
     } finally {
       setLoading(false);
     }
@@ -354,7 +354,7 @@ function WatchExperience() {
         // Now proceed to activate session with verified challenge
         handleDirectActivate();
       } else {
-        setErrorMessage(data.error || "Invalid code. Please check SMS and retry.");
+        setErrorMessage(data.error || "That code is not correct. Check your text messages and try again.");
       }
     } catch {
       setErrorMessage("Verification network error.");
@@ -461,9 +461,9 @@ function WatchExperience() {
                   <Wifi className="w-4 h-4" />
                 </div>
                 <div>
-                  <p className="font-bold text-ink">Basement Restroom Faraday Zone?</p>
+                  <p className="font-bold text-ink">Weak signal in this area?</p>
                   <p className="text-[11px] text-muted">
-                    Connect to theater Wi-Fi <span className="font-mono text-amber-400 font-bold">{activeSession.screening.venueWifiSsid}</span> for zero-buffering local streaming.
+                    If available, connect to cinema Wi-Fi <span className="font-mono text-amber-400 font-bold">{activeSession.screening.venueWifiSsid}</span>. Playback may still depend on connection quality.
                   </p>
                 </div>
               </div>
@@ -476,7 +476,7 @@ function WatchExperience() {
               <div className="flex items-center space-x-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                 <p className="text-xs font-bold uppercase tracking-wider text-emerald-400">
-                  Frame-Synchronized with Auditorium
+                  Aligned with screening
                 </p>
               </div>
               <h2 className="text-sm font-bold text-ink">
@@ -490,7 +490,7 @@ function WatchExperience() {
               onClick={() => syncExistingSession(activeSession.sessionToken)}
               disabled={isSyncing}
               className="p-2 rounded-xl border border-line hover:bg-field-raised text-muted hover:text-ink transition-colors"
-              title="Force timeline resync"
+              title="Refresh playback status"
             >
               <RefreshCw className={`w-4 h-4 ${isSyncing ? "animate-spin" : ""}`} />
             </button>
@@ -590,7 +590,7 @@ function WatchExperience() {
   return (
     <main className="min-h-screen bg-bg text-ink flex flex-col justify-between selection:bg-amber-500 selection:text-neutral-950">
       {/* Header */}
-      <header className="border-b border-white/10 px-4 py-3 sticky top-0 z-20 bg-bg/40 backdrop-blur-sm">
+      <header className="sticky top-0 z-20 glass-ios26 glass-ios26-rim glass-ios26-iridescent glass-ios26-glint border-b border-white/10 px-4 py-3">
         <GlassSurface variant="pill" className="max-w-md mx-auto flex items-center justify-between px-4 py-2 border border-white/10">
           <Link href="/" className="flex items-center space-x-2">
             <Image
@@ -717,7 +717,7 @@ function WatchExperience() {
                 )}
               </button>
               <p className="text-[11px] text-center text-muted">
-                Zero app install or SMS required. Instant frame-synchronized playback.
+                No app download is needed. Playback follows the cinema screening; connection conditions may affect timing.
               </p>
             </div>
 
@@ -730,8 +730,8 @@ function WatchExperience() {
               >
                 <span className="font-semibold text-[11px]">
                   {showPhoneOptional
-                    ? "Hide SMS Alert Setup"
-                    : "Optional: Get SMS countdown alert before break ends"}
+                    ? "Hide text alert setup"
+                    : "Optional: Get a text alert before your break ends"}
                 </span>
                 <span className="text-amber-400 text-xs font-bold">
                   {showPhoneOptional ? "−" : "+"}
@@ -746,7 +746,7 @@ function WatchExperience() {
                         htmlFor="optionalPhone"
                         className="block text-[11px] font-bold uppercase tracking-wider text-muted"
                       >
-                        Mobile Telephone Number
+                        Phone number for text alerts
                       </label>
                       <div className="flex space-x-2">
                         <input
@@ -767,14 +767,14 @@ function WatchExperience() {
                         </button>
                       </div>
                       <p className="text-[10px] text-muted">
-                        Dispatches 6-digit code via Africa&apos;s Talking Gateway for automated reminders.
+                        We will text a 6-digit code to confirm this number before sending a break reminder.
                       </p>
                     </div>
                   ) : (
                     <div className="space-y-3 text-left">
                       <div className="space-y-1">
                         <p className="text-xs font-bold text-ink">
-                          Enter 6-Digit SMS Verification Code
+                          Enter the 6-digit code from your text message
                         </p>
                         <p className="text-[11px] text-muted">
                           Dispatched to <strong className="text-ink">{phoneInput}</strong>.
@@ -858,45 +858,23 @@ function WatchExperience() {
             </p>
           </GlassSurface>
         </div>
-        {/* Native App Banner with Truthful Store State */}
-        <GlassSurface variant="panel" className="p-4 border border-line text-left shadow-card space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-ink">
-              Frequent Cinema Patron?
-            </span>
-            <span className="text-[10px] uppercase font-bold text-muted bg-bg px-2 py-0.5 rounded border border-line">
-              {process.env.NEXT_PUBLIC_APP_STORE_URL || process.env.NEXT_PUBLIC_PLAY_STORE_URL ? "Download App" : "Store Release Pending"}
-            </span>
-          </div>
-          <p className="text-[11px] text-muted leading-relaxed">
-            {process.env.NEXT_PUBLIC_APP_STORE_URL || process.env.NEXT_PUBLIC_PLAY_STORE_URL ? (
-              "Get our official mobile app for one-tap breaks and screening alerts without scanning auditorium QR codes."
-            ) : (
-              "The official iOS and Android native containers are currently in partner trial. Patrons can continue using this web companion player without app installation."
-            )}
-          </p>
-          <div className="pt-1 flex items-center justify-between">
-            {process.env.NEXT_PUBLIC_APP_STORE_URL || process.env.NEXT_PUBLIC_PLAY_STORE_URL ? (
-              <a
-                href={process.env.NEXT_PUBLIC_APP_STORE_URL || process.env.NEXT_PUBLIC_PLAY_STORE_URL}
-                target="_blank"
-                rel="noreferrer"
-                className="py-2 px-3.5 rounded-xl font-black text-xs bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-all shadow-sm"
-              >
-                Get the App
-              </a>
-            ) : (
-              <a
-                href={process.env.NEXT_PUBLIC_APP_STORE_URL || "https://play.google.com/store/apps/details?id=com.pottyplay.companion"}
-                target="_blank"
-                rel="noreferrer"
-                className="py-2 px-3.5 rounded-xl font-black text-xs bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-all shadow-sm"
-              >
-                Download Patron App
-              </a>
-            )}
-          </div>
-        </GlassSurface>
+        {(process.env.NEXT_PUBLIC_APP_STORE_URL || process.env.NEXT_PUBLIC_PLAY_STORE_URL) && (
+          <GlassSurface variant="panel" className="p-4 border border-line text-left shadow-card space-y-3">
+            <p className="text-xs font-bold text-ink">Get the PottyPlay app</p>
+            <div className="flex flex-wrap gap-2">
+              {process.env.NEXT_PUBLIC_APP_STORE_URL && (
+                <a href={process.env.NEXT_PUBLIC_APP_STORE_URL} target="_blank" rel="noreferrer" className="py-2 px-3.5 rounded-xl font-black text-xs bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-all shadow-sm">
+                  Download for iPhone
+                </a>
+              )}
+              {process.env.NEXT_PUBLIC_PLAY_STORE_URL && (
+                <a href={process.env.NEXT_PUBLIC_PLAY_STORE_URL} target="_blank" rel="noreferrer" className="py-2 px-3.5 rounded-xl font-black text-xs bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-all shadow-sm">
+                  Download for Android
+                </a>
+              )}
+            </div>
+          </GlassSurface>
+        )}
       </section>
 
       {/* Footer */}

@@ -8,7 +8,6 @@ interface DynamicGlassSurfaceProps extends React.HTMLAttributes<HTMLDivElement> 
   refractionStrength?: number;
   rimIntensity?: number;
   rimSharpness?: number;
-  parallaxFactor?: number;
   interactive?: boolean;
   className?: string;
 }
@@ -37,7 +36,6 @@ const fragmentShaderSource = `
   uniform float u_refraction;
   uniform float u_rim_intensity;
   uniform float u_rim_sharpness;
-  uniform float u_parallax;
 
   // Signed Distance Field for Rounded Rectangle
   float sdRoundedBox(vec2 p, vec2 b, float r) {
@@ -75,66 +73,29 @@ const fragmentShaderSource = `
     float zComponent = sqrt(max(0.0, 1.0 - dot(grad, grad) * 0.75)) * domeProfile;
     vec3 normal = normalize(vec3(grad + u_tilt * 0.25 * (1.0 - edgeDist), max(0.15, zComponent)));
 
-    // 2. Refraction Displacement Field with Tri-Channel Chromatic Dispersion
-    vec2 baseDisplacement = normP * (1.0 - edgeDist) * u_refraction;
-    // Radial center magnification (1.04x)
-    vec2 centerMagnify = normP * 0.015 * domeProfile;
-    vec2 totalDisp = baseDisplacement + centerMagnify;
-
-    vec2 dispR = totalDisp * 1.04;
-    vec2 dispG = totalDisp * 1.00;
-    vec2 dispB = totalDisp * 0.96;
-
-    // Synthetic Ambient Cinema Background Sampling with Parallax and Spectral Dispersion
-    vec3 bgDeep = vec3(0.05, 0.07, 0.10);
-    vec3 bgGlow = vec3(0.12, 0.16, 0.22);
-    vec3 bgAmber = vec3(0.96, 0.62, 0.04) * 0.18;
-
-    float sampleR = sin((v_uv.x + dispR.x) * 3.14159) * 0.5 + 0.5;
-    float sampleG = sin((v_uv.x + dispG.x) * 3.14159) * 0.5 + 0.5;
-    float sampleB = sin((v_uv.x + dispB.x) * 3.14159) * 0.5 + 0.5;
-    vec3 bgColor = mix(bgDeep, bgGlow, vec3(sampleR, sampleG, sampleB));
-    bgColor += bgAmber * max(0.0, 1.0 - length((v_uv + totalDisp) - vec2(0.5 + u_tilt.x * 0.05, 0.15 + u_tilt.y * 0.05)) * 2.2);
-
-    // 3. Schlick's Fresnel Reflectivity
-    // R(theta) = R0 + (1 - R0) * (1 - cos(theta))^5
+    // Fresnel response and thin-film color are confined to the bevel, leaving content clear.
     vec3 viewDir = vec3(0.0, 0.0, 1.0);
     float cosTheta = clamp(dot(normal, viewDir), 0.0, 1.0);
-    float R0 = 0.045; // Optical glass refractive baseline
-    float fresnel = R0 + (1.0 - R0) * pow(1.0 - cosTheta, 5.0);
+    float fresnel = 0.045 + 0.955 * pow(1.0 - cosTheta, 5.0);
 
-    // 4. Thin-Film Spectral Iridescence along Grazing Edge
-    // Thin-film interference causes spectral violet, gold, and cyan shimmer on edge chamfers
-    float filmPhase = 2.0 * 3.14159 * 1.8 * (1.0 - cosTheta);
+    float edgeMask = smoothstep(-8.0, -1.0, dist) * (1.0 - smoothstep(-1.0, 1.0, dist));
+    float filmPhase = 6.28318 * (1.4 * (1.0 - cosTheta) + u_refraction * dot(normP, u_tilt));
     vec3 spectralIridescence = 0.5 + 0.5 * cos(vec3(filmPhase, filmPhase + 2.094, filmPhase + 4.188));
-    vec3 iridShimmer = spectralIridescence * fresnel * 0.85;
 
-    // 5. Directional Rim Lighting illuminated by Effective Light Vector
     vec2 effectiveLightPos = u_light_pos + u_tilt * 0.2;
     vec3 lightDir = normalize(vec3(effectiveLightPos - v_uv, 0.42));
     float nDotL = max(0.0, dot(normal, lightDir));
-    float rimHighlight = pow(nDotL, u_rim_sharpness) * u_rim_intensity;
+    float rimHighlight = pow(nDotL, u_rim_sharpness) * u_rim_intensity * edgeMask;
+    float caustic = exp(-pow((dist + 0.8) / 1.7, 2.0)) * edgeMask;
 
-    // Perimeter caustic bevel mask
-    float rimMask = smoothstep(-3.0, -0.4, dist) * smoothstep(1.0, 0.0, dist);
-    float innerRim = rimHighlight * rimMask;
-
-    // 6. Moving Settling Specular Glint
     vec2 glintOffset = v_uv - effectiveLightPos;
     float glintDist = length(glintOffset);
-    float glint = exp(-glintDist * 4.2) * 0.48;
-
-    // Micro-glint sparkle (living liquid optical surface)
-    float sparkle = sin(v_uv.x * 50.0 + u_time) * cos(v_uv.y * 50.0 - u_time) * 0.015;
-
-    // 7. Composite Glass Material Optical Composition
-    vec3 glassColor = bgColor * 0.82;
-    glassColor += iridShimmer * rimMask;
-    glassColor += vec3(1.0, 1.0, 1.0) * innerRim;
-    glassColor += vec3(1.0, 0.96, 0.88) * (glint + sparkle);
-
-    // Alpha ramp with anti-aliased perimeter edge
-    float alpha = smoothstep(0.5, -0.5, dist) * 0.93;
+    float glint = exp(-glintDist * 7.0) * 0.7;
+    float sparkle = sin(v_uv.x * 50.0 + u_time) * cos(v_uv.y * 50.0 - u_time) * 0.01;
+    vec3 spectralColor = spectralIridescence * (0.12 + fresnel * 0.75);
+    vec3 glassColor = spectralColor + vec3(1.0) * (rimHighlight * 0.7 + caustic * 0.42);
+    glassColor += vec3(1.0, 0.97, 0.9) * (glint + sparkle);
+    float alpha = clamp(edgeMask * (0.12 + fresnel * 0.38 + rimHighlight * 0.32 + caustic * 0.28) + glint * 0.12, 0.0, 0.72);
 
     gl_FragColor = vec4(glassColor, alpha);
   }
@@ -143,12 +104,7 @@ const fragmentShaderSource = `
 /**
  * Dynamic Optical Glass Engine
  * 
- * Implements full optical physics:
- * 1. Refraction: Signed-Distance Field (SDF) convex center magnification and chromatic dispersion.
- * 2. Directional Rim Lighting: Surface normal derived from SDF gradient illuminated by simulated light direction.
- * 3. Gyroscope & Accelerometer Parallax: Reactive specular glints responding to device physical tilt.
- * 4. Schlick's Fresnel Reflectivity: Physically based reflectivity increasing at grazing angles.
- * 5. Thin-Film Spectral Iridescence: Anti-reflective coating rainbow shimmer along rounded bevel edges.
+ * Draws transparent, pointer-lit bevels over the browser's real backdrop material.
  */
 export function DynamicGlassSurface({
   children,
@@ -156,7 +112,6 @@ export function DynamicGlassSurface({
   refractionStrength = 0.035,
   rimIntensity = 1.2,
   rimSharpness = 32.0,
-  parallaxFactor = 0.08,
   interactive = true,
   className = "",
   style,
@@ -183,7 +138,6 @@ export function DynamicGlassSurface({
     targetX: 0,
     targetY: 0,
   });
-  const scrollOffsetRef = useRef<number>(0);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
   // Initialize WebGL pipeline
@@ -306,7 +260,6 @@ export function DynamicGlassSurface({
     const uRefract = gl.getUniformLocation(program, "u_refraction");
     const uRimInt = gl.getUniformLocation(program, "u_rim_intensity");
     const uRimSharp = gl.getUniformLocation(program, "u_rim_sharpness");
-    const uParallax = gl.getUniformLocation(program, "u_parallax");
 
     gl.uniform2f(uRes, dimensions.width * dpr, dimensions.height * dpr);
     gl.uniform1f(uRadius, borderRadius * dpr);
@@ -316,7 +269,6 @@ export function DynamicGlassSurface({
     gl.uniform1f(uRefract, refractionStrength);
     gl.uniform1f(uRimInt, rimIntensity);
     gl.uniform1f(uRimSharp, rimSharpness);
-    gl.uniform1f(uParallax, scrollOffsetRef.current * parallaxFactor);
 
     gl.clearColor(0.0, 0.0, 0.0, 0.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -329,7 +281,7 @@ export function DynamicGlassSurface({
     } else {
       isAnimatingRef.current = false;
     }
-  }, [dimensions, borderRadius, refractionStrength, rimIntensity, rimSharpness, parallaxFactor]);
+  }, [dimensions, borderRadius, refractionStrength, rimIntensity, rimSharpness]);
 
   const triggerRender = useCallback(() => {
     if (!isAnimatingRef.current) {
@@ -348,7 +300,9 @@ export function DynamicGlassSurface({
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const w = Math.round(rect.width);
       const h = Math.round(rect.height);
-      setDimensions({ width: w, height: h });
+      setDimensions((current) =>
+        current.width === w && current.height === h ? current : { width: w, height: h }
+      );
 
       if (canvasRef.current && glRef.current) {
         canvasRef.current.width = w * dpr;
@@ -368,7 +322,7 @@ export function DynamicGlassSurface({
   // Pointer interaction: update target glint and tilt position
   const handlePointerMove = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
-      if (!interactive || dimensions.width === 0 || dimensions.height === 0) return;
+      if (!interactive || window.matchMedia("(prefers-reduced-motion: reduce)").matches || dimensions.width === 0 || dimensions.height === 0) return;
       const el = containerRef.current;
       if (!el) return;
 
@@ -394,9 +348,9 @@ export function DynamicGlassSurface({
     triggerRender();
   }, [triggerRender]);
 
-  // Device orientation (Gyroscope & Accelerometer) Parallax
+  // Device orientation adds gentle lighting tilt when motion is allowed.
   useEffect(() => {
-    if (!interactive) return;
+    if (!interactive || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     const handleOrientation = (e: DeviceOrientationEvent) => {
       if (e.gamma === null && e.beta === null) return;
@@ -417,17 +371,6 @@ export function DynamicGlassSurface({
     return () => window.removeEventListener("deviceorientation", handleOrientation);
   }, [interactive, triggerRender]);
 
-  // Parallax: Track window scroll
-  useEffect(() => {
-    const handleScroll = () => {
-      scrollOffsetRef.current = window.scrollY || document.documentElement.scrollTop;
-      triggerRender();
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [triggerRender]);
-
   useEffect(() => {
     triggerRender();
     return () => {
@@ -442,14 +385,14 @@ export function DynamicGlassSurface({
       ref={containerRef}
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
-      className={`relative isolate overflow-hidden ${className}`}
+      className={`glass-optic-container relative isolate overflow-hidden ${className}`}
       style={{
         borderRadius: `${borderRadius}px`,
         ...style,
       }}
       {...props}
     >
-      {/* Real-time WebGL Refraction, Fresnel, and Rim Shader Canvas */}
+      {/* Transparent spectral bevel and pointer-lit caustic overlay */}
       <canvas
         ref={canvasRef}
         aria-hidden="true"

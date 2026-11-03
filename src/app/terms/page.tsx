@@ -28,7 +28,7 @@ export default function TermsOfServicePage() {
             Terms of Service
           </h1>
           <p className="mt-2 text-xs sm:text-sm text-muted">
-            Version 2026-10-v1 &bull; Effective Date: October 28, 2026 &bull; Governing Jurisdiction: United Republic of Tanzania
+            Version 2026-11-v1 &bull; Effective Date: November 3, 2026 &bull; Governing Jurisdiction: United Republic of Tanzania
           </p>
         </div>
 
@@ -42,7 +42,7 @@ export default function TermsOfServicePage() {
               PottyPlay (&ldquo;the Platform&rdquo;) is an authoritative cinema companion-viewing technology service. PottyPlay is <strong>not</strong> a general video-on-demand streaming service, not a public movie library, not a cinema ticket marketplace, and not an open video host.
             </p>
             <p>
-              The platform enables eligible ticket holders at participating cinema auditoriums to temporarily follow the authoritative theatrical projection feed during a brief bathroom or concession intermission on their mobile device. All viewing access is strictly tethered to an ongoing, verified screening and terminates automatically.
+              PottyPlay lets eligible ticket holders at participating cinemas follow the current screening on a phone during a short break. Viewing is available only for an active, verified screening and ends automatically.
             </p>
           </section>
 
@@ -55,9 +55,9 @@ export default function TermsOfServicePage() {
               To access PottyPlay companion viewing features, you must:
             </p>
             <ul className="list-disc pl-5 space-y-1.5">
-              <li>Be at least 18 years of age, or have the consent of a parent or legal guardian.</li>
+              <li>Meet the minimum age required by the laws that apply where you use the service. Parent or guardian consent must be obtained where required by law.</li>
               <li>Provide accurate, truthful registration information (full name, verified telephone number, and valid email address).</li>
-              <li>Complete two-stage authentication (SMS OTP phone verification and email ownership verification).</li>
+              <li>Verify the phone number and email address associated with the account.</li>
               <li>Hold a valid, paid admission ticket issued by an authorized cinema circuit for an ongoing screening.</li>
             </ul>
           </section>
@@ -71,10 +71,10 @@ export default function TermsOfServicePage() {
               To protect the commercial rights of filmmakers, studios, and exhibition circuits, companion playback is governed by mandatory operational rules:
             </p>
             <ul className="list-disc pl-5 space-y-1.5">
-              <li><strong>Maximum Session Duration:</strong> Each companion intermission session is capped at a strict hard limit of <strong>900 seconds (15 minutes)</strong>. Playback ceases automatically when the timer reaches zero.</li>
-              <li><strong>Break Allowances:</strong> A maximum of <strong>two (2) bathroom intermission sessions</strong> are permitted per valid movie ticket.</li>
-              <li><strong>No Archival or Rewind:</strong> Companion streams follow live projection. Rewinding, fast-forwarding, pause buffering, or seeking to arbitrary film timestamps is prohibited and technologically disabled.</li>
-              <li><strong>Single-Device Concurrency:</strong> A ticket entitlement can only be claimed on one device simultaneously. Simultaneous streams under the same ticket barcode will fail closed.</li>
+              <li><strong>Maximum Break Duration:</strong> Each companion break lasts up to <strong>15 minutes</strong>. Playback ends automatically when the timer reaches zero.</li>
+              <li><strong>Break Allowances:</strong> A maximum of <strong>two (2) breaks</strong> are permitted per eligible movie ticket.</li>
+              <li><strong>No Recording or Rewind:</strong> Companion playback follows the screening. Rewinding, fast-forwarding, or seeking to another point in the film is not available.</li>
+              <li><strong>One Device at a Time:</strong> A ticket can only be used on one device at a time. Additional attempts to use the same ticket are blocked.</li>
             </ul>
           </section>
 
@@ -90,8 +90,8 @@ export default function TermsOfServicePage() {
               You are granted a strictly revocable, non-exclusive, non-transferable, temporary license to view the feed solely during an authorized intermission. You shall not:
             </p>
             <ul className="list-disc pl-5 space-y-1.5">
-              <li>Record, rip, capture, capture screenshot series, screen-mirror to unauthorized public displays, or redistribute the stream.</li>
-              <li>Reverse engineer or attempt to decrypt ephemeral HLS stream chunks or authorization tokens.</li>
+              <li>Record, capture screenshots of, mirror to unauthorized public displays, or redistribute the stream.</li>
+              <li>Attempt to bypass playback protections or access controls.</li>
               <li>Circumvent or tamper with session duration enforcement, watermarking, or territorial rights constraints.</li>
             </ul>
           </section>
@@ -102,7 +102,7 @@ export default function TermsOfServicePage() {
               5. Cinema Partners and Ticket Synchronization
             </h2>
             <p>
-              PottyPlay synchronizes with cinema POS ticketing systems (e.g., Vista, Veezi, RTS). Admission status, screening schedules, and auditorium assignments are supplied by the exhibitor. PottyPlay is not responsible for theater scheduling changes, projector equipment breakdowns, or ticketing refunds administered by the cinema.
+              PottyPlay works with participating cinema ticketing and screening systems, including systems such as Vista, Veezi, and RTS. The cinema supplies admission status, screening schedules, and auditorium assignments. PottyPlay is not responsible for theater scheduling changes, projector equipment breakdowns, or ticket refunds administered by the cinema.
             </p>
           </section>
 
@@ -112,7 +112,7 @@ export default function TermsOfServicePage() {
               6. Pricing, Payments, and Amenity Models
             </h2>
             <p>
-              Companion viewing pricing models are established by participating cinema partners. Depending on the venue, PottyPlay may be provided as a complimentary customer loyalty amenity or as a nominal per-session micro-service. All applicable statutory duties and value-added taxes under Tanzanian revenue laws are reflected at the point of confirmation.
+              Participating cinemas set any fee for companion viewing. Depending on the venue, it may be complimentary or carry a per-break charge. Any applicable taxes will be shown when a charge is confirmed.
             </p>
           </section>
 
@@ -122,7 +122,7 @@ export default function TermsOfServicePage() {
               7. Disclaimer of Warranties and Limitation of Liability
             </h2>
             <p>
-              The companion viewing stream is provided on an &ldquo;as is&rdquo; and &ldquo;as available&rdquo; basis. While we endeavor to maintain sub-second projection synchronization, local network interference or weak cellular signals in cinema corridors may affect stream quality. PottyPlay shall not be liable for missed movie dialogue or minor stream latencies.
+              The companion viewing stream is provided on an &ldquo;as is&rdquo; and &ldquo;as available&rdquo; basis. PottyPlay works to keep playback aligned with the cinema screening, but network conditions may affect stream quality or cause delays. PottyPlay shall not be liable for missed dialogue or brief playback delays.
             </p>
           </section>
 
@@ -151,19 +151,16 @@ export default function TermsOfServicePage() {
             <h2 className="text-base sm:text-lg font-bold text-ink">
               10. Contact and Legal Inquiries
             </h2>
-            <div className="p-4 rounded-xl bg-field border border-line font-mono text-xs text-ink">
-              Email: legal@pottyplay.internal<br />
-              Subject: Terms of Service Inquiry
-            </div>
+            <a href="/support/#contact" className="inline-flex p-3 rounded-xl bg-field border border-line text-xs font-semibold text-ink underline">Contact PottyPlay through the public support form</a>
             <p className="text-xs text-muted">
-              Note: This agreement must be reviewed by a qualified Tanzanian legal practitioner prior to commercial public launch.
+              The publisher must provide the legal identity and postal address of the operating entity and obtain jurisdiction-specific legal review before public release.
             </p>
           </section>
         </div>
       </main>
 
       <footer className="border-t border-line bg-bg py-6 px-4 text-center text-xs text-muted">
-        PottyPlay &bull; Legal Department &bull; United Republic of Tanzania
+              PottyPlay &bull; United Republic of Tanzania
       </footer>
     </div>
   );

@@ -1,6 +1,5 @@
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -232,6 +231,9 @@ model CustomerAccount {
   themePreference            String       @default("SYSTEM") // LIGHT, DARK, SYSTEM
   notificationPreferences    Json?
   deletionRequestedAt        DateTime?
+  deletionConfirmationTokenHash      String?   @unique
+  deletionConfirmationExpiresAt      DateTime?
+  deletionConfirmationRequestedAt    DateTime?
   createdAt                  DateTime     @default(now())
   updatedAt                  DateTime     @updatedAt
 

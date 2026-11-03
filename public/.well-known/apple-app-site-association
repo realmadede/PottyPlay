@@ -5,8 +5,11 @@
       {
         "appID": "K5P84Z9R92.com.pottyplay.companion",
         "paths": [
+          "/app",
+          "/app/*",
           "/watch",
           "/watch/*",
+          "/claim",
           "/claim/*"
         ]
       }

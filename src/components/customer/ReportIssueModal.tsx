@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from "react";
 import { GlassSurface } from "@/components/GlassSurface";
+import { customerFetch } from "@/lib/customer-mobile-url";
 import { NativeMobile } from "@/lib/native-mobile";
 import {
   X,
@@ -60,7 +61,7 @@ export function ReportIssueModal({
     setError(null);
 
     try {
-      const res = await fetch("/api/customer/feedback", {
+      const res = await customerFetch("/api/customer/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -141,7 +142,7 @@ export function ReportIssueModal({
                 Report Issue or Feedback
               </h3>
               <p className="text-[11px] text-muted">
-                Direct telemetry dispatched to cinema floor operations
+                Tell us what happened so we can review it.
               </p>
             </div>
           </div>
@@ -165,7 +166,7 @@ export function ReportIssueModal({
                 Report Submitted Successfully
               </h4>
               <p className="text-xs text-muted max-w-sm mx-auto mt-1 leading-relaxed">
-                Thank you for notifying cinema staff. Your telemetry has been recorded in the operator console.
+                Thank you. Your report was submitted for review.
               </p>
             </div>
             <button
@@ -228,7 +229,7 @@ export function ReportIssueModal({
                 rows={4}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Explain what happened (e.g., sound cuts out every 10 seconds, video timeline stopped updating)..."
+                placeholder="Explain what happened (for example, sound cuts out or the picture stops moving)..."
                 className="w-full p-3 rounded-xl border border-line bg-bg text-ink text-xs placeholder-muted focus:outline-none focus:border-amber-500 resize-none"
               />
             </div>

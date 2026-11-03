@@ -4,6 +4,12 @@ PottyPlay is an enterprise cinema companion-viewing technology platform designed
 
 The platform enables authenticated cinema patrons to temporarily follow an ongoing theatrical screening on their personal mobile devices during a brief intermission (restroom break, concession run) without losing their place in the film. It strictly enforces a maximum session duration of 15 minutes (900 seconds), a limit of two breaks per ticket, server-authoritative projection synchronization, carrier-grade Africa's Talking SMS verification, studio anti-piracy screen capture restrictions, in-auditorium local edge streaming, native mobile hardware perimeter protection, and idempotent usage billing.
 
+## Project Status
+
+Android customer flows have been exercised in an API 37 emulator using a debug-only build, a local development API, simulator verification codes, and a disposable PostgreSQL database. The test covered registration and verification, session restore, ticket claim deep links, camera permission handling and scanner launch, notification permission, and playback of a public CC0 sample clip. This does not verify licensed cinema streams, QR decoding, production SMS/email delivery, physical-device behavior, or store acceptance. See [the mobile guide](docs/mobile.md) for the test scope and release prerequisites.
+
+The current checkout does not have a confirmed production HTTPS API origin, and iOS has not been built or tested on macOS/Xcode. Do not distribute the emulator debug build. Production release remains blocked until the publisher supplies and verifies the production service and store configuration.
+
 ---
 
 ## 1. Product Interfaces & Capabilities
@@ -25,8 +31,8 @@ The platform enables authenticated cinema patrons to temporarily follow an ongoi
   - Standard web browsers requesting `/app` receive an immediate `404 Not Found` response via middleware.
   - The patron application, authentication screens, and all 5 companion tabs are accessible exclusively through the native mobile emulator or physical device container.
 - **True Native Mobile Hardware Architecture:**
-  - **Native Secure Storage (`@capacitor/preferences`):** Session bearer tokens, customer profiles, and onboarding state are stored in encrypted hardware keystores (Android `EncryptedSharedPreferences` and iOS Keychain) rather than volatile web `localStorage`.
-  - **Native OS Break Alarms (`@capacitor/local-notifications`):** Schedules system-level alerts for the 12-minute warning (180s left) and 14-minute final advisory (60s left). These alerts sound and vibrate even when the device screen is off, the phone is in a pocket, or the app is backgrounded.
+   - **Native Secure Storage (`@aparajita/capacitor-secure-storage`):** Session tokens, customer profiles, and pending ticket data use the platform secure-storage plugin on Android and iOS. Non-sensitive preferences use `@capacitor/preferences`.
+   - **Native OS Break Reminders (`@capacitor/local-notifications`):** Schedules alerts for 3 minutes and 1 minute before the break ends when notification permission is granted. Delivery, sound, and vibration remain subject to device settings and operating-system policies.
   - **Hardware Haptics Engine (`@capacitor/haptics`):** Taptic Engine and linear resonant vibrator motor patterns for tab switches, modal swipe triggers, and urgent countdown alerts.
   - **Real-Time Network Monitoring (`@capacitor/network`):** Monitors network interface transitions (Wi-Fi vs Cellular) to instantly switch between in-auditorium LAN edge servers and cloud WAN fallbacks.
   - **Hardware Back Button Interception (`@capacitor/app`):** Dismisses open modal dialogs (`CustomerAuthModal`, `ReportIssueModal`) or returns the user to the primary "Bathroom" tab before allowing operating system app minimization.
@@ -112,10 +118,10 @@ PottyPlay features a custom Dynamic Optical Glass Shader Engine that brings phys
 
 ## 3. In-Auditorium Local Edge Streaming & TMS Bridge
 
-To guarantee sub-second latency and zero cellular data consumption inside thick auditorium concrete walls, PottyPlay implements a local edge streaming architecture:
+PottyPlay is designed to prefer a cinema's local edge stream when configured and reachable, with a cloud route available as a fallback. Latency, mobile-data use, and playback continuity depend on the cinema deployment and network conditions:
 
 1. **Dual-Path Edge Router (`src/lib/edge-streaming.ts`):** Client devices automatically probe local auditorium Wi-Fi for an on-premise edge server (`http://edge.pottyplay.local` or cinema LAN IP). If detected, media segments are fetched directly over the high-speed local network.
-2. **Automatic Cloud Fallback:** If the local edge node does not respond within the defined timeout (or if the patron steps outside Wi-Fi range), playback instantly fails over to global cloud CDN endpoints without video interruption.
+2. **Cloud Fallback:** If a configured local edge node is unavailable, the player can use the configured cloud source. Failover timing and playback continuity depend on the venue network and stream configuration and have not been verified at a partner cinema.
 3. **Local Edge Server (`edge-server/`):**
    - High-performance NGINX micro-cache configuration (`edge-server/nginx-edge.conf`).
    - Caches encrypted HLS segments in memory with byte-range support.
@@ -152,7 +158,7 @@ Africa's Talking SMS infrastructure powers patron authentication and security fa
   - `@capacitor-community/privacy-screen` (OS screenshot & screen-recording DRM blocker)
 - **Database & Transactions:** PostgreSQL 16 with Prisma ORM
 - **In-Auditorium Edge Streaming:** NGINX micro-caching, HLS segment proxies, and TMS integration bridge
-- **Testing:** Vitest automated test suite (115 comprehensive unit, integration, and security tests)
+- **Testing:** Vitest automated unit, integration, and security tests
 - **Containerization:** Multi-stage Dockerfile and Docker Compose
 
 ---
@@ -216,8 +222,8 @@ Africa's Talking SMS infrastructure powers patron authentication and security fa
 
 7. Run Patron App in Native Android Emulator or iOS Simulator:
    ```bash
-   # Sync native assets and plugins
-   npm run cap:sync
+   # Build and bundle the customer app, then sync native assets and plugins
+   CAPACITOR_SERVER_URL="https://<deployed-pottyplay-origin>" npm run cap:build
    
    # Launch project in Android Studio or Xcode emulator
    npx cap open android
@@ -228,7 +234,7 @@ Africa's Talking SMS infrastructure powers patron authentication and security fa
 
 ## 8. Testing and Verification
 
-Run the automated test suite (115 tests across 4 suites):
+Run the automated test suite (119 tests across 5 test files at the last documented validation):
 ```bash
 npm test
 ```

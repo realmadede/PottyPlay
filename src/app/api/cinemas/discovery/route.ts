@@ -68,10 +68,10 @@ export async function GET(req: NextRequest) {
         durationMinutes: Math.round(s.contentAsset.durationSeconds / 60),
       })),
       supportedFeatures: [
-        "15-Minute Synchronized Companion Break",
-        "Authoritative Dolby Atmos Timeline Lock",
-        "Ticket-Linked Advance Screening Reminders",
-        "Direct In-App One-Tap Bathroom Mode",
+        "Break playback up to 15 minutes",
+        "Playback follows the cinema screening",
+        "Screening reminders",
+        "Start a break with your cinema ticket",
       ],
     }));
 

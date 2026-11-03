@@ -2,19 +2,23 @@
 
 ## 1. Executive Summary
 
-PottyPlay has strong foundational business logic and an enterprise-grade security posture:
+PottyPlay contains substantial business logic and security controls. The items below describe implementation surfaces; they are not a production security certification or evidence that partner infrastructure is deployed:
 - A PostgreSQL database with explicit relations for venues, screens, screenings, tickets, sessions, studio licensing rights, and billing.
 - Server-authoritative playback position calculation with freeze on pause.
 - Dynamic percentage fee calculation (P_%, default 15%) deducting companion streaming fees directly from ticket admission prices.
 - Idempotent billing event handling with atomic database transactions.
 - Africa's Talking SMS integration with provider abstraction.
-- A 103-test automated Vitest suite verifying critical security invariants, edge streaming subnet routing, tenant isolation, POS webhook HMAC-SHA256 authentication, and session lifecycles.
+- A 119-test automated Vitest suite across 5 test files covering security, edge routing, support, account deletion, and session workflows (latest local run: 2026-11-03).
 - Session token hashing at rest: All patron `BreakSession` tokens and cinema `OperatorUser` session tokens are stored as SHA-256 hashes (`sessionTokenHash`), ensuring raw bearer credentials are never exposed in database dumps.
-- In-Auditorium Local Edge Streaming: Patrons in reinforced concrete basements or Faraday-cage auditoriums automatically stream from on-prem cinema LAN micro-caches (`edgeServerUrl`) over venue Wi-Fi, bypassing congested cellular links.
+- In-Auditorium Local Edge Streaming: Routing supports configured cinema LAN edge URLs with a cloud fallback. Deployment, latency, cellular-data use, and playback continuity have not been verified at a partner venue.
 - Dynamic Optical Glass Shader Engine (`DynamicGlassSurface`): High-performance WebGL/GLSL shader implementing rounded-rectangle signed-distance field (SDF) refraction displacement, normal-derived rim lighting, interactive specular glints, and parallax layer displacement.
-- Adaptive Studio Video Streaming Player (`CinemaCanvasPlayer`): Canvas-accelerated HLS.js player with dynamic forensic watermarks (seat number, screening ID, client timestamp) and DRM screen capture blanking.
+- Adaptive Video Streaming Player (`CinemaCanvasPlayer`): HLS-capable player with session watermarks and layered screen-capture risk controls.
 - Theatre Management System (TMS) Automation Bridge: Webhook adapter and background daemon (`tms-bridge/`) for automated play/pause/stop timeline synchronization with Dolby IMS, Christie, Barco, and Vista projection servers.
-- Native Mobile Shells: Cross-platform Capacitor configurations (`android/`, `ios/`), Android Instant App deep links, and Apple App Clip association (`public/.well-known/apple-app-site-association`).
+- Native Mobile Shells: Cross-platform Capacitor configurations (`android/`, `ios/`), Android App Links, and Apple Universal Links (`public/.well-known/apple-app-site-association`).
+
+### Current Validation Boundary
+
+The Android customer app was exercised in an API 37 emulator using a debug-only build, a local development API, simulator verification codes, and a disposable database. Registration, session restoration, claim-link handling, permission flows, scanner launch, and playback of a public CC0 sample clip were checked. This does not validate licensed streams, QR decoding, production messaging, physical devices, iOS, or store acceptance. See [the mobile validation guide](mobile.md) for details and release prerequisites.
 
 ---
 
@@ -29,7 +33,7 @@ PottyPlay has strong foundational business logic and an enterprise-grade securit
 7. **Mobile App Bathroom Tab**: Seamless 1-tap activation in `BathroomView.tsx` for registered mobile app patrons.
 8. **Platform Admin Studio Rights**: Implemented content rights licensing matrix (`/x` tab `rights`) connected to `/api/admin/rights`.
 9. **Forensic Dynamic Watermarking**: Canvas-rendered patron seat, screening ID, and UTC timestamp overlays over live video frames.
-10. **On-Prem Edge Streaming**: Micro-caching proxy architecture for zero-buffering playback in reinforced concrete auditoriums.
+10. **On-Prem Edge Streaming**: Micro-caching proxy architecture intended to support local delivery; venue performance and zero-buffering behavior are not established by this repository audit.
 
 ---
 
@@ -61,7 +65,11 @@ PottyPlay has strong foundational business logic and an enterprise-grade securit
 
 ## 4. Verification and Test Suite
 
-The platform is validated by a 103-test automated test suite across 3 comprehensive test suites:
-- `tests/security-auth.test.ts` (53 tests): Tenant isolation, session hashing, POS webhook HMAC verification, replay attacks, ticket quotas, and operator authentication.
-- `tests/edge-streaming.test.ts` (14 tests): CIDR subnet parsing, private IP address detection, edge server URL rewriting, and carrier fallback.
-- `tests/pottyplay.test.ts` (36 tests): End-to-end customer workflows, dynamic percentage fee calculation, session expiry, and pause/resume position preservation.
+The current automated Vitest suite passes 119 tests across 5 files (`npm test`, run 2026-11-03):
+- `tests/security-auth.test.ts`
+- `tests/edge-streaming.test.ts`
+- `tests/feedback-support.test.ts`
+- `tests/account-deletion-security.test.ts`
+- `tests/pottyplay.test.ts`
+
+These tests do not replace production integration testing, mobile-device testing, or store review.

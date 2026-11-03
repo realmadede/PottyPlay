@@ -52,6 +52,7 @@ export async function POST(req: NextRequest) {
             name: true,
             email: true,
             phoneNumber: true,
+            notificationPreferences: true,
           },
         },
       },
@@ -80,6 +81,14 @@ export async function POST(req: NextRequest) {
 
       // Check if trigger window is reached (and screening is not more than 2 hours in past)
       if (nowMs >= notifyAtMs && nowMs <= scheduledStartMs + 2 * 3600 * 1000) {
+        const preferences = reminder.customer.notificationPreferences as {
+          showtimeRemindersEnabled?: boolean;
+        } | null;
+        if (preferences?.showtimeRemindersEnabled === false) {
+          skippedCount++;
+          continue;
+        }
+
         // Atomic claim-then-send: mark sentAt immediately to prevent duplicate sends by concurrent workers
         const claim = await prisma.screeningReminder.updateMany({
           where: {

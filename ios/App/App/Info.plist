@@ -6,6 +6,8 @@
 	<string>$(CAPACITOR_DEBUG)</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
+	<key>NSCameraUsageDescription</key>
+	<string>PottyPlay uses the camera only when you choose to scan a cinema ticket QR code. Camera images are not saved by PottyPlay.</string>
 	<key>CFBundleDisplayName</key>
         <string>PottyPlay</string>
 	<key>CFBundleExecutable</key>

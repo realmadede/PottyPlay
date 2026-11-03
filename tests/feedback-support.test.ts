@@ -1,8 +1,10 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { prisma } from "../src/lib/db";
 import { FeedbackService } from "../src/features/feedback/feedback-service";
 import { CustomerAuthService } from "../src/features/auth/customer-auth-service";
+import { resendService } from "../src/features/email/resend-service";
+import { hashToken } from "../src/lib/crypto";
 import { POST as customerFeedbackPost, GET as customerFeedbackGet } from "../src/app/api/customer/feedback/route";
 import { GET as operatorFeedbackGet, PATCH as operatorFeedbackPatch } from "../src/app/api/operator/feedback/route";
 import { POST as cronPurgePost } from "../src/app/api/cron/purge-deleted/route";
@@ -19,6 +21,7 @@ describe("Patron Feedback, Support & PDPA Account Erasure Suite", () => {
   const testOperatorToken = "opr_fb_test_session_token_123";
 
   let createdCustomerId: string;
+  let createdCustomerSessionId: string;
   let expiredDeletionCustomerId: string;
   let recentDeletionCustomerId: string;
 
@@ -144,6 +147,7 @@ describe("Patron Feedback, Support & PDPA Account Erasure Suite", () => {
     await prisma.demonstrationTicket.create({
       data: {
         ticketNumber: testTicketNumber,
+        claimToken: "FB-CLAIM-991",
         screeningId: testScreeningId,
         seatNumber: "H12",
         customerName: "Baraka Juma",
@@ -163,6 +167,23 @@ describe("Patron Feedback, Support & PDPA Account Erasure Suite", () => {
       },
     });
     createdCustomerId = patron.id;
+
+    const patronBreakSession = await prisma.breakSession.create({
+      data: {
+        sessionToken: "pstk_feedback_deletion_session_123",
+        ticketId: (await prisma.demonstrationTicket.findUniqueOrThrow({
+          where: { ticketNumber: testTicketNumber },
+          select: { id: true },
+        })).id,
+        screeningId: testScreeningId,
+        customerId: patron.id,
+        phoneNumber: patron.phoneNumber,
+        deviceInfo: "PottyPlay test device",
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+        status: "ACTIVE",
+      },
+    });
+    createdCustomerSessionId = patronBreakSession.id;
 
     // Expired deletion request (created 45 days ago)
     const expiredCutoff = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000);
@@ -410,6 +431,46 @@ describe("Patron Feedback, Support & PDPA Account Erasure Suite", () => {
   });
 
   describe("PDPA 2022 Account Deletion & Automated PII Purge", () => {
+    it("confirms external deletion using a hashed single-use email token", async () => {
+      let emailedToken = "";
+      const delivery = vi.spyOn(resendService, "sendCustomerAccountDeletionConfirmation")
+        .mockImplementation(async (_email, token) => {
+          emailedToken = token;
+          return { success: true, simulated: true };
+        });
+
+      try {
+        await CustomerAuthService.requestExternalDeletion("fb_patron@test.com");
+        const accountBeforeConfirmation = await prisma.customerAccount.findUniqueOrThrow({
+          where: { id: createdCustomerId },
+        });
+
+        expect(emailedToken).toMatch(/^delete_/);
+        expect(accountBeforeConfirmation.deletionConfirmationTokenHash).toBe(hashToken(emailedToken));
+        expect(accountBeforeConfirmation.deletionConfirmationTokenHash).not.toBe(emailedToken);
+        expect(accountBeforeConfirmation.status).toBe("ACTIVE");
+
+        await expect(CustomerAuthService.confirmExternalDeletion("delete_invalid_token_123456789"))
+          .resolves.toBe(false);
+        await expect(CustomerAuthService.confirmExternalDeletion(emailedToken)).resolves.toBe(true);
+        await expect(CustomerAuthService.confirmExternalDeletion(emailedToken)).resolves.toBe(false);
+
+        const account = await prisma.customerAccount.findUniqueOrThrow({
+          where: { id: createdCustomerId },
+        });
+        expect(account.status).toBe("DELETION_REQUESTED");
+        expect(account.sessionToken).toBeNull();
+        expect(account.deletionConfirmationTokenHash).toBeNull();
+
+        const session = await prisma.breakSession.findUniqueOrThrow({
+          where: { id: createdCustomerSessionId },
+        });
+        expect(session.status).toBe("REVOKED");
+      } finally {
+        delivery.mockRestore();
+      }
+    });
+
     it("requests account deletion, immediately invalidating session tokens", async () => {
       await CustomerAuthService.requestDeletion(createdCustomerId);
 
@@ -421,6 +482,12 @@ describe("Patron Feedback, Support & PDPA Account Erasure Suite", () => {
       expect(account?.deletionRequestedAt).toBeDefined();
       expect(account?.sessionToken).toBeNull();
       expect(account?.tokenExpiresAt).toBeNull();
+
+      const session = await prisma.breakSession.findUnique({
+        where: { id: createdCustomerSessionId },
+      });
+      expect(session?.status).toBe("REVOKED");
+      expect(session?.revokedReason).toContain("deletion");
     });
 
     it("anonymizes patron account, erasing phone number, email, and reminder links", async () => {
@@ -431,13 +498,28 @@ describe("Patron Feedback, Support & PDPA Account Erasure Suite", () => {
       });
 
       expect(scrubbed?.status).toBe("DELETED");
-      expect(scrubbed?.name).toBe("Anonymized Patron");
+      expect(scrubbed?.name).toBe("Deleted customer");
       expect(scrubbed?.phoneNumber).toBeNull();
       expect(scrubbed?.email).toBeNull();
       expect(scrubbed?.passwordHash).toBeNull();
       expect(scrubbed?.sessionToken).toBeNull();
       expect(scrubbed?.phoneVerified).toBe(false);
       expect(scrubbed?.emailVerified).toBe(false);
+
+      const session = await prisma.breakSession.findUnique({
+        where: { id: createdCustomerSessionId },
+      });
+      expect(session?.customerId).toBeNull();
+      expect(session?.phoneNumber).toBeNull();
+      expect(session?.deviceInfo).toBeNull();
+      expect(session?.sessionToken).not.toBe("pstk_feedback_deletion_session_123");
+
+      const ticket = await prisma.demonstrationTicket.findUnique({
+        where: { ticketNumber: testTicketNumber },
+      });
+      expect(ticket?.customerName).toBe("Deleted customer");
+      expect(ticket?.claimToken).toBeNull();
+      expect(ticket?.ticketNumber).toBe(testTicketNumber);
     });
 
     it("purges accounts past 30-day grace period while preserving accounts within grace period", async () => {
@@ -471,17 +553,45 @@ describe("Patron Feedback, Support & PDPA Account Erasure Suite", () => {
     });
 
     it("triggers cron endpoint POST /api/cron/purge-deleted with secret validation", async () => {
+      const previousSecret = process.env.CRON_SECRET;
+      process.env.CRON_SECRET = "test_cron_secret_for_account_deletion_123";
       const cronReq = new NextRequest("http://localhost:3000/api/cron/purge-deleted?gracePeriodDays=30", {
         method: "POST",
+        headers: { Authorization: `Bearer ${process.env.CRON_SECRET}` },
       });
 
-      const cronRes = await cronPurgePost(cronReq);
-      const cronJson = await cronRes.json();
+      try {
+        const cronRes = await cronPurgePost(cronReq);
+        const cronJson = await cronRes.json();
 
-      expect(cronRes.status).toBe(200);
-      expect(cronJson.success).toBe(true);
-      expect(cronJson.message).toContain("PDPA 2022");
-      expect(typeof cronJson.purgedCount).toBe("number");
+        expect(cronRes.status).toBe(200);
+        expect(cronJson.success).toBe(true);
+        expect(typeof cronJson.purgedCount).toBe("number");
+        expect(cronJson.accountIds).toBeUndefined();
+      } finally {
+        if (previousSecret === undefined) delete process.env.CRON_SECRET;
+        else process.env.CRON_SECRET = previousSecret;
+      }
+    });
+
+    it("fails closed when the cron secret is missing or unauthorized", async () => {
+      const previousSecret = process.env.CRON_SECRET;
+      try {
+        delete process.env.CRON_SECRET;
+        const missingSecretResponse = await cronPurgePost(
+          new NextRequest("http://localhost:3000/api/cron/purge-deleted", { method: "POST" })
+        );
+        expect(missingSecretResponse.status).toBe(503);
+
+        process.env.CRON_SECRET = "test_cron_secret_for_account_deletion_123";
+        const unauthorizedResponse = await cronPurgePost(
+          new NextRequest("http://localhost:3000/api/cron/purge-deleted", { method: "POST" })
+        );
+        expect(unauthorizedResponse.status).toBe(401);
+      } finally {
+        if (previousSecret === undefined) delete process.env.CRON_SECRET;
+        else process.env.CRON_SECRET = previousSecret;
+      }
     });
   });
 });

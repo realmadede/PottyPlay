@@ -17,24 +17,21 @@ export function OnboardingCarousel({ onComplete }: OnboardingCarouselProps) {
       badge: "Theatrical Continuity",
       icon: Film,
       title: "Never Miss the Critical Scene",
-      description:
-        "PottyPlay connects you to the ongoing cinema screening during an intermission. Follow the dialogue and storyline without stepping out of context.",
+      description: "Follow the current cinema screening on your phone when you step out for a short break.",
     },
     {
       id: 1,
       badge: "Genuine Admission",
       icon: Ticket,
       title: "Linked to Your Movie Ticket",
-      description:
-        "Every session is strictly authorized through your admitted cinema ticket barcode or booking reference. No account sharing or public playback.",
+      description: "Use your cinema ticket or booking code to confirm that your screening is eligible.",
     },
     {
       id: 2,
       badge: "Strict Session Limit",
       icon: Clock,
       title: "15-Minute Intermission Window",
-      description:
-        "Each bathroom break is limited to 900 seconds (15 minutes) with a maximum of two breaks per ticket. Built to encourage a swift return to your seat.",
+      description: "Each break lasts up to 15 minutes, with a maximum of two breaks per ticket.",
     },
     {
       id: 3,
@@ -42,7 +39,7 @@ export function OnboardingCarousel({ onComplete }: OnboardingCarouselProps) {
       icon: ShieldCheck,
       title: "Authorized Exhibitors Only",
       description:
-        "Available exclusively at participating, approved cinema locations with verified content licensing and live projection synchronization.",
+        "Available only at participating cinemas that have enabled companion viewing for their screenings.",
     },
   ];
 

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Bell, Plus, Trash2, Calendar, Clock, Ticket, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { GlassSurface } from "@/components/GlassSurface";
+import { customerFetch } from "@/lib/customer-mobile-url";
 
 interface ReminderItem {
   id: string;
@@ -31,53 +32,61 @@ export function RemindersView() {
   const [offsetMinutes, setOffsetMinutes] = useState(30);
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const loadRemindersAndScreenings = async () => {
+    setLoading(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    try {
+      const [remindersRes, discoveryRes] = await Promise.all([
+        customerFetch("/api/reminders"),
+        customerFetch("/api/cinemas/discovery"),
+      ]);
+      if (!remindersRes.ok || !discoveryRes.ok) {
+        throw new Error("Some reminder information could not be loaded.");
+      }
+
+      const remindersData = await remindersRes.json();
+      if (!remindersData.success || !Array.isArray(remindersData.reminders)) {
+        throw new Error(remindersData.error || "Your reminders could not be loaded.");
+      }
+      setReminders(remindersData.reminders);
+
+      const discoveryData = await discoveryRes.json();
+      if (!discoveryData.success || !Array.isArray(discoveryData.cinemas)) {
+        throw new Error(discoveryData.error || "Available screenings could not be loaded.");
+      }
+      const list: AvailableScreening[] = [];
+      for (const c of discoveryData.cinemas) {
+        if (Array.isArray(c.activeScreenings)) {
+          for (const s of c.activeScreenings) {
+            list.push({ id: s.id, title: s.title, cinemaName: c.name });
+          }
+        }
+      }
+      setAvailableScreenings(list);
+      if (list.length > 0) setSelectedScreeningId((prev) => prev || list[0].id);
+      setErrorMessage(null);
+    } catch {
+      setErrorMessage("Reminders or screening choices could not be loaded. Check your connection and retry.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function loadRemindersAndScreenings() {
-      try {
-        const [remindersRes, discoveryRes] = await Promise.all([
-          fetch("/api/reminders"),
-          fetch("/api/cinemas/discovery"),
-        ]);
-
-        const remindersData = await remindersRes.json();
-        if (remindersData.success && Array.isArray(remindersData.reminders)) {
-          setReminders(remindersData.reminders);
-        } else {
-          setReminders([]);
-        }
-
-        const discoveryData = await discoveryRes.json();
-        if (discoveryData.success && Array.isArray(discoveryData.cinemas)) {
-          const list: AvailableScreening[] = [];
-          for (const c of discoveryData.cinemas) {
-            if (Array.isArray(c.activeScreenings)) {
-              for (const s of c.activeScreenings) {
-                list.push({ id: s.id, title: s.title, cinemaName: c.name });
-              }
-            }
-          }
-          setAvailableScreenings(list);
-          if (list.length > 0) {
-            setSelectedScreeningId((prev) => prev || list[0].id);
-          }
-        }
-      } catch {
-        setErrorMessage("Unable to load reminders.");
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadRemindersAndScreenings();
+    void loadRemindersAndScreenings();
   }, []);
 
   const handleAddReminder = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setErrorMessage(null);
+    setSuccessMessage(null);
 
     try {
-      const res = await fetch("/api/reminders", {
+      const res = await customerFetch("/api/reminders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -95,6 +104,7 @@ export function RemindersView() {
       setReminders((prev) => [data.reminder, ...prev]);
       setIsAdding(false);
       setTicketInput("");
+      setSuccessMessage("Reminder saved. The service will notify you at the selected offset.");
     } catch (err: unknown) {
       setErrorMessage(err instanceof Error ? err.message : "Failed to save reminder.");
     } finally {
@@ -103,13 +113,19 @@ export function RemindersView() {
   };
 
   const handleDeleteReminder = async (id: string) => {
+    setErrorMessage(null);
+    setSuccessMessage(null);
     try {
-      const res = await fetch(`/api/reminders?id=${id}`, { method: "DELETE" });
+      const res = await customerFetch(`/api/reminders?id=${id}`, { method: "DELETE" });
       if (res.ok) {
         setReminders((prev) => prev.filter((r) => r.id !== id));
+        setSuccessMessage("Reminder cancelled.");
+      } else {
+        const data = await res.json().catch(() => null);
+        setErrorMessage(data?.error || "Reminder could not be cancelled. Retry or check your connection.");
       }
     } catch {
-      // Ignore
+      setErrorMessage("Reminder could not be cancelled because the service is unreachable. Retry when connected.");
     }
   };
 
@@ -127,7 +143,7 @@ export function RemindersView() {
             Screening Reminders
           </h2>
           <p className="mt-1 text-xs sm:text-sm text-muted">
-            Never miss showtime. Automated reminders linked directly to verified cinema tickets.
+            Choose a screening and get a reminder before it starts.
           </p>
         </div>
 
@@ -144,9 +160,13 @@ export function RemindersView() {
       {errorMessage && (
         <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-start space-x-2">
           <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-400" />
-          <span>{errorMessage}</span>
+          <div className="flex-1">
+            <p>{errorMessage}</p>
+            {!loading && <button type="button" onClick={() => void loadRemindersAndScreenings()} className="mt-2 font-bold underline">Retry loading reminders</button>}
+          </div>
         </div>
       )}
+      {successMessage && <p role="status" className="text-xs text-emerald-400">{successMessage}</p>}
 
       {/* Add Reminder Form */}
       {isAdding && (
@@ -155,7 +175,7 @@ export function RemindersView() {
           className="p-5 sm:p-6 rounded-2xl bg-field border border-line shadow-card space-y-4"
         >
           <div className="font-bold text-sm text-ink border-b border-line pb-3">
-            Configure Ticket-Linked Reminder
+            Set a screening reminder
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -209,7 +229,7 @@ export function RemindersView() {
               className="w-full px-3 py-2.5 rounded-xl border border-line bg-bg text-ink placeholder-muted text-xs font-mono uppercase focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
             />
             <span className="text-[11px] text-muted mt-1 block">
-              Reminders verify legitimate ticket issuance with the cinema ticketing system.
+              Enter your ticket number so we can match the reminder to your screening.
             </span>
           </div>
 
@@ -246,7 +266,7 @@ export function RemindersView() {
       )}
 
       {/* Empty State */}
-      {!loading && reminders.length === 0 && (
+      {!loading && !errorMessage && reminders.length === 0 && (
         <GlassSurface variant="dock" className="p-10 border border-line text-center space-y-3">
           <div className="w-12 h-12 rounded-2xl bg-field-raised text-muted flex items-center justify-center mx-auto">
             <Bell className="w-6 h-6" />

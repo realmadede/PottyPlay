@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { History, Clock, MapPin, CheckCircle2, XCircle, AlertCircle, Loader2 } from "lucide-react";
 import { GlassSurface } from "@/components/GlassSurface";
+import { customerFetch } from "@/lib/customer-mobile-url";
 
 interface HistoryItem {
   id: string;
@@ -28,6 +29,7 @@ export function HistoryView() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const fetchHistory = async (cursor?: string) => {
+    setErrorMessage(null);
     try {
       if (cursor) {
         setLoadingMore(true);
@@ -35,16 +37,18 @@ export function HistoryView() {
         setLoading(true);
       }
 
-      const url = cursor
+      const path = cursor
         ? `/api/customer/history?cursor=${cursor}&limit=5`
         : `/api/customer/history?limit=5`;
 
-      const res = await fetch(url);
+      const res = await customerFetch(path);
       const data = await res.json();
 
       if (!res.ok || !data.success) {
         throw new Error(data.error || "Failed to load history.");
       }
+
+      setErrorMessage(null);
 
       if (cursor) {
         setHistory((prev) => [...prev, ...(data.history || [])]);
@@ -61,7 +65,7 @@ export function HistoryView() {
   };
 
   useEffect(() => {
-    fetchHistory();
+    void fetchHistory();
   }, []);
 
   const formatDuration = (seconds: number) => {
@@ -81,6 +85,16 @@ export function HistoryView() {
     });
   };
 
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      ACTIVE: "In progress",
+      COMPLETED: "Completed",
+      EXPIRED: "Expired",
+      REVOKED: "Ended early",
+    };
+    return labels[status] || "Ended";
+  };
+
   return (
     <div className="space-y-6 text-left">
       <div>
@@ -88,14 +102,17 @@ export function HistoryView() {
           Viewing History
         </h2>
         <p className="mt-1 text-xs sm:text-sm text-muted">
-          Audit of completed and expired theatrical companion viewing breaks.
+          Your recent cinema breaks.
         </p>
       </div>
 
       {errorMessage && (
         <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-start space-x-2">
           <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-          <span>{errorMessage}</span>
+          <div className="flex-1">
+            <p>{errorMessage} Check your connection and try again.</p>
+            {!loadingMore && <button type="button" onClick={() => void fetchHistory()} className="mt-2 font-bold underline">Retry loading history</button>}
+          </div>
         </div>
       )}
 
@@ -112,14 +129,14 @@ export function HistoryView() {
       )}
 
       {/* Truthful Empty State */}
-      {!loading && history.length === 0 && (
+      {!loading && !errorMessage && history.length === 0 && (
         <GlassSurface variant="dock" className="p-10 border border-line text-center space-y-3">
           <div className="w-12 h-12 rounded-2xl bg-field-raised text-muted flex items-center justify-center mx-auto">
             <History className="w-6 h-6" />
           </div>
-          <h3 className="font-bold text-base text-ink">No History Records</h3>
+          <h3 className="font-bold text-base text-ink">No breaks yet</h3>
           <p className="text-xs text-muted max-w-sm mx-auto">
-            You have not activated any companion viewing sessions yet. Completed bathroom breaks will be recorded here.
+            Breaks you complete will appear here.
           </p>
         </GlassSurface>
       )}
@@ -170,7 +187,7 @@ export function HistoryView() {
                       : "bg-red-500/10 text-red-400 border-red-500/20"
                   }`}
                 >
-                  {item.status}
+                  {getStatusLabel(item.status)}
                 </span>
               </div>
             </GlassSurface>

@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { LandingHeader } from "@/components/LandingHeader";
+import { customerFetch } from "@/lib/customer-mobile-url";
 import { GlassSurface } from "@/components/GlassSurface";
 import {
   HelpCircle,
@@ -20,7 +21,6 @@ import {
   Clock,
   MessageSquare,
   Building2,
-  Smartphone,
 } from "lucide-react";
 
 interface FaqItem {
@@ -36,42 +36,42 @@ const FAQ_ITEMS: FaqItem[] = [
     category: "Companion Streaming",
     question: "How does the 15-minute companion break work?",
     answer:
-      "When you step out of the auditorium to use the restroom, scanning your ticket claim code starts a 15-minute synchronized companion stream on your personal device. When your break ends or when you re-enter the auditorium, the stream automatically terminates to protect theatrical exhibition rights.",
+      "Scan the cinema QR code or enter your ticket code, verify that your ticket is eligible, then choose Start Break. Playback runs for up to 15 minutes. Tap Return to Auditorium when you are ready to go back; playback also ends automatically when the time limit is reached.",
   },
   {
     id: "ticket-claim",
     category: "Ticketing & Verification",
     question: "Why does my ticket show as ineligible or already redeemed?",
     answer:
-      "Each cinema ticket includes up to 2 restroom break allowances during active film screening hours. If your screening has not yet begun, has ended, or all break allowances have been consumed, the ticket cannot activate a session. Please confirm your screening schedule or speak with a cinema usher.",
+      "A ticket may allow up to two breaks during its active screening. A break cannot start before the screening begins, after it ends, or when all allowed breaks have been used. Check the screening time or ask a cinema usher for help.",
   },
   {
     id: "faraday-wifi",
     category: "Network & Connectivity",
     question: "Why does the stream buffer in basement restrooms?",
     answer:
-      "Basement auditoriums and restrooms feature reinforced concrete walls that create a Faraday cage effect, attenuating cellular 4G/5G signals. Connect your mobile device to the venue guest Wi-Fi network shown in your theater (for example, pottyplay-cinema-guest). Companion streams are cached on the local cinema LAN for instant playback without cellular reception.",
+      "Some areas of a cinema have a weak mobile signal. If the cinema offers guest Wi-Fi, connect to it and ask staff for the correct network name. Playback may still be affected by the connection.",
   },
   {
     id: "timeline-sync",
     category: "Companion Streaming",
     question: "How is the video synchronized with the cinema projector?",
     answer:
-      "PottyPlay connects directly with the theater TMS (Theatre Management System). The companion stream calculates the exact playback offset from the auditorium projector clock so what you view on your phone matches the theater screen down to the second.",
+      "PottyPlay receives screening timing from the cinema and uses it to keep companion playback aligned with the film. If the cinema pauses its screening, companion playback pauses too. Network conditions may cause a brief delay.",
   },
   {
     id: "account-deletion",
     category: "Privacy & Data Protection",
     question: "How do I request deletion of my account and personal data?",
     answer:
-      "Under Tanzania Personal Data Protection Act 2022 (PDPA), you have the right to account erasure. Go to Account Settings in the web or mobile app and tap 'Request Account Deletion'. All active sessions and bearer tokens are immediately invalidated. Your personal data is placed into a 30-day grace period, after which all phone numbers, names, and emails are permanently scrubbed and anonymized.",
+      "Open Settings and choose Request Account Deletion, or use the account deletion page linked from our Privacy Policy. After you confirm by email, account access and active breaks are stopped. After 30 days, account details and linked support information are anonymized. Some cinema, billing, security, or legally required records may be retained in anonymized form.",
   },
   {
     id: "forensic-watermark",
     category: "Content Protection",
     question: "Why is my seat number displayed over the video stream?",
     answer:
-      "To satisfy major Hollywood studio licensing agreements and prevent unauthorized recording or distribution, dynamic forensic watermarks displaying your seat number, screening ID, and session timestamp are rendered over playback. Watermarking protects theatrical content while you enjoy companion viewing.",
+      "A visible mark may appear over playback to help protect cinema content and discourage unauthorized recording or sharing.",
   },
 ];
 
@@ -118,16 +118,10 @@ export default function SupportPage() {
 
     setSubmitting(true);
     try {
-      const savedToken =
-        typeof window !== "undefined"
-          ? localStorage.getItem("pp_cust_token")
-          : null;
-
-      const res = await fetch("/api/customer/feedback", {
+      const res = await customerFetch("/api/customer/feedback", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(savedToken ? { Authorization: `Bearer ${savedToken}` } : {}),
         },
         body: JSON.stringify({
           category,
@@ -169,10 +163,7 @@ export default function SupportPage() {
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Return to Homepage</span>
           </Link>
-          <span className="inline-flex items-center space-x-1.5 text-xs font-semibold text-muted">
-            <Smartphone className="w-3.5 h-3.5 text-amber-400" />
-            <span>Patron App Available on Android & iOS</span>
-          </span>
+          <span className="text-xs font-semibold text-muted">Help for cinema visitors</span>
         </div>
 
         {/* Page Header */}
@@ -197,7 +188,7 @@ export default function SupportPage() {
             </div>
             <h3 className="font-bold text-sm text-ink">15-Minute Synchronized Break</h3>
             <p className="text-xs text-muted mt-1 leading-relaxed">
-              Companion playback streams exclusively during active restroom breaks, synchronized to your cinema screening timeline.
+              Companion playback is available during an eligible break and follows the cinema screening.
             </p>
           </GlassSurface>
 
@@ -207,7 +198,7 @@ export default function SupportPage() {
             </div>
             <h3 className="font-bold text-sm text-ink">Restroom Guest Wi-Fi</h3>
             <p className="text-xs text-muted mt-1 leading-relaxed">
-              Basement walls block 4G/5G radio signals. Connect to theater guest Wi-Fi for buffer-free local edge stream caching.
+              If your mobile signal is weak, ask cinema staff whether guest Wi-Fi is available.
             </p>
           </GlassSurface>
 
@@ -215,9 +206,9 @@ export default function SupportPage() {
             <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center mb-3">
               <Shield className="w-5 h-5" />
             </div>
-            <h3 className="font-bold text-sm text-ink">PDPA 2022 Privacy Protection</h3>
+            <h3 className="font-bold text-sm text-ink">Account Privacy & Deletion</h3>
             <p className="text-xs text-muted mt-1 leading-relaxed">
-              Your phone numbers and tickets are securely encrypted. Self-service account deletion and complete PII scrubbing available anytime.
+              You can request account deletion from Settings or through the public account deletion page.
             </p>
           </GlassSurface>
         </div>
@@ -301,7 +292,7 @@ export default function SupportPage() {
           </div>
 
           {/* Right Column: Interactive Report & Feedback Form */}
-          <div className="lg:col-span-5">
+          <div id="contact" className="lg:col-span-5">
             <GlassSurface
               variant="panel"
               className="p-6 rounded-3xl border border-white/10 shadow-card space-y-5"
@@ -320,10 +311,10 @@ export default function SupportPage() {
                 <div className="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 text-xs space-y-2 animate-fade-in">
                   <div className="flex items-center space-x-2 font-bold text-emerald-400">
                     <CheckCircle2 className="w-4 h-4" />
-                    <span>Report Logged Successfully</span>
+                    <span>Report Received</span>
                   </div>
                   <p className="text-[11px] leading-relaxed">
-                    Your report has been queued for cinema operator triage. Reference ticket ID:
+                    Your report was submitted. Keep this reference number if you contact support again:
                   </p>
                   <p className="font-mono text-xs bg-bg/60 p-2 rounded-lg border border-line text-ink">
                     {submittedId}
@@ -421,7 +412,7 @@ export default function SupportPage() {
                   ) : (
                     <>
                       <Send className="w-4 h-4" />
-                      <span>Submit Report to Cinema Desk</span>
+                      <span>Submit Report</span>
                     </>
                   )}
                 </button>
@@ -441,9 +432,6 @@ export default function SupportPage() {
             </Link>
             <Link href="/terms" className="hover:text-ink transition-colors">
               Terms of Service
-            </Link>
-            <Link href="/developers" className="hover:text-ink transition-colors">
-              Developer API
             </Link>
           </div>
         </div>

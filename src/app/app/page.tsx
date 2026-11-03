@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
 import { GlassSurface } from "@/components/GlassSurface";
@@ -26,6 +26,7 @@ import {
 import { Capacitor } from "@capacitor/core";
 import { PrivacyScreen } from "@capacitor-community/privacy-screen";
 import { NativeMobile } from "@/lib/native-mobile";
+import { customerFetch } from "@/lib/customer-mobile-url";
 
 type ActiveTab = "discovery" | "reminders" | "bathroom" | "history" | "profile" | "settings";
 
@@ -38,6 +39,10 @@ interface CustomerProfile {
   emailVerified: boolean;
   onboardingDone: boolean;
   themePreference?: string;
+  notificationPreferences?: {
+    showtimeRemindersEnabled: boolean;
+    breakAlertsEnabled: boolean;
+  };
 }
 
 export default function CustomerApplication() {
@@ -49,10 +54,18 @@ export default function CustomerApplication() {
   };
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authNotice, setAuthNotice] = useState<string | null>(null);
+  const authNoticeRef = useRef<string | null>(null);
   const [customer, setCustomer] = useState<CustomerProfile | null>(null);
+  const customerRef = useRef(customer);
+  customerRef.current = customer;
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [currentTheme, setCurrentTheme] = useState<"LIGHT" | "DARK" | "SYSTEM">("SYSTEM");
   const [isOffline, setIsOffline] = useState(false);
+
+  useEffect(() => {
+    authNoticeRef.current = authNotice;
+  }, [authNotice]);
 
   // Monitor network connectivity via NativeMobile
   useEffect(() => {
@@ -68,7 +81,7 @@ export default function CustomerApplication() {
   // Hardware back button handler for Android
   useEffect(() => {
     const sub = NativeMobile.onHardwareBack(() => {
-      if (authModalOpen && customer) {
+      if (authModalOpen && customer && !authNotice) {
         setAuthModalOpen(false);
         return true;
       }
@@ -83,7 +96,57 @@ export default function CustomerApplication() {
       return false;
     });
     return () => sub.remove();
-  }, [authModalOpen, customer, showOnboarding, activeTab]);
+  }, [authModalOpen, authNotice, customer, showOnboarding, activeTab]);
+
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      setAuthNotice("Your session expired. Sign in again to continue; your current screen and unsent form fields will remain open.");
+      setAuthModalOpen(true);
+    };
+    window.addEventListener("pottyplay:session-expired", handleSessionExpired);
+    return () => window.removeEventListener("pottyplay:session-expired", handleSessionExpired);
+  }, []);
+
+  useEffect(() => {
+    const handleAppUrl = (rawUrl: string) => {
+      try {
+        const url = new URL(rawUrl);
+        const route = url.pathname.replace(/\/+$/, "") || "/";
+        const pathClaim = route.startsWith("/claim/") ? route.slice("/claim/".length) : "";
+        const claim = url.searchParams.get("claim") || url.searchParams.get("ticket") || pathClaim;
+
+        if (route === "/app" || route === "/watch" || route.startsWith("/claim/")) {
+          setActiveTab("bathroom");
+          if (claim) {
+            void NativeMobile.setStorageItem("pp_pending_ticket", claim);
+            window.dispatchEvent(new CustomEvent("pottyplay:ticket-claim", { detail: claim }));
+          }
+          if (!customerRef.current && claim && !authNoticeRef.current) {
+            setAuthNotice("Sign in to verify the ticket linked from your cinema QR code.");
+          }
+        }
+      } catch {
+        // Ignore malformed external URLs.
+      }
+    };
+
+    let active = true;
+    let listener: { remove: () => Promise<void> } | null = null;
+    void NativeMobile.onAppUrlOpen((url) => {
+      if (active) handleAppUrl(url);
+    }).then((registered) => {
+      listener = registered;
+      if (!active) void registered.remove();
+    });
+    void NativeMobile.getLaunchUrl().then((url) => {
+      if (active && url) handleAppUrl(url);
+    });
+
+    return () => {
+      active = false;
+      if (listener) void listener.remove();
+    };
+  }, []);
 
   // Initialize theme from storage
   useEffect(() => {
@@ -124,7 +187,7 @@ export default function CustomerApplication() {
   // Check persistent session and onboarding status on mount
   useEffect(() => {
     // Enforce OS-level screenshot and screen recording blocking on native Android / iOS
-    if (Capacitor.isNativePlatform()) {
+    if (Capacitor.isNativePlatform() && !window.POTTYPLAY_EMULATOR_DEV) {
       PrivacyScreen.enable().catch(() => {});
     }
 
@@ -158,7 +221,7 @@ export default function CustomerApplication() {
           return;
         }
 
-        const res = await fetch("/api/auth/customer/me", {
+        const res = await customerFetch("/api/auth/customer/me", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -204,7 +267,7 @@ export default function CustomerApplication() {
     } else {
       try {
         const token = await NativeMobile.getStorageItem("pp_cust_token");
-        await fetch("/api/auth/customer/onboarding", {
+        await customerFetch("/api/auth/customer/onboarding", {
           method: "POST",
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
@@ -214,20 +277,23 @@ export default function CustomerApplication() {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      const token = await NativeMobile.getStorageItem("pp_cust_token");
-      await fetch("/api/auth/customer/logout", {
-        method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      await NativeMobile.removeStorageItem("pp_cust_token");
-      await NativeMobile.removeStorageItem("pp_cust_profile");
-      setCustomer(null);
-      setAuthModalOpen(true); // Mandatory authentication gating
-    } catch (err) {
-      console.error("Logout error:", err);
+  const handleLogout = async (notice?: string) => {
+    setAuthNotice(notice || null);
+    const token = await NativeMobile.getStorageItem("pp_cust_token");
+    if (token && !notice) {
+      try {
+        await customerFetch("/api/auth/customer/logout", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch {
+        // Local credentials must still be removed if the server is unreachable.
+      }
     }
+    await NativeMobile.removeStorageItem("pp_cust_token");
+    await NativeMobile.removeStorageItem("pp_cust_profile");
+    setCustomer(null);
+    setAuthModalOpen(true);
   };
 
   if (loadingProfile) {
@@ -249,9 +315,11 @@ export default function CustomerApplication() {
       {/* Mandatory Customer Auth Modal */}
       <CustomerAuthModal
         isOpen={authModalOpen || (!customer && !showOnboarding)}
-        mandatory={!customer}
-        onClose={customer ? () => setAuthModalOpen(false) : undefined}
+        mandatory={!customer || Boolean(authNotice)}
+        notice={authNotice}
+        onClose={customer && !authNotice ? () => setAuthModalOpen(false) : undefined}
         onSuccess={(session) => {
+          setAuthNotice(null);
           setCustomer(session);
           setAuthModalOpen(false);
           if (session.themePreference) {
@@ -262,12 +330,12 @@ export default function CustomerApplication() {
 
       {/* Top Application Bar */}
       <GlassSurface variant="dock" className="sticky top-0 z-40 border-b border-white/10 px-4 sm:px-6 pt-safe min-h-16 flex items-center justify-between">
-        <BrandLogo size="sm" variant="full" href="/app" />
+        <BrandLogo size="sm" variant="full" href="" />
 
         <div className="flex items-center space-x-2 sm:space-x-3">
           {isOffline && (
             <span className="hidden min-[380px]:inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-              Offline Cache
+              Offline
             </span>
           )}
           {customer && (
@@ -330,7 +398,7 @@ export default function CustomerApplication() {
             Account Required
           </h2>
           <p className="mt-2 text-xs text-muted leading-relaxed">
-            PottyPlay companion viewing is restricted to authenticated patrons with verified phone numbers. Please complete registration or sign in to continue.
+            Sign in and verify your phone number to start a cinema break.
           </p>
           <button
             type="button"
@@ -378,7 +446,7 @@ export default function CustomerApplication() {
             <span className="text-[8px] min-[360px]:text-[9px] sm:text-[10px] mt-0.5">Reminders</span>
           </button>
 
-          {/* Tab 3: Center Golden Button for Bathroom Mode */}
+          {/* Tab 3: Start or manage a break */}
           <button
             type="button"
             onClick={() => handleTabChange("bathroom")}
@@ -389,7 +457,7 @@ export default function CustomerApplication() {
             }`}
           >
             <Film className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="text-[8px] min-[360px]:text-[9px] sm:text-[10px] mt-0.5 font-bold">Bathroom</span>
+            <span className="text-[8px] min-[360px]:text-[9px] sm:text-[10px] mt-0.5 font-bold">Break</span>
           </button>
 
           {/* Tab 4: History */}

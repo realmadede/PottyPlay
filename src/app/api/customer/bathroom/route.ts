@@ -209,7 +209,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: "Phone verification is required before activating Bathroom Mode.",
+          error: "Verify your phone number before starting a break.",
           requiresPhoneVerification: true,
         },
         { status: 403 }

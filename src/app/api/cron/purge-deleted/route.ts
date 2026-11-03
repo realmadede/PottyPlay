@@ -4,29 +4,32 @@ import { CustomerAuthService } from "@/features/auth/customer-auth-service";
 export async function POST(req: NextRequest) {
   try {
     const cronSecret = process.env.CRON_SECRET;
+    if (!cronSecret || cronSecret.trim().length < 32) {
+      console.error("[CRON-PURGE-DELETED] CRON_SECRET is missing or too short.");
+      return NextResponse.json(
+        { success: false, error: "Scheduled deletion is not configured." },
+        { status: 503 }
+      );
+    }
+
     const providedAuth =
       req.headers.get("x-cron-secret") ||
       req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
 
-    // Secure authorization check
-    if (cronSecret && providedAuth !== cronSecret) {
+    if (!providedAuth || providedAuth !== cronSecret) {
       return NextResponse.json(
         { success: false, error: "Unauthorized cron execution." },
         { status: 401 }
       );
     }
 
-    const { searchParams } = new URL(req.url);
-    const gracePeriodParam = searchParams.get("gracePeriodDays");
-    const gracePeriodDays = gracePeriodParam ? parseInt(gracePeriodParam, 10) : 30;
-
+    const gracePeriodDays = 30;
     const result = await CustomerAuthService.purgeExpiredDeletionRequests(gracePeriodDays);
 
     return NextResponse.json({
       success: true,
-      message: `Successfully executed automated account deletion purge under PDPA 2022.`,
+      message: "Expired account deletion requests were processed.",
       purgedCount: result.purgedCount,
-      accountIds: result.accountIds,
       gracePeriodDays,
       executedAt: new Date().toISOString(),
     });

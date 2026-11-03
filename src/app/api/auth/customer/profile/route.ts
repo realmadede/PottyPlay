@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         success: true,
         challengeId: result.challengeId,
-        message: "SMS OTP sent to your new phone number.",
+        message: "A verification code was sent to your new phone number.",
         simulatedCode: result.simulatedCode,
       });
     }

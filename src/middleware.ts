@@ -85,7 +85,35 @@ export function middleware(req: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  if (pathname.startsWith("/api/") && req.method === "OPTIONS") {
+    const response = new NextResponse(null, { status: 204 });
+    return addCapacitorCorsHeaders(req, response);
+  }
+
+  const response = NextResponse.next();
+  return pathname.startsWith("/api/")
+    ? addCapacitorCorsHeaders(req, response)
+    : response;
+}
+
+function addCapacitorCorsHeaders(req: NextRequest, response: NextResponse): NextResponse {
+  const origin = req.headers.get("origin");
+  const isProductionOrigin = origin === "https://localhost";
+  const isEmulatorDevelopmentOrigin =
+    process.env.NODE_ENV !== "production" &&
+    process.env.CAPACITOR_EMULATOR_DEV === "true" &&
+    origin === "http://localhost";
+
+  if (!isProductionOrigin && !isEmulatorDevelopmentOrigin) {
+    return response;
+  }
+
+  response.headers.set("Access-Control-Allow-Origin", origin!);
+  response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+  response.headers.set("Access-Control-Allow-Headers", "Authorization, Content-Type, x-session-token");
+  response.headers.set("Access-Control-Max-Age", "600");
+  response.headers.append("Vary", "Origin");
+  return response;
 }
 
 export const config = {

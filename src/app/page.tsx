@@ -7,6 +7,7 @@ import { HeroCarousel } from "@/components/HeroCarousel";
 import { PartnerRegistrationForm } from "@/components/PartnerRegistrationForm";
 import { BrandLogo } from "@/components/BrandLogo";
 import { GlassSurface } from "@/components/GlassSurface";
+import { ScrollFormingText } from "@/components/ScrollFormingText";
 import {
   Film,
   Clock,
@@ -49,12 +50,12 @@ export default function BusinessLandingPage() {
               <span className="text-xs font-mono font-bold uppercase tracking-widest text-amber-400">
                 Product Definition & Philosophy
               </span>
-              <h2 className="mt-3 text-3xl sm:text-4xl md:text-5xl font-black text-ink tracking-tight leading-[1.12]">
+              <ScrollFormingText as="h2" className="mt-3 text-3xl sm:text-4xl md:text-5xl font-black text-ink tracking-tight leading-[1.12]">
                 A Purpose-Built Cinema Companion. Not a Streaming Platform.
-              </h2>
-              <p className="mt-5 text-sm sm:text-base text-muted leading-relaxed">
-                PottyPlay is engineered specifically to solve mid-movie patron anxiety. We enable authenticated ticket holders to briefly follow an ongoing theatrical screening during necessary bathroom intermissions without compromising box-office sanctity.
-              </p>
+              </ScrollFormingText>
+              <ScrollFormingText as="p" className="mt-5 text-sm sm:text-base text-muted leading-relaxed">
+                PottyPlay helps eligible ticket holders keep up with an active cinema screening when they step out for a short break, without turning the experience into a general streaming service.
+              </ScrollFormingText>
 
               <div className="mt-8 p-5 rounded-2xl bg-field border border-line shadow-card flex items-start space-x-3.5">
                 <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -81,7 +82,7 @@ export default function BusinessLandingPage() {
                       01
                     </span>
                     <h3 className="text-base sm:text-lg font-extrabold text-ink">
-                      Strictly Controlled Exclusivity
+                      Screening-Only Access
                     </h3>
                   </div>
                   <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 whitespace-nowrap">
@@ -89,7 +90,7 @@ export default function BusinessLandingPage() {
                   </span>
                 </div>
                 <p className="mt-3 text-xs sm:text-sm text-muted leading-relaxed sm:pl-10">
-                  Viewing access is tethered directly to a verified, ongoing cinema screening. Access expires permanently after 900 seconds. No video library, no rewinding, and no home streaming.
+                  Viewing is available only for an eligible, active cinema screening. Each break is limited to 15 minutes, with no rewind or home viewing.
                 </p>
               </div>
 
@@ -101,15 +102,15 @@ export default function BusinessLandingPage() {
                       02
                     </span>
                     <h3 className="text-base sm:text-lg font-extrabold text-ink">
-                      Zero Drift Synchronization
+                      Playback Follows the Screening
                     </h3>
                   </div>
                   <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 whitespace-nowrap">
-                    Sub-Second Precision
+                    Cinema-Managed Timing
                   </span>
                 </div>
                 <p className="mt-3 text-xs sm:text-sm text-muted leading-relaxed sm:pl-10">
-                  The cinema projector remains the authoritative clock. If the theater pauses, the companion pauses. When the patron returns, they are precisely aligned with the auditorium screen.
+                  Playback follows the cinema screening. If the theater pauses, companion playback pauses too; network conditions may cause brief delays.
                 </p>
               </div>
 
@@ -121,7 +122,7 @@ export default function BusinessLandingPage() {
                       03
                     </span>
                     <h3 className="text-base sm:text-lg font-extrabold text-ink">
-                      Native POS & TMS Compatibility
+                      Cinema System Compatibility
                     </h3>
                   </div>
                   <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 whitespace-nowrap">
@@ -129,7 +130,7 @@ export default function BusinessLandingPage() {
                   </span>
                 </div>
                 <p className="mt-3 text-xs sm:text-sm text-muted leading-relaxed sm:pl-10">
-                  Integrates cleanly with industry standard ticketing engines (Vista, Veezi, RTS) and theater management servers (Dolby, Barco, Christie) through lightweight webhooks and APIs.
+                  Works with common cinema ticketing and theater-management systems, including Vista, Veezi, RTS, Dolby, Barco, and Christie.
                 </p>
               </div>
             </div>
@@ -145,12 +146,12 @@ export default function BusinessLandingPage() {
             <span className="text-xs font-mono font-bold uppercase tracking-widest text-amber-400">
               Operational Sequence
             </span>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-extrabold text-ink tracking-tight">
+            <ScrollFormingText as="h2" className="mt-2 text-3xl sm:text-4xl font-extrabold text-ink tracking-tight">
               How PottyPlay Operates
-            </h2>
-            <p className="mt-3 text-sm sm:text-base text-muted">
+            </ScrollFormingText>
+            <ScrollFormingText as="p" className="mt-3 text-sm sm:text-base text-muted">
               A frictionless four-stage lifecycle from ticket purchase to auditorium return.
-            </p>
+            </ScrollFormingText>
           </div>
 
           <div className="mt-12 sm:mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 relative">
@@ -165,11 +166,11 @@ export default function BusinessLandingPage() {
                   Ticket Entitlement
                 </h3>
                 <p className="mt-2 text-xs text-muted leading-relaxed">
-                  Patron purchases a movie ticket. The cinema POS provisions an encrypted ticket barcode and optional entry claim token.
+                  The cinema validates each ticket and provides a secure code for an eligible screening.
                 </p>
               </div>
               <div className="mt-6 pt-3 border-t border-line text-[11px] text-muted font-mono">
-                POS Webhook Sync
+                Ticket Validation
               </div>
             </div>
 
@@ -184,11 +185,11 @@ export default function BusinessLandingPage() {
                   Intermission Trigger
                 </h3>
                 <p className="mt-2 text-xs text-muted leading-relaxed">
-                  During a bathroom break, the patron scans an auditorium entry code or opens their pre-authenticated PottyPlay customer application.
+                  During a break, the patron scans the cinema QR code or opens PottyPlay on their phone.
                 </p>
               </div>
               <div className="mt-6 pt-3 border-t border-line text-[11px] text-muted font-mono">
-                One-Tap Activation
+                Verify Ticket & Start
               </div>
             </div>
 
@@ -203,11 +204,11 @@ export default function BusinessLandingPage() {
                   Synchronized Companion
                 </h3>
                 <p className="mt-2 text-xs text-muted leading-relaxed">
-                  The server validates cinema rights, confirms screening state, and streams companion feed locked to the live theater timestamp.
+                  PottyPlay checks that the screening is active and keeps companion playback aligned with the auditorium.
                 </p>
               </div>
               <div className="mt-6 pt-3 border-t border-line text-[11px] text-muted font-mono">
-                Live Projection Lock
+                Screening-Aligned Playback
               </div>
             </div>
 
@@ -222,11 +223,11 @@ export default function BusinessLandingPage() {
                   Automatic Termination
                 </h3>
                 <p className="mt-2 text-xs text-muted leading-relaxed">
-                  At 900 seconds (or when the patron taps return), the session revokes. The patron walks back to their auditorium seat without missing context.
+                  Playback ends when the patron taps Return or the 15-minute limit is reached.
                 </p>
               </div>
               <div className="mt-6 pt-3 border-t border-line text-[11px] text-muted font-mono">
-                15m Server Revocation
+                Maximum 15 Minutes
               </div>
             </div>
           </div>
@@ -242,12 +243,12 @@ export default function BusinessLandingPage() {
               <span className="text-xs font-mono font-bold uppercase tracking-widest text-amber-400">
                 Designed for Effortless Ease
               </span>
-              <h2 className="mt-2 text-3xl sm:text-4xl font-extrabold text-ink tracking-tight">
+              <ScrollFormingText as="h2" className="mt-2 text-3xl sm:text-4xl font-extrabold text-ink tracking-tight">
                 Frictionless for Patrons. No Forced App Installs.
-              </h2>
-              <p className="mt-4 text-sm sm:text-base text-muted leading-relaxed">
-                Whether a customer uses our lightweight native app on Android and iOS (Capacitor) or simply scans a QR code in the cinema corridor via standard mobile Safari or Chrome, the experience starts in seconds.
-              </p>
+              </ScrollFormingText>
+              <ScrollFormingText as="p" className="mt-4 text-sm sm:text-base text-muted leading-relaxed">
+                Scan a cinema QR code to open PottyPlay in your phone browser. No app download is needed to start an eligible break.
+              </ScrollFormingText>
 
               <div className="mt-8 space-y-4">
                 <div className="flex items-start space-x-3.5">
@@ -257,7 +258,7 @@ export default function BusinessLandingPage() {
                   <div>
                     <h4 className="text-sm font-bold text-ink">Instant Web Onboarding</h4>
                     <p className="text-xs text-muted mt-0.5 leading-relaxed">
-                      Direct QR access launches an optimized web companion player immediately. No App Store detour required during an urgent break.
+                      Scan the cinema QR code to open the companion experience directly in your browser.
                     </p>
                   </div>
                 </div>
@@ -269,7 +270,7 @@ export default function BusinessLandingPage() {
                   <div>
                     <h4 className="text-sm font-bold text-ink">Persistent Mobile Identity</h4>
                     <p className="text-xs text-muted mt-0.5 leading-relaxed">
-                      Frequent moviegoers retain secure sessions across app launches with verified phone numbers or social single sign-on.
+                      Sign in with your verified phone number to access your PottyPlay account.
                     </p>
                   </div>
                 </div>
@@ -281,7 +282,7 @@ export default function BusinessLandingPage() {
                   <div>
                     <h4 className="text-sm font-bold text-ink">Audible Return Reminders</h4>
                     <p className="text-xs text-muted mt-0.5 leading-relaxed">
-                      Soft countdown pings at 12 and 14 minutes encourage patrons to head back, ensuring halls and lobbies remain orderly.
+                      Optional reminders can help you keep track of the 15-minute break limit.
                     </p>
                   </div>
                 </div>
@@ -340,12 +341,12 @@ export default function BusinessLandingPage() {
             <span className="text-xs font-mono font-bold uppercase tracking-widest text-amber-400">
               Exhibitor Commercial Advantage
             </span>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-extrabold text-ink tracking-tight">
+            <ScrollFormingText as="h2" className="mt-2 text-3xl sm:text-4xl font-extrabold text-ink tracking-tight">
               Engineered for Theater Commercial Success
-            </h2>
-            <p className="mt-3 text-sm sm:text-base text-muted leading-relaxed">
+            </ScrollFormingText>
+            <ScrollFormingText as="p" className="mt-3 text-sm sm:text-base text-muted leading-relaxed">
               Transform the inevitable bathroom interruption into an elevated customer loyalty experience that drives repeat attendance.
-            </p>
+            </ScrollFormingText>
           </div>
 
           <div className="mt-12 sm:mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6 text-left">
@@ -372,10 +373,10 @@ export default function BusinessLandingPage() {
                   <ShieldCheck className="w-5 h-5 text-amber-400" />
                 </div>
                 <h3 className="font-bold text-base text-ink">
-                  Zero Piracy Risk
+                  Rights-Focused Playback Controls
                 </h3>
                 <p className="mt-2 text-xs text-muted leading-relaxed">
-                  Hardware-backed short streams, dynamic watermarks, and no rewind controls ensure theatrical exclusivity is 100% preserved.
+                  Short sessions, ticket checks, on-screen watermarks, and limited playback controls help protect cinema content.
                 </p>
               </div>
               <div className="mt-5 pt-3 border-t border-line text-[11px] font-semibold text-emerald-400">
@@ -406,10 +407,10 @@ export default function BusinessLandingPage() {
                   <Activity className="w-5 h-5 text-amber-400" />
                 </div>
                 <h3 className="font-bold text-base text-ink">
-                  Real-Time Usher & Hall Telemetry
+                  Live Cinema Operations
                 </h3>
                 <p className="mt-2 text-xs text-muted leading-relaxed">
-                  Monitor ongoing breaks per auditorium. Identify hall traffic patterns and assist patrons returning to seats.
+                  View active breaks by auditorium and help patrons return to their seats.
                 </p>
               </div>
               <div className="mt-5 pt-3 border-t border-line text-[11px] font-semibold text-emerald-400">
@@ -427,14 +428,14 @@ export default function BusinessLandingPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-left">
             <div className="max-w-3xl">
               <span className="text-xs font-mono font-bold uppercase tracking-widest text-amber-400">
-                Sub-Second Precision Architecture
+                Screening Playback
               </span>
-              <h2 className="mt-2 text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-ink leading-tight">
-                Zero-Drift Projection Locking
-              </h2>
-              <p className="mt-4 text-sm sm:text-base text-muted leading-relaxed">
-                The patron&apos;s mobile device never determines the movie timeline. The backend server tracks projector state in real time.
-              </p>
+              <ScrollFormingText as="h2" className="mt-2 text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-ink leading-tight">
+                Playback Follows the Cinema Screening
+              </ScrollFormingText>
+              <ScrollFormingText as="p" className="mt-4 text-sm sm:text-base text-muted leading-relaxed">
+                PottyPlay uses screening updates from the cinema to keep companion playback aligned. Network conditions may cause a brief delay.
+              </ScrollFormingText>
             </div>
 
             <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -443,13 +444,13 @@ export default function BusinessLandingPage() {
                   <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mb-4">
                     <Clock className="w-5 h-5" />
                   </div>
-                  <h3 className="font-bold text-base text-ink">Authoritative Clock</h3>
+                  <h3 className="font-bold text-base text-ink">Cinema Timing</h3>
                   <p className="mt-2 text-xs text-muted leading-relaxed">
-                    Server tracks the master theater clock, factoring in projector start delays and unexpected show interruptions.
+                    Screening updates help keep the phone and auditorium playback aligned.
                   </p>
                 </div>
                 <div className="mt-6 pt-3 border-t border-line text-[11px] font-mono text-emerald-400">
-                  Sub-Second Sync
+                  Screening Updates
                 </div>
               </div>
 
@@ -458,13 +459,13 @@ export default function BusinessLandingPage() {
                   <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mb-4">
                     <Sliders className="w-5 h-5" />
                   </div>
-                  <h3 className="font-bold text-base text-ink">Dynamic Pause Handling</h3>
+                  <h3 className="font-bold text-base text-ink">Pause Updates</h3>
                   <p className="mt-2 text-xs text-muted leading-relaxed">
-                    If the cinema operator pauses the auditorium projector for technical reasons, all companion streams pause instantaneously.
+                    When a pause update arrives from the cinema, companion playback pauses too. Network conditions may affect when the update arrives.
                   </p>
                 </div>
                 <div className="mt-6 pt-3 border-t border-line text-[11px] font-mono text-emerald-400">
-                  Zero Drift on Resume
+                  Follows Cinema Updates
                 </div>
               </div>
 
@@ -473,13 +474,13 @@ export default function BusinessLandingPage() {
                   <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mb-4">
                     <Tv className="w-5 h-5" />
                   </div>
-                  <h3 className="font-bold text-base text-ink">Resilient Corridors</h3>
+                  <h3 className="font-bold text-base text-ink">Changing Signal Conditions</h3>
                   <p className="mt-2 text-xs text-muted leading-relaxed">
-                    Adaptive bitrate streaming ensures continuity even in deep restroom corridors or low-reception theater facilities.
+                    Playback quality may adjust to the available connection. Weak or interrupted signals can still affect viewing.
                   </p>
                 </div>
                 <div className="mt-6 pt-3 border-t border-line text-[11px] font-mono text-emerald-400">
-                  Adaptive Bitrate
+                  Connection-Aware Playback
                 </div>
               </div>
             </div>
@@ -495,40 +496,40 @@ export default function BusinessLandingPage() {
             <span className="text-xs font-mono font-bold uppercase tracking-widest text-amber-400">
               Seamless Deployment
             </span>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-extrabold text-ink tracking-tight">
+            <ScrollFormingText as="h2" className="mt-2 text-3xl sm:text-4xl font-extrabold text-ink tracking-tight">
               Frictionless POS & Screening Interoperability
-            </h2>
-            <p className="mt-3 text-sm sm:text-base text-muted leading-relaxed">
+            </ScrollFormingText>
+            <ScrollFormingText as="p" className="mt-3 text-sm sm:text-base text-muted leading-relaxed">
               PottyPlay does not replace your ticketing software or require custom auditorium hardware.
-            </p>
+            </ScrollFormingText>
           </div>
 
           <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 text-left">
             <div className="p-5 rounded-2xl bg-field border border-line shadow-card hover:border-amber-500/30 transition-all">
               <div className="font-extrabold text-base text-ink">Vista Cinema POS</div>
               <p className="mt-2 text-xs text-muted leading-relaxed">
-                Connect via standard Vista Connect webhook events on ticket admission and refund.
+                PottyPlay can receive ticket admission and refund updates from Vista Connect.
               </p>
             </div>
 
             <div className="p-5 rounded-2xl bg-field border border-line shadow-card hover:border-amber-500/30 transition-all">
               <div className="font-extrabold text-base text-ink">Veezi Cloud Ticketing</div>
               <p className="mt-2 text-xs text-muted leading-relaxed">
-                Native REST synchronization for independent cinema circuits and boutique theaters.
+                Connect ticket and screening information from Veezi for independent cinemas and boutique theaters.
               </p>
             </div>
 
             <div className="p-5 rounded-2xl bg-field border border-line shadow-card hover:border-amber-500/30 transition-all">
               <div className="font-extrabold text-base text-ink">Ready Theatre Systems</div>
               <p className="mt-2 text-xs text-muted leading-relaxed">
-                Reliable barcode payload mapping for RTS POS barcode scanners and kiosks.
+                Use ticket barcodes from Ready Theatre Systems scanners and kiosks.
               </p>
             </div>
 
             <div className="p-5 rounded-2xl bg-field border border-line shadow-card hover:border-amber-500/30 transition-all">
-              <div className="font-extrabold text-base text-ink">Custom Exhibitor APIs</div>
+              <div className="font-extrabold text-base text-ink">Other Cinema Systems</div>
               <p className="mt-2 text-xs text-muted leading-relaxed">
-                Direct JSON webhooks and REST endpoints for proprietary exhibitor applications.
+                Ask us about connecting PottyPlay to your ticketing and theater systems.
               </p>
             </div>
           </div>
@@ -544,12 +545,12 @@ export default function BusinessLandingPage() {
               <span className="text-xs font-mono font-bold uppercase tracking-widest text-amber-400">
                 Studio Security & Rights
               </span>
-              <h2 className="mt-2 text-3xl sm:text-4xl font-extrabold text-ink tracking-tight">
+              <ScrollFormingText as="h2" className="mt-2 text-3xl sm:text-4xl font-extrabold text-ink tracking-tight">
                 Studio-Grade Content Protection
-              </h2>
-              <p className="mt-4 text-sm sm:text-base text-muted leading-relaxed">
-                Hollywood content owners and local distributors demand non-negotiable stream controls. PottyPlay enforces studio-grade security boundaries at the API and streaming protocol layer.
-              </p>
+              </ScrollFormingText>
+              <ScrollFormingText as="p" className="mt-4 text-sm sm:text-base text-muted leading-relaxed">
+                PottyPlay checks ticket eligibility and screening access throughout each break to help protect cinema content.
+              </ScrollFormingText>
             </div>
 
             <div className="lg:col-span-7 space-y-3 text-left">
@@ -577,7 +578,7 @@ export default function BusinessLandingPage() {
               <div className="p-4 sm:p-5 rounded-2xl bg-field border border-line shadow-card">
                 <div className="font-bold text-sm text-ink">Explicit Rights Authorization</div>
                 <div className="text-xs text-muted mt-1 leading-relaxed">
-                  Every screening references a verified digital rights record. Unlicensed assets or expired windows fail closed.
+                  Every screening is checked for authorization. Unlicensed or expired content cannot be streamed.
                 </div>
               </div>
             </div>
@@ -593,12 +594,12 @@ export default function BusinessLandingPage() {
             <span className="text-xs font-mono font-bold uppercase tracking-widest text-amber-400">
               Exhibitor Roadmap
             </span>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-extrabold text-ink tracking-tight">
+            <ScrollFormingText as="h2" className="mt-2 text-3xl sm:text-4xl font-extrabold text-ink tracking-tight">
               Seamless Onboarding for Cinema Circuits
-            </h2>
-            <p className="mt-3 text-sm sm:text-base text-muted leading-relaxed">
+            </ScrollFormingText>
+            <ScrollFormingText as="p" className="mt-3 text-sm sm:text-base text-muted leading-relaxed">
               Four structured steps to pilot and roll out PottyPlay across your venues.
-            </p>
+            </ScrollFormingText>
           </div>
 
           <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 text-left">
@@ -614,7 +615,7 @@ export default function BusinessLandingPage() {
               <div className="text-xs font-mono font-bold text-amber-400">STAGE 02</div>
               <h3 className="mt-2 font-bold text-base text-ink">System Compatibility Check</h3>
               <p className="mt-2 text-xs text-muted leading-relaxed">
-                Our solutions engineering team tests webhook connectivity with your POS and TMS servers.
+                Our team checks how your ticketing and theater systems can connect with PottyPlay.
               </p>
             </div>
 
@@ -647,12 +648,12 @@ export default function BusinessLandingPage() {
                 <span className="text-xs font-mono font-bold uppercase tracking-widest text-amber-400">
                   Engineering Documentation & OpenAPI
                 </span>
-                <h2 className="mt-2 text-3xl sm:text-4xl font-extrabold text-ink tracking-tight">
+                <ScrollFormingText as="h2" className="mt-2 text-3xl sm:text-4xl font-extrabold text-ink tracking-tight">
                   Open APIs & Standard Webhooks
-                </h2>
-                <p className="mt-4 text-sm sm:text-base text-muted leading-relaxed">
-                  Integrate your POS or ticketing software with clean, standards-compliant REST endpoints and HMAC-signed webhook dispatches.
-                </p>
+                </ScrollFormingText>
+                <ScrollFormingText as="p" className="mt-4 text-sm sm:text-base text-muted leading-relaxed">
+                  Connect your ticketing software through secure integrations tailored to cinema operations. Technical setup details are available in the developer portal.
+                </ScrollFormingText>
 
                 <div className="mt-8 flex items-center space-x-4">
                   <Link
@@ -714,12 +715,12 @@ X-PottyPlay-Signature: sha256=...
             <span className="text-xs font-mono font-bold uppercase tracking-widest text-amber-400">
               Cinema Onboarding
             </span>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-extrabold text-ink tracking-tight">
+            <ScrollFormingText as="h2" className="mt-2 text-3xl sm:text-4xl font-extrabold text-ink tracking-tight">
               Register Your Cinema Circuit
-            </h2>
-            <p className="mt-3 text-sm sm:text-base text-muted leading-relaxed">
+            </ScrollFormingText>
+            <ScrollFormingText as="p" className="mt-3 text-sm sm:text-base text-muted leading-relaxed">
               Join leading cinema exhibitors. Connect your auditoriums and offer companion viewing to your patrons.
-            </p>
+            </ScrollFormingText>
           </div>
 
           <PartnerRegistrationForm />

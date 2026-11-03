@@ -1,5 +1,7 @@
 # PottyPlay Security and Privacy Controls
 
+This document describes implemented controls and intended safeguards; it is not a security certification. The current mobile validation used an emulator-only debug configuration. That mode permits local HTTP traffic and disables the Privacy Screen plugin for inspection. It must not be used for distribution. Production-origin, physical-device, and store-release verification remain outstanding; see [the mobile guide](mobile.md).
+
 ## 1. Threat Model & Mitigations
 
 | Threat | Attack Vector | Mitigation in PottyPlay |
@@ -28,20 +30,20 @@
   - The screening has concluded or is cancelled.
   - The cinema venue lacks active studio rights authorization for the content asset.
 
-## 4. Anti-Screenshot & Anti-Screen-Recording Protections
+## 4. Screen-Capture Risk Reduction
 
-PottyPlay incorporates multi-layered technical barriers to prevent unauthorized recording, content extraction, and pirated distribution of synchronized companion streams:
+PottyPlay uses technical controls intended to reduce casual screen capture. No app can guarantee prevention of external-camera recording, modified operating systems, or all capture methods; these controls do not replace content licensing and operational safeguards:
 
 ### 4.1 Native Mobile Protections (`@capacitor-community/privacy-screen`)
-- **Android `FLAG_SECURE` Enforced**: Automatically sets window flag `WindowManager.LayoutParams.FLAG_SECURE` on native Android builds. The operating system actively disables screenshot captures, and screen-recording tools record only black video frames.
-- **iOS App Switcher Blanking**: Blanks the application canvas when the app moves to the background or the iOS App Switcher is engaged.
+- **Android `FLAG_SECURE`**: Enabled in the normal/release configuration to block standard Android screenshots and blank many OS screen recordings. Emulator-only debug mode disables this protection so test screens can be inspected.
+- **iOS App Switcher Blanking**: Configured to obscure sensitive app content when the app is backgrounded; iOS behavior still requires device testing.
 
-### 4.2 Web Companion Protections (`CinemaCanvasPlayer.tsx`)
+### 4.2 Web Companion Best-Effort Controls (`CinemaCanvasPlayer.tsx`)
 - **Dynamic Floating Watermark**: Renders a drifting forensic watermark across the canvas continuously displaying:
-  `LICENSED PATRON: [phone/ID] • SESSION ID: [ID] • TC: [timecode]`. Any unauthorized recording immediately identifies the leaking ticket and device.
-- **Active Capture Interception**: Intercepts keyboard capture shortcuts (`PrintScreen`, Mac `Cmd+Shift+3/4/5`, Windows Snipping Tool `Win+Shift+S`, `Ctrl+P`).
-- **Focus Loss Stream Blanking**: Listens to `window.blur` and `document.visibilitychange`. If the patron switches tabs or activates an external capture utility, the canvas blanks instantly and displays a studio DRM protection warning overlay.
-- **Clipboard Clearing**: Automatically wipes the system clipboard on `PrintScreen` release (`navigator.clipboard.writeText("")`).
+  `LICENSED PATRON: [phone/ID] • SESSION ID: [ID] • TC: [timecode]`. The watermark may help investigate a retained recording if its text is legible; it cannot guarantee attribution.
+- **Capture-Shortcut Handling**: Attempts to intercept selected keyboard shortcuts; browser and operating-system capture tools may bypass page-level handlers.
+- **Focus Loss Stream Blanking**: Uses `window.blur` and `document.visibilitychange` as best-effort signals to blank the player when the page loses focus.
+- **Clipboard Clearing**: Attempts to clear clipboard content on selected key events where browser permissions permit.
 - **Context Menu & Selection Disabled**: Browser right-click inspection and text dragging are suppressed (`onContextMenu` blocked, `user-select: none`).
 
 ## 5. Mandatory Patron Identity Registration Gate (`/watch`)

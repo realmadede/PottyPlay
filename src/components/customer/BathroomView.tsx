@@ -5,6 +5,13 @@ import { CinemaCanvasPlayer } from "@/components/CinemaCanvasPlayer";
 import { GlassSurface } from "@/components/GlassSurface";
 import { ReportIssueModal } from "@/components/customer/ReportIssueModal";
 import { NativeMobile } from "@/lib/native-mobile";
+import { customerFetch } from "@/lib/customer-mobile-url";
+import {
+  CapacitorBarcodeScanner,
+  CapacitorBarcodeScannerCameraDirection,
+  CapacitorBarcodeScannerScanOrientation,
+  CapacitorBarcodeScannerTypeHint,
+} from "@capacitor/barcode-scanner";
 import {
   Clock,
   Ticket,
@@ -65,24 +72,34 @@ export function BathroomView() {
   const [remainingTimer, setRemainingTimer] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [activating, setActivating] = useState(false);
+  const [scanning, setScanning] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
 
   // Manual ticket entry fallback if no ticket pre-linked
   const [manualTicket, setManualTicket] = useState("");
   const [reportModalOpen, setReportModalOpen] = useState(false);
+  const activeSessionRef = React.useRef(activeSession);
+  activeSessionRef.current = activeSession;
+  const remainingTimerRef = React.useRef(remainingTimer);
+  remainingTimerRef.current = remainingTimer;
+  const breakAlertsEnabledRef = React.useRef(true);
 
   const checkStatus = useCallback(async () => {
+    setErrorMessage(null);
     try {
       setLoading(true);
-      const res = await fetch("/api/customer/bathroom");
+      const res = await customerFetch("/api/customer/bathroom");
       const data = await res.json();
 
       if (!res.ok || !data.success) {
         throw new Error(data.error || "Failed to load bathroom status.");
       }
 
+      setSyncError(null);
       if (data.hasActiveSession && data.session) {
         setActiveSession(data.session);
+        setEligibleTicket(null);
         setRemainingTimer(data.session.remainingSeconds);
       } else {
         setActiveSession(null);
@@ -95,18 +112,82 @@ export function BathroomView() {
     }
   }, []);
 
+  const syncActiveSession = useCallback(async (sessionToken: string) => {
+    try {
+      const res = await customerFetch("/api/sessions/sync", {
+        headers: { "x-session-token": sessionToken },
+      });
+      const data = await res.json();
+      if (res.ok && data.isValid) {
+        setSyncError(null);
+        setRemainingTimer(data.remainingSeconds);
+        setActiveSession((prev) => prev ? {
+          ...prev,
+          remainingSeconds: data.remainingSeconds,
+          screening: {
+            ...prev.screening,
+            playbackPositionSeconds: data.screening?.playbackPositionSeconds ?? prev.screening.playbackPositionSeconds,
+            isPaused: data.screening?.isPaused ?? prev.screening.isPaused,
+          },
+        } : null);
+        return;
+      }
+
+      if (res.status === 403 || (res.ok && !data.isValid)) {
+        setSyncError(data.reason || "This session ended or was revoked. Refreshing ticket status.");
+        NativeMobile.releaseWakeLock();
+        NativeMobile.cancelBreakAlarms();
+        setActiveSession(null);
+        await checkStatus();
+        return;
+      }
+      throw new Error(data.reason || "Session status could not be refreshed.");
+    } catch (error: unknown) {
+      setSyncError(error instanceof Error ? error.message : "Connection lost. Playback may be behind the cinema screen.");
+    }
+  }, [checkStatus]);
+
   useEffect(() => {
     checkStatus();
   }, [checkStatus]);
 
-  // Timer countdown countdown for active session with native wake-lock and break warnings
   useEffect(() => {
-    if (!activeSession || remainingTimer <= 0) return;
+    let active = true;
+    void NativeMobile.getStorageItem("pp_pending_ticket").then((claim) => {
+      if (active && claim) setManualTicket(claim);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
-    // Acquire wake lock to keep display active in restroom
+  useEffect(() => {
+    const handleTicketClaim = (event: Event) => {
+      const claim = (event as CustomEvent<string>).detail;
+      if (claim) {
+        setManualTicket(claim);
+        setErrorMessage(null);
+      }
+    };
+    window.addEventListener("pottyplay:ticket-claim", handleTicketClaim);
+    return () => window.removeEventListener("pottyplay:ticket-claim", handleTicketClaim);
+  }, []);
+
+  // Keep the countdown interval stable for the lifetime of one active session.
+  useEffect(() => {
+    const sessionId = activeSession?.sessionId;
+    if (!sessionId) return;
+
+    let breakAlertsEnabled = true;
     NativeMobile.requestWakeLock();
-    // Schedule native OS alarms (12m warning, 14m final) in system notification tray
-    NativeMobile.scheduleBreakAlarms(remainingTimer);
+    void NativeMobile.getStorageItem("pp_break_alerts_enabled").then((value) => {
+      breakAlertsEnabled = value !== "false";
+      breakAlertsEnabledRef.current = breakAlertsEnabled;
+      const session = activeSessionRef.current;
+      if (session?.sessionId === sessionId) {
+        void NativeMobile.scheduleBreakAlarms(session.remainingSeconds, breakAlertsEnabled);
+      }
+    });
 
     const interval = setInterval(() => {
       setRemainingTimer((prev) => {
@@ -120,11 +201,11 @@ export function BathroomView() {
         }
 
         // 12-Minute Haptic Break Chime (180s left)
-        if (prev === 180) {
+        if (breakAlertsEnabledRef.current && prev === 180) {
           NativeMobile.triggerHaptic("warning");
         }
         // 14-Minute Urgent Haptic Warning (60s left)
-        if (prev === 60) {
+        if (breakAlertsEnabledRef.current && prev === 60) {
           NativeMobile.triggerHaptic("heavy");
         }
 
@@ -136,68 +217,51 @@ export function BathroomView() {
       clearInterval(interval);
       NativeMobile.releaseWakeLock();
     };
-  }, [activeSession, remainingTimer, checkStatus]);
+  }, [activeSession?.sessionId, checkStatus]);
+
+  useEffect(() => {
+    if (!activeSession?.sessionId) return;
+    const handleBreakAlertPreference = (event: Event) => {
+      const enabled = (event as CustomEvent<{ enabled: boolean }>).detail?.enabled;
+      breakAlertsEnabledRef.current = Boolean(enabled);
+      if (enabled) {
+        void NativeMobile.scheduleBreakAlarms(remainingTimerRef.current, true);
+      } else {
+        void NativeMobile.cancelBreakAlarms();
+      }
+    };
+    window.addEventListener("pottyplay:break-alerts-changed", handleBreakAlertPreference);
+    return () => window.removeEventListener("pottyplay:break-alerts-changed", handleBreakAlertPreference);
+  }, [activeSession?.sessionId]);
 
   // Periodic authoritative synchronization with cinema timeline
   useEffect(() => {
-    if (!activeSession) return;
-
-    const sessionToken = activeSession.sessionToken;
-
-    const syncInterval = setInterval(async () => {
-      try {
-        const res = await fetch("/api/sessions/sync", {
-          headers: { "x-session-token": sessionToken },
-        });
-        const data = await res.json();
-        if (res.ok && data.isValid) {
-          setRemainingTimer(data.remainingSeconds);
-          setActiveSession((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  remainingSeconds: data.remainingSeconds,
-                  screening: {
-                    ...prev.screening,
-                    playbackPositionSeconds: data.screening?.playbackPositionSeconds ?? prev.screening.playbackPositionSeconds,
-                    isPaused: data.screening?.isPaused ?? prev.screening.isPaused,
-                  },
-                }
-              : null
-          );
-        } else if (res.ok && !data.isValid) {
-          // Hard expiration or operator revocation
-          clearInterval(syncInterval);
-          NativeMobile.releaseWakeLock();
-          NativeMobile.cancelBreakAlarms();
-          setActiveSession(null);
-          checkStatus();
-        }
-      } catch {
-        // silent background sync
-      }
-    }, 5000);
+    const sessionToken = activeSession?.sessionToken;
+    if (!sessionToken) return;
+    const syncInterval = setInterval(() => void syncActiveSession(sessionToken), 5000);
 
     return () => clearInterval(syncInterval);
-  }, [activeSession, checkStatus]);
+  }, [activeSession?.sessionToken, syncActiveSession]);
 
   const handleEndBreak = async () => {
     if (!activeSession) return;
     NativeMobile.releaseWakeLock();
     NativeMobile.cancelBreakAlarms();
     try {
-      await fetch("/api/sessions/complete", {
+      const response = await customerFetch("/api/sessions/complete", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "x-session-token": activeSession.sessionToken,
         },
       });
+      if (!response.ok) throw new Error("The break could not be ended. Retry when connected.");
+      setActiveSession(null);
+      await checkStatus();
     } catch {
-      // silent
+      setErrorMessage("Could not confirm the end of this break. Keep this screen open and retry when connected.");
+      return;
     }
-    setActiveSession(null);
-    await checkStatus();
   };
 
   // Activate session
@@ -206,7 +270,7 @@ export function BathroomView() {
       setActivating(true);
       setErrorMessage(null);
 
-      const res = await fetch("/api/customer/bathroom", {
+      const res = await customerFetch("/api/customer/bathroom", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ticketNumber: ticketNumberToUse }),
@@ -217,11 +281,52 @@ export function BathroomView() {
         throw new Error(data.error || "Failed to activate bathroom break.");
       }
 
+      setErrorMessage(null);
+      await NativeMobile.removeStorageItem("pp_pending_ticket");
       await checkStatus();
     } catch (err: unknown) {
       setErrorMessage(err instanceof Error ? err.message : "Activation failed.");
     } finally {
       setActivating(false);
+    }
+  };
+
+  const handleScanTicket = async () => {
+    setErrorMessage(null);
+    setScanning(true);
+    try {
+      const result = await CapacitorBarcodeScanner.scanBarcode({
+        hint: CapacitorBarcodeScannerTypeHint.QR_CODE,
+        scanInstructions: "Scan the QR code on your cinema ticket or claim pass.",
+        scanText: "Scan ticket QR",
+        scanButton: true,
+        cameraDirection: CapacitorBarcodeScannerCameraDirection.BACK,
+        scanOrientation: CapacitorBarcodeScannerScanOrientation.ADAPTIVE,
+        cancelButtonAccessibilityLabel: "Cancel ticket scan",
+      });
+      const scannedValue = result.ScanResult.trim();
+      if (!scannedValue) return;
+
+      let ticketCode = scannedValue;
+      try {
+        const scannedUrl = new URL(scannedValue);
+        ticketCode = scannedUrl.searchParams.get("claim")
+          || scannedUrl.searchParams.get("ticket")
+          || (scannedUrl.pathname.startsWith("/claim/")
+            ? decodeURIComponent(scannedUrl.pathname.slice("/claim/".length))
+            : scannedValue);
+      } catch {
+        // The QR may contain a raw ticket number or claim token.
+      }
+
+      setManualTicket(ticketCode);
+      await NativeMobile.setStorageItem("pp_pending_ticket", ticketCode);
+    } catch (error: unknown) {
+      setErrorMessage(error instanceof Error
+        ? `Camera scan could not be completed. You can enter the ticket code manually. ${error.message}`
+        : "Camera scan is unavailable. You can enter the ticket code manually.");
+    } finally {
+      setScanning(false);
     }
   };
 
@@ -235,24 +340,33 @@ export function BathroomView() {
     <div className="space-y-6 text-left">
       <div>
         <h2 className="text-xl sm:text-2xl font-black text-ink tracking-tight">
-          Bathroom Mode
+          Cinema Break
         </h2>
         <p className="mt-1 text-xs sm:text-sm text-muted">
-          Live theatrical companion viewing. Capped at 900 seconds (15 minutes).
+          Follow the active cinema screening during a break of up to 15 minutes.
         </p>
       </div>
 
       {errorMessage && (
-        <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-start space-x-2">
+        <div role="alert" className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-start justify-between gap-3">
           <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-400" />
-          <span>{errorMessage}</span>
+          <span className="flex-1">{errorMessage}</span>
+          {!activeSession && <button type="button" onClick={() => void checkStatus()} className="shrink-0 font-bold underline">Retry</button>}
         </div>
       )}
 
       {loading && (
-        <div className="p-10 rounded-3xl bg-field border border-line flex flex-col items-center justify-center space-y-3">
-          <Loader2 className="w-6 h-6 animate-spin text-amber-400" />
-          <span className="text-xs text-muted">Checking screening entitlement...</span>
+        <div className="p-6 rounded-3xl bg-field border border-line space-y-4 animate-pulse" role="status" aria-label="Loading screening entitlement">
+          <div className="h-4 w-44 rounded bg-neutral-800" />
+          <div className="h-20 rounded-xl bg-neutral-900" />
+          <div className="h-11 rounded-xl bg-neutral-800" />
+        </div>
+      )}
+
+      {syncError && activeSession && (
+        <div role="status" className="flex items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
+          <span>{syncError} The local countdown continues; playback synchronization will resume when connected.</span>
+          <button type="button" onClick={() => void syncActiveSession(activeSession.sessionToken)} className="shrink-0 font-bold underline">Resync</button>
         </div>
       )}
 
@@ -304,7 +418,7 @@ export function BathroomView() {
             <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-xs flex items-center space-x-3">
               <Wifi className="w-4 h-4 text-amber-400 shrink-0" />
               <span>
-                Low cellular signal in restroom? Connect to Wi-Fi: <strong>{activeSession.screening.venueWifiSsid}</strong> for zero buffering.
+                If your mobile signal is weak, connect to the cinema Wi-Fi: <strong>{activeSession.screening.venueWifiSsid}</strong>. Playback may still depend on connection quality.
               </span>
             </div>
           )}
@@ -312,7 +426,7 @@ export function BathroomView() {
           <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
-              <span>Session strictly terminates when timer reaches 00:00.</span>
+              <span>Your break ends when the timer reaches 00:00.</span>
             </div>
             <button
               type="button"
@@ -348,7 +462,7 @@ export function BathroomView() {
       />
 
       {/* 2. Inactive Session: Eligible Ticket Available */}
-      {!loading && !activeSession && eligibleTicket && (
+      {!loading && !errorMessage && !activeSession && eligibleTicket && (
         <GlassSurface variant="dock" className="p-6 sm:p-8 border border-line shadow-card space-y-6">
           <div className="flex items-center justify-between pb-4 border-b border-line">
             <div className="flex items-center space-x-2">
@@ -400,20 +514,20 @@ export function BathroomView() {
                 </>
               ) : (
                 <>
-                  <span>Activate Bathroom Break (15 Min Max)</span>
+                  <span>Start Break (up to 15 minutes)</span>
                   <Play className="w-4 h-4" />
                 </>
               )}
             </button>
             <p className="mt-3 text-[11px] text-center text-muted">
-              No QR re-scan or OTP required. Stream connects directly to auditorium projection feed.
+              Your verified ticket is ready. Playback follows the active cinema screening.
             </p>
           </div>
         </GlassSurface>
       )}
 
       {/* 3. Inactive Session: No Pre-Linked Ticket -> Enter Barcode */}
-      {!loading && !activeSession && !eligibleTicket && (
+      {!loading && !errorMessage && !activeSession && !eligibleTicket && (
         <GlassSurface variant="dock" className="p-6 sm:p-8 border border-line shadow-card space-y-5">
           <div className="text-center max-w-sm mx-auto">
             <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mx-auto mb-3">
@@ -428,6 +542,21 @@ export function BathroomView() {
           </div>
 
           <div className="max-w-md mx-auto space-y-3">
+            {NativeMobile.isNative() && (
+              <>
+                <p className="text-[11px] text-muted text-center">
+                  The camera is used only after you tap Scan to read a cinema ticket QR code. PottyPlay does not save the camera image.
+                </p>
+                <button
+                  type="button"
+                  disabled={scanning || activating}
+                  onClick={() => void handleScanTicket()}
+                  className="w-full py-3 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-300 text-xs font-bold disabled:opacity-50"
+                >
+                  {scanning ? "Opening camera…" : "Scan ticket QR code"}
+                </button>
+              </>
+            )}
             <input
               type="text"
               placeholder="e.g. TK-8821-4401"

@@ -58,15 +58,13 @@ export function PartnerRegistrationForm() {
           <CheckCircle2 className="w-8 h-8" />
         </div>
         <h3 className="text-2xl font-extrabold text-ink tracking-tight">
-          Inquiry Dispatched via Email
+          Request Received
         </h3>
         <p className="mt-3 text-sm text-muted leading-relaxed">
-          Thank you for contacting us regarding <strong className="text-ink">{formData.organizationName}</strong>.
-          Your inquiry has been emailed directly to our partnerships and technical team. Following administrative review, an expiring registration invitation link will be sent to <strong className="text-ink">{formData.contactEmail}</strong> to enable your cinema authorities to register and sign in to the Operator Portal.
+          Thank you for your interest in PottyPlay for <strong className="text-ink">{formData.organizationName}</strong>. We have received your request. Our team will review the details and contact you at <strong className="text-ink">{formData.contactEmail}</strong> if we can proceed.
         </p>
         <div className="mt-6 p-4 rounded-xl bg-bg border border-line text-xs text-left text-muted space-y-1">
-          <div><strong className="text-ink">Next Step:</strong> Expiring Registration Invitation Link Dispatched via Email</div>
-          <div><strong className="text-ink">Turnaround:</strong> Within 1 to 2 business days</div>
+          <div><strong className="text-ink">Next Step:</strong> Our team will review your request.</div>
         </div>
         <button
           type="button"

@@ -2,6 +2,10 @@
 
 This document defines the deployment model, infrastructure topology, domain routing rules, and environment configuration for PottyPlay.
 
+## Current Deployment Status
+
+This guide describes a target architecture, not proof of a live production deployment. As of 2026-11-03, Android customer flows have been exercised only with a debug APK, an API 37 emulator, a local development API, and a disposable PostgreSQL database. No confirmed production HTTPS API origin is configured, and the production hosting/database region and provider credentials have not been verified. Do not use the emulator HTTP origin or simulator verification mode for release builds. See [the mobile guide](mobile.md) for emulator setup and store-release prerequisites.
+
 ---
 
 ## 1. Cost-Conscious Architecture Philosophy

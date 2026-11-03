@@ -130,6 +130,36 @@ export class ResendEmailService {
     });
   }
 
+  async sendCustomerAccountDeletionConfirmation(
+    to: string,
+    confirmationToken: string
+  ): Promise<SendEmailResult> {
+    let confirmationUrl: URL;
+    try {
+      confirmationUrl = new URL("/account-deletion", config.appUrl);
+    } catch {
+      return { success: false, error: "The account deletion URL is not configured." };
+    }
+    if (process.env.NODE_ENV === "production" && confirmationUrl.protocol !== "https:") {
+      return { success: false, error: "The account deletion URL must use HTTPS in production." };
+    }
+    confirmationUrl.hash = new URLSearchParams({ token: confirmationToken }).toString();
+
+    return this.sendEmail({
+      to,
+      subject: "Confirm your PottyPlay account deletion request",
+      html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; background: #0D0F12; color: #F3F4F6; border-radius: 16px;">
+          <h2 style="color: #F59E0B; margin-top: 0;">Confirm account deletion</h2>
+          <p style="color: #9CA3AF; font-size: 14px; line-height: 1.6;">A request was made to delete your PottyPlay account. Confirm using the button below. The confirmation link expires in 60 minutes. After confirmation, access is revoked and account identifiers are scheduled for anonymization after a 30-day grace period.</p>
+          <p style="margin: 24px 0;"><a href="${confirmationUrl.toString()}" style="display: inline-block; padding: 12px 18px; border-radius: 10px; background: #F59E0B; color: #111827; font-weight: bold; text-decoration: none;">Review deletion request</a></p>
+          <p style="color: #9CA3AF; font-size: 12px;">If you did not request this, do not open the link. Your account will remain active.</p>
+        </div>
+      `,
+      text: `Review and confirm your PottyPlay account deletion request: ${confirmationUrl.toString()} This link expires in 60 minutes. If you did not request this, ignore this message.`,
+    });
+  }
+
   /**
    * Dispatches email change verification code.
    */

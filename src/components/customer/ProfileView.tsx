@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { CustomerAuthSession } from "@/features/auth/customer-auth-service";
 import { GlassSurface } from "@/components/GlassSurface";
+import { customerFetch } from "@/lib/customer-mobile-url";
 
 interface ProfileViewProps {
   customer: CustomerAuthSession;
@@ -62,10 +63,6 @@ export function ProfileView({ customer, onUpdateCustomer }: ProfileViewProps) {
   const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
-  const getAuthToken = () => {
-    return typeof window !== "undefined" ? localStorage.getItem("pp_cust_token") : null;
-  };
-
   // Handler 1: Update Name
   const handleUpdateName = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,14 +70,10 @@ export function ProfileView({ customer, onUpdateCustomer }: ProfileViewProps) {
     setNameError(null);
     setNameSuccess(null);
 
-    const token = getAuthToken();
     try {
-      const res = await fetch("/api/auth/customer/profile", {
+      const res = await customerFetch("/api/auth/customer/profile", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "update_name", name }),
       });
 
@@ -107,14 +100,10 @@ export function ProfileView({ customer, onUpdateCustomer }: ProfileViewProps) {
     setEmailError(null);
     setEmailSuccess(null);
 
-    const token = getAuthToken();
     try {
-      const res = await fetch("/api/auth/customer/profile", {
+      const res = await customerFetch("/api/auth/customer/profile", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "request_email_change", newEmail }),
       });
 
@@ -142,14 +131,10 @@ export function ProfileView({ customer, onUpdateCustomer }: ProfileViewProps) {
     setEmailError(null);
     setEmailSuccess(null);
 
-    const token = getAuthToken();
     try {
-      const res = await fetch("/api/auth/customer/profile", {
+      const res = await customerFetch("/api/auth/customer/profile", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "confirm_email_change",
           newEmail,
@@ -184,20 +169,16 @@ export function ProfileView({ customer, onUpdateCustomer }: ProfileViewProps) {
     setPhoneError(null);
     setPhoneSuccess(null);
 
-    const token = getAuthToken();
     try {
-      const res = await fetch("/api/auth/customer/profile", {
+      const res = await customerFetch("/api/auth/customer/profile", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "request_phone_change", newPhone }),
       });
 
       const json = await res.json();
       if (!res.ok || !json.success) {
-        throw new Error(json.error || "Failed to dispatch verification SMS.");
+        throw new Error(json.error || "Could not send a text message. Please try again.");
       }
 
       setPhoneChallengeId(json.challengeId);
@@ -205,7 +186,7 @@ export function ProfileView({ customer, onUpdateCustomer }: ProfileViewProps) {
       if (json.simulatedCode) {
         setSimulatedPhoneCode(json.simulatedCode);
       }
-      setPhoneSuccess("SMS OTP dispatched via Africa's Talking.");
+      setPhoneSuccess("Verification code sent by text.");
     } catch (err: unknown) {
       setPhoneError(err instanceof Error ? err.message : "Phone change request failed.");
     } finally {
@@ -222,14 +203,10 @@ export function ProfileView({ customer, onUpdateCustomer }: ProfileViewProps) {
     setPhoneError(null);
     setPhoneSuccess(null);
 
-    const token = getAuthToken();
     try {
-      const res = await fetch("/api/auth/customer/profile", {
+      const res = await customerFetch("/api/auth/customer/profile", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "confirm_phone_change",
           newPhone,
@@ -240,7 +217,7 @@ export function ProfileView({ customer, onUpdateCustomer }: ProfileViewProps) {
 
       const json = await res.json();
       if (!res.ok || !json.success) {
-        throw new Error(json.error || "Invalid SMS verification code.");
+        throw new Error(json.error || "That code is not correct. Check your text message and try again.");
       }
 
       setPhoneSuccess("Phone number successfully verified and updated.");
@@ -276,14 +253,10 @@ export function ProfileView({ customer, onUpdateCustomer }: ProfileViewProps) {
     }
 
     setPasswordLoading(true);
-    const token = getAuthToken();
     try {
-      const res = await fetch("/api/auth/customer/profile", {
+      const res = await customerFetch("/api/auth/customer/profile", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "change_password",
           currentPassword,
@@ -385,7 +358,7 @@ export function ProfileView({ customer, onUpdateCustomer }: ProfileViewProps) {
           <Mail className="w-5 h-5 text-amber-400" />
           <div>
             <h2 className="text-sm font-bold text-ink">Email Address</h2>
-            <p className="text-[11px] text-muted">Requires verification code sent to new email.</p>
+            <p className="text-[11px] text-muted">We will send a verification code to your new email.</p>
           </div>
         </div>
 
@@ -409,9 +382,9 @@ export function ProfileView({ customer, onUpdateCustomer }: ProfileViewProps) {
           </div>
         )}
 
-        {simulatedEmailCode && (
+        {process.env.NODE_ENV === "development" && simulatedEmailCode && (
           <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs space-y-1">
-            <strong className="block font-bold">Simulator / Test Verification Code:</strong>
+            <strong className="block font-bold">Development test code:</strong>
             <span className="font-mono font-black text-amber-400 text-sm tracking-wider">
               {simulatedEmailCode}
             </span>
@@ -487,7 +460,7 @@ export function ProfileView({ customer, onUpdateCustomer }: ProfileViewProps) {
           <Smartphone className="w-5 h-5 text-amber-400" />
           <div>
             <h2 className="text-sm font-bold text-ink">Phone Number</h2>
-            <p className="text-[11px] text-muted">Verified via Africa&apos;s Talking SMS Gateway.</p>
+            <p className="text-[11px] text-muted">We will send a verification code by text.</p>
           </div>
         </div>
 
@@ -511,9 +484,9 @@ export function ProfileView({ customer, onUpdateCustomer }: ProfileViewProps) {
           </div>
         )}
 
-        {simulatedPhoneCode && (
+        {process.env.NODE_ENV === "development" && simulatedPhoneCode && (
           <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs space-y-1">
-            <strong className="block font-bold">SMS OTP Simulator Code:</strong>
+            <strong className="block font-bold">Development test code:</strong>
             <span className="font-mono font-black text-amber-400 text-sm tracking-wider">
               {simulatedPhoneCode}
             </span>
@@ -540,14 +513,14 @@ export function ProfileView({ customer, onUpdateCustomer }: ProfileViewProps) {
               disabled={phoneLoading || !newPhone.trim()}
               className="py-2.5 px-4 rounded-xl text-xs font-black bg-amber-500 text-neutral-950 hover:bg-amber-400 disabled:opacity-40 transition-all shadow-sm"
             >
-              {phoneLoading ? "Dispatching SMS..." : "Send SMS OTP"}
+              {phoneLoading ? "Sending code..." : "Send verification code"}
             </button>
           </form>
         ) : (
           <form onSubmit={handleConfirmPhoneChange} className="space-y-3 pt-1">
             <div>
-              <label className="block text-xs font-bold text-muted uppercase tracking-wider mb-1">
-                6-Digit SMS Code sent to {newPhone}
+                <label className="block text-xs font-bold text-muted uppercase tracking-wider mb-1">
+                  6-digit text message code sent to {newPhone}
               </label>
               <input
                 type="text"
