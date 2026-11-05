@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { GlassSurface } from "@/components/GlassSurface";
+import { Glass, Button as GlisseButton } from "@/components/glisse";
 import {
   ShieldAlert,
   Lock,
@@ -400,20 +401,16 @@ export default function AdminPortalPage() {
             </div>
 
             <div className="pt-2">
-              <button
+              <GlisseButton
                 type="submit"
+                variant="filled"
                 disabled={loggingIn}
-                className="w-full py-3.5 px-4 rounded-xl font-bold text-xs bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-all flex items-center justify-center space-x-2 disabled:opacity-50 shadow-sm"
+                className="w-full text-xs font-black"
+                icon={loggingIn ? <Loader2 className="w-4 h-4 animate-spin" /> : undefined}
               >
-                {loggingIn ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <>
-                    <span>Authenticate Session</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
-              </button>
+                <span>Authenticate Session</span>
+                {!loggingIn && <ArrowRight className="w-4 h-4 ml-1.5" />}
+              </GlisseButton>
             </div>
 
             <p className="text-[11px] text-center text-muted pt-2">
@@ -437,21 +434,22 @@ export default function AdminPortalPage() {
         </div>
 
         <div className="flex items-center space-x-3">
-          <button
+          <GlisseButton
+            variant="glass"
             onClick={() => fetchDashboard(token)}
-            className="p-2 rounded-xl text-muted hover:text-ink hover:bg-field-raised transition-colors"
+            className="p-2 text-muted hover:text-ink cursor-pointer"
             title="Refresh Ledger"
             aria-label="Refresh Ledger"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
-          <button
+            icon={<RefreshCw className="w-4 h-4" />}
+          />
+          <GlisseButton
+            variant="glass"
             onClick={handleLogout}
-            className="py-1.5 px-3 rounded-xl text-xs font-semibold bg-field-raised hover:bg-field-raised/80 text-ink border border-line flex items-center space-x-1.5 transition-colors"
+            className="text-xs font-semibold text-muted hover:text-ink cursor-pointer"
+            icon={<LogOut className="w-3.5 h-3.5" />}
           >
-            <LogOut className="w-3.5 h-3.5 text-muted" />
             <span>Sign Out</span>
-          </button>
+          </GlisseButton>
         </div>
       </header>
 
@@ -547,10 +545,10 @@ export default function AdminPortalPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`py-2 px-3.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 ${
+              className={`py-2 px-3.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer ${
                 activeTab === tab.id
                   ? "bg-amber-500 text-neutral-950 font-black shadow-sm"
-                  : "bg-field text-muted border border-line hover:text-ink hover:bg-field-raised"
+                  : "lg-glass text-muted border border-white/10 hover:text-ink hover:bg-white/10"
               }`}
             >
               <span>{tab.label}</span>
@@ -558,7 +556,7 @@ export default function AdminPortalPage() {
                 <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono ${
                   activeTab === tab.id
                     ? "bg-neutral-950/20 text-neutral-950"
-                    : "bg-bg text-muted border border-line"
+                    : "bg-bg/60 text-muted border border-white/10"
                 }`}>
                   {tab.count}
                 </span>
@@ -569,7 +567,7 @@ export default function AdminPortalPage() {
 
         {/* TAB 1: Partner Applications Review Workflow */}
         {activeTab === "partners" && (
-          <div className="bg-field rounded-2xl border border-line overflow-hidden shadow-card">
+          <Glass className="rounded-2xl border border-white/10 overflow-hidden shadow-card">
             <div className="p-4 border-b border-line flex justify-between items-center text-xs">
               <span className="font-bold uppercase tracking-wider text-muted">
                 Cinema Partner Applications for Review
@@ -677,12 +675,12 @@ export default function AdminPortalPage() {
                 </tbody>
               </table>
             </div>
-          </div>
+          </Glass>
         )}
 
         {/* TAB 2: Approved Cinemas */}
         {activeTab === "cinemas" && (
-          <div className="bg-field rounded-2xl border border-line overflow-hidden shadow-card">
+          <Glass className="rounded-2xl border border-white/10 overflow-hidden shadow-card">
             <div className="p-4 border-b border-line flex flex-wrap justify-between items-center gap-3 text-xs">
               <div>
                 <span className="font-bold uppercase tracking-wider text-muted">
@@ -692,14 +690,14 @@ export default function AdminPortalPage() {
                   Every cinema is registered through Platform Administration with dedicated operator credentials
                 </p>
               </div>
-              <button
-                type="button"
+              <GlisseButton
+                variant="filled"
                 onClick={() => setShowRegisterCinemaModal(true)}
-                className="py-2 px-3.5 rounded-xl text-xs font-bold bg-amber-500 text-neutral-950 hover:bg-amber-400 flex items-center space-x-1.5 transition-all shadow-sm"
+                className="text-xs font-bold"
+                icon={<Plus className="w-3.5 h-3.5" />}
               >
-                <Plus className="w-3.5 h-3.5" />
                 <span>Register Cinema Circuit</span>
-              </button>
+              </GlisseButton>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
@@ -729,12 +727,12 @@ export default function AdminPortalPage() {
                 </tbody>
               </table>
             </div>
-          </div>
+          </Glass>
         )}
 
         {/* TAB: Content Assets & Studio Rights */}
         {activeTab === "rights" && (
-          <div className="bg-field rounded-2xl border border-line overflow-hidden shadow-card">
+          <Glass className="rounded-2xl border border-white/10 overflow-hidden shadow-card">
             <div className="p-4 border-b border-line flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <span className="font-bold uppercase tracking-wider text-muted">
@@ -744,14 +742,14 @@ export default function AdminPortalPage() {
                   Exhibitor licensing windows authorizing companion video playback across verified cinema auditoriums
                 </p>
               </div>
-              <button
-                type="button"
+              <GlisseButton
+                variant="filled"
                 onClick={() => setShowAddRightsModal(true)}
-                className="py-2 px-3.5 rounded-xl text-xs font-bold bg-amber-500 text-neutral-950 hover:bg-amber-400 flex items-center space-x-1.5 transition-all shadow-sm cursor-pointer"
+                className="text-xs font-bold"
+                icon={<Plus className="w-3.5 h-3.5" />}
               >
-                <Plus className="w-3.5 h-3.5" />
                 <span>Authorize Studio Rights</span>
-              </button>
+              </GlisseButton>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
@@ -824,12 +822,12 @@ export default function AdminPortalPage() {
                 </tbody>
               </table>
             </div>
-          </div>
+          </Glass>
         )}
 
         {/* TAB 3: Global Sessions */}
         {activeTab === "sessions" && (
-          <div className="bg-field rounded-2xl border border-line overflow-hidden shadow-card">
+          <Glass className="rounded-2xl border border-white/10 overflow-hidden shadow-card">
             <div className="p-4 border-b border-line text-xs font-bold uppercase tracking-wider text-muted">
               Global Companion Sessions ({data?.sessions?.length ?? 0})
             </div>
@@ -874,12 +872,12 @@ export default function AdminPortalPage() {
                 </tbody>
               </table>
             </div>
-          </div>
+          </Glass>
         )}
 
         {/* TAB 4: Accounting Ledger */}
         {activeTab === "accounting" && (
-          <div className="bg-field rounded-2xl border border-line overflow-hidden shadow-card">
+          <Glass className="rounded-2xl border border-white/10 overflow-hidden shadow-card">
             <div className="p-4 border-b border-line text-xs">
               <span className="font-bold uppercase tracking-wider text-muted">
                 Qualifying Commercial Billing Events
@@ -914,12 +912,12 @@ export default function AdminPortalPage() {
                 </tbody>
               </table>
             </div>
-          </div>
+          </Glass>
         )}
 
         {/* TAB 5: Audit & Security */}
         {activeTab === "audit" && (
-          <div className="bg-field rounded-2xl border border-line overflow-hidden shadow-card">
+          <Glass className="rounded-2xl border border-white/10 overflow-hidden shadow-card">
             <div className="p-4 border-b border-line text-xs font-bold uppercase tracking-wider text-muted">
               Platform Security & Operational Audit Log
             </div>
@@ -949,14 +947,14 @@ export default function AdminPortalPage() {
                 </tbody>
               </table>
             </div>
-          </div>
+          </Glass>
         )}
       </main>
 
       {/* Register Cinema Circuit Modal */}
       {showRegisterCinemaModal && (
         <div className="fixed inset-0 z-50 bg-neutral-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-field border border-line rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-card my-8 text-left space-y-5">
+          <Glass className="border border-white/15 rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-card my-8 text-left space-y-5">
             <div className="flex items-center justify-between pb-4 border-b border-line">
               <div className="flex items-center space-x-2.5 text-amber-400">
                 <Building2 className="w-5 h-5 flex-shrink-0" />
@@ -1212,14 +1210,14 @@ export default function AdminPortalPage() {
                 </button>
               </div>
             </form>
-          </div>
+          </Glass>
         </div>
       )}
 
       {/* Authorize Studio Rights Modal Dialog */}
       {showAddRightsModal && (
         <div className="fixed inset-0 bg-neutral-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-field border border-line rounded-3xl max-w-lg w-full p-6 shadow-card space-y-4 max-h-[90vh] overflow-y-auto">
+          <Glass className="border border-white/15 rounded-3xl max-w-lg w-full p-6 shadow-card space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2 text-amber-400">
                 <Film className="w-5 h-5" />
@@ -1391,7 +1389,7 @@ export default function AdminPortalPage() {
                 </button>
               </div>
             </form>
-          </div>
+          </Glass>
         </div>
       )}
     </div>

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Volume2, VolumeX, ShieldCheck, ShieldAlert, Wifi, Globe, AlertCircle, Loader2 } from "lucide-react";
+import { Button as GlisseButton } from "@/components/glisse";
 
 interface CinemaCanvasPlayerProps {
   positionSeconds: number;
@@ -642,18 +643,19 @@ export function CinemaCanvasPlayer({
         </div>
 
         <div className="flex items-center space-x-2">
-          <button
-            type="button"
+          <GlisseButton
+            variant="glass"
             onClick={toggleMute}
-            className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-900 transition-colors cursor-pointer"
-            title={isMuted ? "Unmute stream" : "Mute stream"}
-          >
-            {isMuted ? (
-              <VolumeX className="w-4 h-4 text-rose-400" />
-            ) : (
-              <Volume2 className="w-4 h-4 text-neutral-200" />
-            )}
-          </button>
+            aria-label={isMuted ? "Unmute stream" : "Mute stream"}
+            className="!p-1.5"
+            icon={
+              isMuted ? (
+                <VolumeX className="w-4 h-4 text-rose-400" />
+              ) : (
+                <Volume2 className="w-4 h-4 text-neutral-200" />
+              )
+            }
+          />
           <span className="font-mono text-neutral-400 text-[11px] bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800">
             {formatTime(internalTime)} / {formatTime(durationSeconds)}
           </span>

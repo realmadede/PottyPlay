@@ -7,6 +7,7 @@ import { HeroCarousel } from "@/components/HeroCarousel";
 import { PartnerRegistrationForm } from "@/components/PartnerRegistrationForm";
 import { BrandLogo } from "@/components/BrandLogo";
 import { GlassSurface } from "@/components/GlassSurface";
+import { Glass as GlisseGlass, Button as GlisseButton } from "@/components/glisse";
 import { ScrollFormingText } from "@/components/ScrollFormingText";
 import {
   Film,
@@ -57,7 +58,7 @@ export default function BusinessLandingPage() {
                 PottyPlay helps eligible ticket holders keep up with an active cinema screening when they step out for a short break, without turning the experience into a general streaming service.
               </ScrollFormingText>
 
-              <div className="mt-8 p-5 rounded-2xl bg-field border border-line shadow-card flex items-start space-x-3.5">
+              <GlisseGlass className="mt-8 p-5 rounded-2xl border border-white/10 shadow-card flex items-start space-x-3.5">
                 <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <ShieldCheck className="w-4 h-4 text-amber-400" />
                 </div>
@@ -69,13 +70,13 @@ export default function BusinessLandingPage() {
                     Designed from the ground up to protect theater admissions. Never a public video library or streaming competitor.
                   </div>
                 </div>
-              </div>
+              </GlisseGlass>
             </div>
 
-            {/* Right Architectural Sequence (3 Tiers, not identical box cards) */}
+            {/* Right Architectural Sequence (3 Tiers with Glisse Liquid Glass) */}
             <div className="lg:col-span-7 space-y-4">
               {/* Tier 1 */}
-              <div className="p-5 sm:p-7 rounded-2xl bg-field border border-line shadow-card hover:border-amber-500/30 transition-all">
+              <GlisseGlass className="p-5 sm:p-7 rounded-2xl border border-white/10 shadow-card hover:border-amber-500/30 transition-all">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div className="flex items-center space-x-3">
                     <span className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 font-mono text-xs font-black flex items-center justify-center flex-shrink-0">
@@ -92,10 +93,10 @@ export default function BusinessLandingPage() {
                 <p className="mt-3 text-xs sm:text-sm text-muted leading-relaxed sm:pl-10">
                   Viewing is available only for an eligible, active cinema screening. Each break is limited to 15 minutes, with no rewind or home viewing.
                 </p>
-              </div>
+              </GlisseGlass>
 
               {/* Tier 2 */}
-              <div className="p-5 sm:p-7 rounded-2xl bg-field border border-line shadow-card hover:border-amber-500/30 transition-all">
+              <GlisseGlass className="p-5 sm:p-7 rounded-2xl border border-white/10 shadow-card hover:border-amber-500/30 transition-all">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div className="flex items-center space-x-3">
                     <span className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 font-mono text-xs font-black flex items-center justify-center flex-shrink-0">
@@ -112,10 +113,10 @@ export default function BusinessLandingPage() {
                 <p className="mt-3 text-xs sm:text-sm text-muted leading-relaxed sm:pl-10">
                   Playback follows the cinema screening. If the theater pauses, companion playback pauses too; network conditions may cause brief delays.
                 </p>
-              </div>
+              </GlisseGlass>
 
               {/* Tier 3 */}
-              <div className="p-5 sm:p-7 rounded-2xl bg-field border border-line shadow-card hover:border-amber-500/30 transition-all">
+              <GlisseGlass className="p-5 sm:p-7 rounded-2xl border border-white/10 shadow-card hover:border-amber-500/30 transition-all">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div className="flex items-center space-x-3">
                     <span className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 font-mono text-xs font-black flex items-center justify-center flex-shrink-0">
@@ -132,7 +133,7 @@ export default function BusinessLandingPage() {
                 <p className="mt-3 text-xs sm:text-sm text-muted leading-relaxed sm:pl-10">
                   Works with common cinema ticketing and theater-management systems, including Vista, Veezi, RTS, Dolby, Barco, and Christie.
                 </p>
-              </div>
+              </GlisseGlass>
             </div>
           </div>
         </section>
@@ -156,7 +157,7 @@ export default function BusinessLandingPage() {
 
           <div className="mt-12 sm:mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 relative">
             {/* Step 1 */}
-            <div className="p-6 rounded-2xl bg-field border border-line shadow-card flex flex-col justify-between text-left relative group hover:border-amber-500/30 transition-all">
+            <GlisseGlass className="p-6 rounded-2xl border border-white/10 shadow-card flex flex-col justify-between text-left relative group hover:border-amber-500/30 transition-all">
               <div>
                 <div className="flex items-center justify-between pb-3 border-b border-line">
                   <span className="text-xs font-mono font-bold text-amber-400">STEP 01</span>
@@ -172,10 +173,10 @@ export default function BusinessLandingPage() {
               <div className="mt-6 pt-3 border-t border-line text-[11px] text-muted font-mono">
                 Ticket Validation
               </div>
-            </div>
+            </GlisseGlass>
 
             {/* Step 2 */}
-            <div className="p-6 rounded-2xl bg-field border border-line shadow-card flex flex-col justify-between text-left relative group hover:border-amber-500/30 transition-all">
+            <GlisseGlass className="p-6 rounded-2xl border border-white/10 shadow-card flex flex-col justify-between text-left relative group hover:border-amber-500/30 transition-all">
               <div>
                 <div className="flex items-center justify-between pb-3 border-b border-line">
                   <span className="text-xs font-mono font-bold text-amber-400">STEP 02</span>
@@ -191,10 +192,10 @@ export default function BusinessLandingPage() {
               <div className="mt-6 pt-3 border-t border-line text-[11px] text-muted font-mono">
                 Verify Ticket & Start
               </div>
-            </div>
+            </GlisseGlass>
 
             {/* Step 3 */}
-            <div className="p-6 rounded-2xl bg-field border border-line shadow-card flex flex-col justify-between text-left relative group hover:border-amber-500/30 transition-all">
+            <GlisseGlass className="p-6 rounded-2xl border border-white/10 shadow-card flex flex-col justify-between text-left relative group hover:border-amber-500/30 transition-all">
               <div>
                 <div className="flex items-center justify-between pb-3 border-b border-line">
                   <span className="text-xs font-mono font-bold text-amber-400">STEP 03</span>
@@ -210,10 +211,10 @@ export default function BusinessLandingPage() {
               <div className="mt-6 pt-3 border-t border-line text-[11px] text-muted font-mono">
                 Screening-Aligned Playback
               </div>
-            </div>
+            </GlisseGlass>
 
             {/* Step 4 */}
-            <div className="p-6 rounded-2xl bg-field border border-line shadow-card flex flex-col justify-between text-left relative group hover:border-amber-500/30 transition-all">
+            <GlisseGlass className="p-6 rounded-2xl border border-white/10 shadow-card flex flex-col justify-between text-left relative group hover:border-amber-500/30 transition-all">
               <div>
                 <div className="flex items-center justify-between pb-3 border-b border-line">
                   <span className="text-xs font-mono font-bold text-amber-400">STEP 04</span>
@@ -229,7 +230,7 @@ export default function BusinessLandingPage() {
               <div className="mt-6 pt-3 border-t border-line text-[11px] text-muted font-mono">
                 Maximum 15 Minutes
               </div>
-            </div>
+            </GlisseGlass>
           </div>
         </section>
 
@@ -350,7 +351,7 @@ export default function BusinessLandingPage() {
           </div>
 
           <div className="mt-12 sm:mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6 text-left">
-            <div className="p-6 rounded-2xl bg-field border border-line shadow-card hover:border-amber-500/30 transition-all flex flex-col justify-between">
+            <GlisseGlass className="p-6 rounded-2xl border border-white/10 shadow-card hover:border-amber-500/30 transition-all flex flex-col justify-between">
               <div>
                 <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mb-4">
                   <Film className="w-5 h-5 text-amber-400" />
@@ -365,9 +366,9 @@ export default function BusinessLandingPage() {
               <div className="mt-5 pt-3 border-t border-line text-[11px] font-semibold text-emerald-400">
                 Reduced Patron Anxiety
               </div>
-            </div>
+            </GlisseGlass>
 
-            <div className="p-6 rounded-2xl bg-field border border-line shadow-card hover:border-amber-500/30 transition-all flex flex-col justify-between">
+            <GlisseGlass className="p-6 rounded-2xl border border-white/10 shadow-card hover:border-amber-500/30 transition-all flex flex-col justify-between">
               <div>
                 <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mb-4">
                   <ShieldCheck className="w-5 h-5 text-amber-400" />
@@ -382,9 +383,9 @@ export default function BusinessLandingPage() {
               <div className="mt-5 pt-3 border-t border-line text-[11px] font-semibold text-emerald-400">
                 Hardware-Enforced Security
               </div>
-            </div>
+            </GlisseGlass>
 
-            <div className="p-6 rounded-2xl bg-field border border-line shadow-card hover:border-amber-500/30 transition-all flex flex-col justify-between">
+            <GlisseGlass className="p-6 rounded-2xl border border-white/10 shadow-card hover:border-amber-500/30 transition-all flex flex-col justify-between">
               <div>
                 <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mb-4">
                   <Zap className="w-5 h-5 text-amber-400" />
@@ -399,9 +400,9 @@ export default function BusinessLandingPage() {
               <div className="mt-5 pt-3 border-t border-line text-[11px] font-semibold text-emerald-400">
                 Configurable Pricing
               </div>
-            </div>
+            </GlisseGlass>
 
-            <div className="p-6 rounded-2xl bg-field border border-line shadow-card hover:border-amber-500/30 transition-all flex flex-col justify-between">
+            <GlisseGlass className="p-6 rounded-2xl border border-white/10 shadow-card hover:border-amber-500/30 transition-all flex flex-col justify-between">
               <div>
                 <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mb-4">
                   <Activity className="w-5 h-5 text-amber-400" />
@@ -416,7 +417,7 @@ export default function BusinessLandingPage() {
               <div className="mt-5 pt-3 border-t border-line text-[11px] font-semibold text-emerald-400">
                 Live Usher Dashboard
               </div>
-            </div>
+            </GlisseGlass>
           </div>
         </section>
 
@@ -439,7 +440,7 @@ export default function BusinessLandingPage() {
             </div>
 
             <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="p-6 rounded-2xl bg-field border border-line shadow-card flex flex-col justify-between">
+              <GlisseGlass className="p-6 rounded-2xl border border-white/10 shadow-card flex flex-col justify-between">
                 <div>
                   <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mb-4">
                     <Clock className="w-5 h-5" />
@@ -452,9 +453,9 @@ export default function BusinessLandingPage() {
                 <div className="mt-6 pt-3 border-t border-line text-[11px] font-mono text-emerald-400">
                   Screening Updates
                 </div>
-              </div>
+              </GlisseGlass>
 
-              <div className="p-6 rounded-2xl bg-field border border-line shadow-card flex flex-col justify-between">
+              <GlisseGlass className="p-6 rounded-2xl border border-white/10 shadow-card flex flex-col justify-between">
                 <div>
                   <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mb-4">
                     <Sliders className="w-5 h-5" />
@@ -467,9 +468,9 @@ export default function BusinessLandingPage() {
                 <div className="mt-6 pt-3 border-t border-line text-[11px] font-mono text-emerald-400">
                   Follows Cinema Updates
                 </div>
-              </div>
+              </GlisseGlass>
 
-              <div className="p-6 rounded-2xl bg-field border border-line shadow-card flex flex-col justify-between">
+              <GlisseGlass className="p-6 rounded-2xl border border-white/10 shadow-card flex flex-col justify-between">
                 <div>
                   <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mb-4">
                     <Tv className="w-5 h-5" />
@@ -482,7 +483,7 @@ export default function BusinessLandingPage() {
                 <div className="mt-6 pt-3 border-t border-line text-[11px] font-mono text-emerald-400">
                   Connection-Aware Playback
                 </div>
-              </div>
+              </GlisseGlass>
             </div>
           </div>
         </section>
@@ -505,33 +506,33 @@ export default function BusinessLandingPage() {
           </div>
 
           <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 text-left">
-            <div className="p-5 rounded-2xl bg-field border border-line shadow-card hover:border-amber-500/30 transition-all">
+            <GlisseGlass className="p-5 rounded-2xl border border-white/10 shadow-card hover:border-amber-500/30 transition-all">
               <div className="font-extrabold text-base text-ink">Vista Cinema POS</div>
               <p className="mt-2 text-xs text-muted leading-relaxed">
                 PottyPlay can receive ticket admission and refund updates from Vista Connect.
               </p>
-            </div>
+            </GlisseGlass>
 
-            <div className="p-5 rounded-2xl bg-field border border-line shadow-card hover:border-amber-500/30 transition-all">
+            <GlisseGlass className="p-5 rounded-2xl border border-white/10 shadow-card hover:border-amber-500/30 transition-all">
               <div className="font-extrabold text-base text-ink">Veezi Cloud Ticketing</div>
               <p className="mt-2 text-xs text-muted leading-relaxed">
                 Connect ticket and screening information from Veezi for independent cinemas and boutique theaters.
               </p>
-            </div>
+            </GlisseGlass>
 
-            <div className="p-5 rounded-2xl bg-field border border-line shadow-card hover:border-amber-500/30 transition-all">
+            <GlisseGlass className="p-5 rounded-2xl border border-white/10 shadow-card hover:border-amber-500/30 transition-all">
               <div className="font-extrabold text-base text-ink">Ready Theatre Systems</div>
               <p className="mt-2 text-xs text-muted leading-relaxed">
                 Use ticket barcodes from Ready Theatre Systems scanners and kiosks.
               </p>
-            </div>
+            </GlisseGlass>
 
-            <div className="p-5 rounded-2xl bg-field border border-line shadow-card hover:border-amber-500/30 transition-all">
+            <GlisseGlass className="p-5 rounded-2xl border border-white/10 shadow-card hover:border-amber-500/30 transition-all">
               <div className="font-extrabold text-base text-ink">Other Cinema Systems</div>
               <p className="mt-2 text-xs text-muted leading-relaxed">
                 Ask us about connecting PottyPlay to your ticketing and theater systems.
               </p>
-            </div>
+            </GlisseGlass>
           </div>
         </section>
 
@@ -603,37 +604,37 @@ export default function BusinessLandingPage() {
           </div>
 
           <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 text-left">
-            <div className="p-6 rounded-2xl bg-field border border-line shadow-card hover:border-amber-500/30 transition-all">
+            <GlisseGlass className="p-6 rounded-2xl border border-white/10 shadow-card hover:border-amber-500/30 transition-all">
               <div className="text-xs font-mono font-bold text-amber-400">STAGE 01</div>
               <h3 className="mt-2 font-bold text-base text-ink">Partner Registration</h3>
               <p className="mt-2 text-xs text-muted leading-relaxed">
                 Submit circuit details, venue counts, and ticketing systems through our partner portal.
               </p>
-            </div>
+            </GlisseGlass>
 
-            <div className="p-6 rounded-2xl bg-field border border-line shadow-card hover:border-amber-500/30 transition-all">
+            <GlisseGlass className="p-6 rounded-2xl border border-white/10 shadow-card hover:border-amber-500/30 transition-all">
               <div className="text-xs font-mono font-bold text-amber-400">STAGE 02</div>
               <h3 className="mt-2 font-bold text-base text-ink">System Compatibility Check</h3>
               <p className="mt-2 text-xs text-muted leading-relaxed">
                 Our team checks how your ticketing and theater systems can connect with PottyPlay.
               </p>
-            </div>
+            </GlisseGlass>
 
-            <div className="p-6 rounded-2xl bg-field border border-line shadow-card hover:border-amber-500/30 transition-all">
+            <GlisseGlass className="p-6 rounded-2xl border border-white/10 shadow-card hover:border-amber-500/30 transition-all">
               <div className="text-xs font-mono font-bold text-amber-400">STAGE 03</div>
               <h3 className="mt-2 font-bold text-base text-ink">Single-Screen Pilot</h3>
               <p className="mt-2 text-xs text-muted leading-relaxed">
                 Pilot the companion experience on a single flagship auditorium with live moviegoers.
               </p>
-            </div>
+            </GlisseGlass>
 
-            <div className="p-6 rounded-2xl bg-field border border-line shadow-card hover:border-amber-500/30 transition-all">
+            <GlisseGlass className="p-6 rounded-2xl border border-white/10 shadow-card hover:border-amber-500/30 transition-all">
               <div className="text-xs font-mono font-bold text-amber-400">STAGE 04</div>
               <h3 className="mt-2 font-bold text-base text-ink">Circuit Rollout</h3>
               <p className="mt-2 text-xs text-muted leading-relaxed">
                 Deploy QR codes across theater restrooms and enable companion streaming circuit-wide.
               </p>
-            </div>
+            </GlisseGlass>
           </div>
         </section>
 
@@ -675,7 +676,7 @@ export default function BusinessLandingPage() {
                 </div>
               </div>
 
-              <div className="lg:col-span-6 rounded-3xl bg-[#040507] border border-neutral-800 overflow-hidden shadow-elevated">
+              <GlisseGlass className="lg:col-span-6 rounded-3xl border border-neutral-800/80 overflow-hidden shadow-elevated">
                 <div className="bg-neutral-900/90 border-b border-neutral-800 px-4 py-2.5 flex items-center justify-between text-[11px] font-mono text-neutral-400">
                   <div className="flex items-center space-x-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-red-500/80 inline-block" />
@@ -701,7 +702,7 @@ X-PottyPlay-Signature: sha256=...
   "maxSessionSeconds": 900
 }`}</pre>
                 </div>
-              </div>
+              </GlisseGlass>
             </div>
           </div>
         </section>

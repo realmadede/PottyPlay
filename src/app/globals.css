@@ -41,10 +41,28 @@
   --background: var(--brand-bg);
   --foreground: var(--brand-text-primary);
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* Glisse Liquid Glass Theatrical Theme Bindings */
+  --lg-blur: 16px;
+  --lg-fill: #F59E0B;
+  --lg-glass: rgba(22, 25, 30, 0.52);
+  --lg-glass-active: rgba(36, 41, 49, 0.75);
+  --lg-surface: rgba(22, 25, 30, 0.82);
+  --lg-edge: rgba(255, 255, 255, 0.14);
+  --lg-rim-shine: 0.45;
+  --lg-on: #F59E0B;
 }
 
 /* Optional Light Mode for Users Who Explicitly Request It in Settings */
 [data-theme="light"] {
+  --lg-blur: 16px;
+  --lg-fill: #D97706;
+  --lg-glass: rgba(255, 255, 255, 0.65);
+  --lg-glass-active: rgba(243, 244, 246, 0.85);
+  --lg-surface: rgba(248, 249, 250, 0.88);
+  --lg-edge: rgba(0, 0, 0, 0.12);
+  --lg-rim-shine: 0.4;
+  --lg-on: #D97706;
   --bg: 248 249 250;          /* #F8F9FA */
   --ink: 17 24 39;            /* #111827 */
   --muted: 107 114 128;       /* #6B7280 */
@@ -96,6 +114,10 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: rgb(var(--bg));
+  background-image:
+    radial-gradient(ellipse 90% 55% at 50% -15%, rgba(245, 158, 11, 0.14), transparent 75%),
+    radial-gradient(ellipse 65% 45% at 85% 85%, rgba(245, 158, 11, 0.05), transparent 65%);
+  background-attachment: fixed;
   color: rgb(var(--ink));
 }
 

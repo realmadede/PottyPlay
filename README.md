@@ -16,6 +16,10 @@ The current checkout does not have a confirmed production HTTPS API origin, and 
 
 ### 1.1 Public Exhibitor Marketing Website (`/`)
 - Marketed specifically to cinema owners, exhibitors, and technical decision-makers.
+- **Glisse Liquid Glass UI Architecture:**
+  - Integrated optical glass material across all cards, navigation docks, and buttons.
+  - Three-pillar landing header architecture: Brand Logo in a left glass capsule, central floating glass navigation dock housing all navigation links and the Companion App launcher, and an outlined primary `Register Cinema` CTA button placed prominently outside the dock.
+  - Interactive hero carousel featuring optical `<GlisseGlass>` device containers with frosted telemetry screens, live audio wave animation, and zero layout shift.
 - Animated, automatically transitioning hero carousel highlighting 4 core messages:
   1. *Never lose your place.*
   2. *A better cinema experience.*
@@ -23,6 +27,7 @@ The current checkout does not have a confirmed production HTTPS API origin, and 
   4. *Built for cinema operators.*
 - 12 comprehensive landing page sections including product proposition, theater benefits, screening synchronization, ticketing interoperability, security perimeters, and direct partner inquiry dispatching.
 - **Dynamic Optical Glass Shader Engine:** Real-time WebGL GLSL fragment shader rendering signed-distance-field (SDF) rounded convex lenses, tri-channel chromatic dispersion (nR, nG, nB), Schlick's Fresnel reflectivity, thin-film spectral iridescence coating, and device gyroscope tilt parallax across all header docks and surface cards.
+- **SSR-Hardened Optics & Build Stability:** Defensive server-side rendering guards across all glass internals preventing `ReferenceError` on `window`, `document`, `navigator`, or `devicePixelRatio`, backed by direct CSS module bundling in `src/app/layout.tsx` and Capacitor `transpilePackages` in `next.config.ts`.
 - **Bot Defense & Origin Logging:** Automated scrapers are trapped by hidden form honeypot fields (`website_url_hp`); inquiring circuits have IP addresses and HTTP User-Agent signatures recorded for fraud auditing.
 
 ### 1.2 Customer Application (Native Mobile Shell)

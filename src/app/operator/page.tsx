@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { NavigationHeader } from "@/components/NavigationHeader";
 import { BrandLogo } from "@/components/BrandLogo";
+import { Glass, Button as GlisseButton } from "@/components/glisse";
 import {
   Sliders,
   Users,
@@ -643,7 +644,7 @@ export default function OperatorPage() {
   if (!token || !operator) {
     return (
       <div className="min-h-screen bg-bg text-ink flex flex-col justify-center items-center p-4 selection:bg-amber-500 selection:text-neutral-950">
-        <div className="w-full max-w-md glass-ios26 glass-ios26-rim glass-ios26-glint border border-white/20 rounded-3xl p-6 sm:p-8 shadow-card text-left">
+        <Glass className="w-full max-w-md glass-ios26 glass-ios26-rim glass-ios26-glint border border-white/20 rounded-3xl p-6 sm:p-8 shadow-card text-left">
           {/* Header */}
           <div className="text-center pb-6 border-b border-line">
             <div className="w-12 h-12 rounded-2xl bg-bg border border-line flex items-center justify-center mx-auto mb-3 text-amber-400">
@@ -943,7 +944,7 @@ export default function OperatorPage() {
               </div>
             </div>
           )}
-        </div>
+        </Glass>
       </div>
     );
   }
@@ -990,21 +991,22 @@ export default function OperatorPage() {
             <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
               {operator.role}
             </span>
-            <button
+            <GlisseButton
+              variant="glass"
               onClick={fetchData}
-              className="p-2 rounded-xl border border-line bg-field hover:bg-field-raised text-muted hover:text-ink transition-colors cursor-pointer"
+              className="p-2 text-muted hover:text-ink cursor-pointer"
               title="Refresh Telemetry"
               aria-label="Refresh Telemetry"
-            >
-              <RefreshCw className="w-4 h-4" />
-            </button>
-            <button
+              icon={<RefreshCw className="w-4 h-4" />}
+            />
+            <GlisseButton
+              variant="glass"
               onClick={handleLogout}
-              className="py-1.5 px-3 rounded-xl text-xs font-semibold bg-field hover:bg-field-raised text-muted hover:text-ink border border-line flex items-center space-x-1.5 transition-colors cursor-pointer"
+              className="text-xs font-semibold text-muted hover:text-ink cursor-pointer"
+              icon={<LogOut className="w-3.5 h-3.5" />}
             >
-              <LogOut className="w-3.5 h-3.5" />
               <span>Sign Out</span>
-            </button>
+            </GlisseButton>
           </div>
         </div>
 
@@ -1023,7 +1025,7 @@ export default function OperatorPage() {
 
         {/* Truthful Empty State when 0 registered cinemas */}
         {hasNoCinemas ? (
-          <div className="p-8 sm:p-12 rounded-3xl bg-field border border-line shadow-card text-center max-w-2xl mx-auto space-y-4 my-8">
+          <Glass className="p-8 sm:p-12 rounded-3xl border border-white/10 shadow-card text-center max-w-2xl mx-auto space-y-4 my-8">
             <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-amber-400 flex items-center justify-center mx-auto shadow-sm">
               <Building2 className="w-7 h-7" />
             </div>
@@ -1033,7 +1035,7 @@ export default function OperatorPage() {
             <p className="text-sm text-muted leading-relaxed">
               Your operator account has been authenticated, but auditorium screens and commercial pricing are currently undergoing configuration by platform administration.
             </p>
-          </div>
+          </Glass>
         ) : (
           <>
             {/* Operator Stats Cards */}
@@ -1097,7 +1099,7 @@ export default function OperatorPage() {
                   className={`py-2 px-3.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer ${
                     activeTab === tab.id
                       ? "bg-amber-500 text-neutral-950 font-black shadow-sm"
-                      : "bg-field text-muted border border-line hover:text-ink hover:bg-field-raised"
+                      : "lg-glass text-muted border border-white/10 hover:text-ink hover:bg-white/10"
                   }`}
                 >
                   <span>{tab.label}</span>
@@ -1106,7 +1108,7 @@ export default function OperatorPage() {
                       className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono ${
                         activeTab === tab.id
                           ? "bg-neutral-950/20 text-neutral-950"
-                          : "bg-bg text-muted border border-line"
+                          : "bg-bg/60 text-muted border border-white/10"
                       }`}
                     >
                       {tab.count}
@@ -1118,7 +1120,7 @@ export default function OperatorPage() {
 
             {/* TAB 1: SESSIONS */}
             {activeTab === "sessions" && (
-              <div className="bg-field rounded-2xl border border-line overflow-hidden shadow-card">
+              <Glass className="rounded-2xl border border-white/10 overflow-hidden shadow-card">
                 <div className="p-4 border-b border-line flex justify-between items-center text-xs">
                   <span className="font-bold uppercase tracking-wider text-muted">
                     Companion Viewing Break Sessions
@@ -1128,7 +1130,7 @@ export default function OperatorPage() {
 
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-bg text-muted border-b border-line text-[11px] font-bold uppercase">
+                    <thead className="bg-bg/80 text-muted border-b border-line text-[11px] font-bold uppercase">
                       <tr>
                         <th className="p-3">Patron & Seat</th>
                         <th className="p-3">Ticket ID</th>
@@ -1169,12 +1171,14 @@ export default function OperatorPage() {
                           </td>
                           <td className="p-3 text-right">
                             {s.status === "ACTIVE" ? (
-                              <button
+                              <GlisseButton
+                                variant="glass"
+                                destructive
                                 onClick={() => setRevokeSessionId(s.id)}
-                                className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-field-raised text-muted hover:text-red-400 hover:bg-red-500/10 border border-line transition-colors cursor-pointer"
+                                className="text-[11px] font-bold px-2.5 py-1"
                               >
                                 Revoke Access
-                              </button>
+                              </GlisseButton>
                             ) : (
                               <span className="text-[11px] text-muted">Closed</span>
                             )}
@@ -1191,30 +1195,31 @@ export default function OperatorPage() {
                     </tbody>
                   </table>
                 </div>
-              </div>
+              </Glass>
             )}
 
             {/* TAB 2: AUDITORIUM SCREENS */}
             {activeTab === "screenings" && (
               <div className="space-y-4">
-                <div className="bg-field rounded-2xl border border-line overflow-hidden shadow-card">
+                <Glass className="rounded-2xl border border-white/10 overflow-hidden shadow-card">
                   <div className="p-4 border-b border-line flex justify-between items-center">
                     <div className="text-xs font-bold uppercase tracking-wider text-muted">
                       Live Auditorium Screenings & Timeline Positions
                     </div>
-                    <button
+                    <GlisseButton
+                      variant="filled"
                       onClick={() => setShowScheduleModal(true)}
-                      className="px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/30 text-xs font-bold hover:bg-amber-500 hover:text-neutral-950 transition flex items-center space-x-1 cursor-pointer"
+                      className="text-xs font-bold"
+                      icon={<Plus className="w-3.5 h-3.5" />}
                     >
-                      <Plus className="w-3.5 h-3.5" />
                       <span>Schedule Screening</span>
-                    </button>
+                    </GlisseButton>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
                     {data?.screenings?.map((sc) => (
-                      <div
+                      <Glass
                         key={sc.id}
-                        className="p-4 rounded-xl border border-line bg-bg space-y-3 shadow-card"
+                        className="p-4 rounded-xl border border-white/10 space-y-3 shadow-card"
                       >
                         <div className="flex justify-between items-start">
                           <div>
@@ -1258,7 +1263,7 @@ export default function OperatorPage() {
                           <span>Playback State: {sc.isPaused ? "PAUSED" : "PLAYING"}</span>
                           <span>Start: {new Date(sc.scheduledStart).toLocaleTimeString()}</span>
                         </div>
-                      </div>
+                      </Glass>
                     ))}
                     {data?.screenings?.length === 0 && (
                       <div className="col-span-2 p-8 text-center text-xs text-muted">
@@ -1266,12 +1271,12 @@ export default function OperatorPage() {
                       </div>
                     )}
                   </div>
-                </div>
+                </Glass>
 
                 {/* Schedule Screening Modal */}
                 {showScheduleModal && (
                   <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-field border border-line rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+                    <Glass className="border border-white/15 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
                       <div className="flex justify-between items-center border-b border-line pb-3">
                         <h3 className="text-sm font-bold text-ink uppercase tracking-wider">
                           Schedule Auditorium Screening
@@ -1343,7 +1348,7 @@ export default function OperatorPage() {
                           </button>
                         </div>
                       </form>
-                    </div>
+                    </Glass>
                   </div>
                 )}
               </div>
@@ -1475,7 +1480,7 @@ export default function OperatorPage() {
                 {/* Issue Ticket Modal */}
                 {showIssueTicketModal && (
                   <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-field border border-line rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+                    <Glass className="border border-white/15 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
                       <div className="flex justify-between items-center border-b border-line pb-3">
                         <h3 className="text-sm font-bold text-ink uppercase tracking-wider">
                           Issue Demonstration Ticket
@@ -1548,7 +1553,7 @@ export default function OperatorPage() {
                           </button>
                         </div>
                       </form>
-                    </div>
+                    </Glass>
                   </div>
                 )}
               </div>
@@ -1557,7 +1562,7 @@ export default function OperatorPage() {
             {/* TAB 3: COMMERCIAL PRICING */}
             {activeTab === "pricing" && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="md:col-span-2 bg-field rounded-2xl border border-line p-6 shadow-card space-y-4">
+                <Glass className="md:col-span-2 rounded-2xl border border-white/10 p-6 shadow-card space-y-4">
                   <div>
                     <h3 className="text-sm font-bold text-ink uppercase tracking-wider">
                       Commercial Pricing per Restroom Activation
@@ -1614,18 +1619,19 @@ export default function OperatorPage() {
                       />
                     </div>
 
-                    <button
+                    <GlisseButton
                       type="submit"
+                      variant="filled"
                       disabled={savingPrice || newPrice === ""}
-                      className="py-2.5 px-5 rounded-xl font-black text-xs bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-colors disabled:opacity-50 shadow-sm cursor-pointer"
+                      className="text-xs font-black"
                     >
-                      {savingPrice ? "Updating Rate..." : "Commit Commercial Rate Rule"}
-                    </button>
+                      <span>{savingPrice ? "Updating Rate..." : "Commit Commercial Rate Rule"}</span>
+                    </GlisseButton>
                   </form>
-                </div>
+                </Glass>
 
                 {/* Current Active Rule Card */}
-                <div className="bg-field rounded-2xl border border-line p-6 shadow-card space-y-4">
+                <Glass className="rounded-2xl border border-white/10 p-6 shadow-card space-y-4">
                   <h4 className="text-xs font-bold text-muted uppercase tracking-wider">
                     Authoritative Effective Pricing
                   </h4>
@@ -1643,7 +1649,7 @@ export default function OperatorPage() {
                   <p className="text-[11px] text-muted leading-relaxed">
                     Note: Pricing agreements are configured in the platform database. The platform will never bill patrons directly without verified cinema commercial authorization.
                   </p>
-                </div>
+                </Glass>
               </div>
             )}
 

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Bell, Plus, Trash2, Calendar, Clock, Ticket, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { GlassSurface } from "@/components/GlassSurface";
+import { Button as GlisseButton, Input as GlisseInput, SegmentedControl } from "@/components/glisse";
 import { customerFetch } from "@/lib/customer-mobile-url";
 
 interface ReminderItem {
@@ -147,14 +148,14 @@ export function RemindersView() {
           </p>
         </div>
 
-        <button
-          type="button"
+        <GlisseButton
+          variant="filled"
           onClick={() => setIsAdding(!isAdding)}
-          className="inline-flex items-center space-x-1.5 py-2.5 px-4 rounded-xl text-xs font-black bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-all shadow-sm self-start sm:self-auto"
+          className="text-xs font-black self-start sm:self-auto"
+          icon={<Plus className="w-4 h-4" />}
         >
-          <Plus className="w-4 h-4" />
-          <span>Add Reminder</span>
-        </button>
+          <span>{isAdding ? "Close Form" : "Add Reminder"}</span>
+        </GlisseButton>
       </div>
 
       {errorMessage && (
@@ -202,18 +203,19 @@ export function RemindersView() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-ink mb-1">
+              <label className="block text-xs font-bold text-ink mb-1.5">
                 Reminder Offset
               </label>
-              <select
-                value={offsetMinutes}
-                onChange={(e) => setOffsetMinutes(parseInt(e.target.value))}
-                className="w-full px-3 py-2.5 rounded-xl border border-line bg-bg text-ink text-xs focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
-              >
-                <option value={30} className="bg-field text-ink">30 Minutes Before Showtime</option>
-                <option value={60} className="bg-field text-ink">1 Hour Before Showtime</option>
-                <option value={1440} className="bg-field text-ink">1 Day Before Showtime (24h)</option>
-              </select>
+              <SegmentedControl
+                items={[
+                  { value: "30", label: <span className="py-0.5 px-1 text-xs">30m</span> },
+                  { value: "60", label: <span className="py-0.5 px-1 text-xs">1h</span> },
+                  { value: "1440", label: <span className="py-0.5 px-1 text-xs">24h</span> },
+                ]}
+                value={String(offsetMinutes)}
+                onValueChange={(val) => setOffsetMinutes(parseInt(val))}
+                className="w-full"
+              />
             </div>
           </div>
 
@@ -221,12 +223,11 @@ export function RemindersView() {
             <label className="block text-xs font-bold text-ink mb-1">
               Ticket Barcode / Code (e.g. TK-8821-4401)
             </label>
-            <input
-              type="text"
+            <GlisseInput
               placeholder="e.g. TK-8821-4401"
               value={ticketInput}
-              onChange={(e) => setTicketInput(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-line bg-bg text-ink placeholder-muted text-xs font-mono uppercase focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
+              onValueChange={setTicketInput}
+              className="w-full font-mono uppercase text-xs"
             />
             <span className="text-[11px] text-muted mt-1 block">
               Enter your ticket number so we can match the reminder to your screening.
@@ -234,21 +235,23 @@ export function RemindersView() {
           </div>
 
           <div className="flex items-center space-x-2 pt-2">
-            <button
+            <GlisseButton
               type="submit"
+              variant="filled"
               disabled={submitting}
-              className="py-2.5 px-4 rounded-xl text-xs font-black bg-amber-500 text-neutral-950 hover:bg-amber-400 shadow-sm flex items-center space-x-1.5 disabled:opacity-50"
+              className="text-xs font-black disabled:opacity-50"
+              icon={submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
             >
-              {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
               <span>Save Reminder</span>
-            </button>
-            <button
+            </GlisseButton>
+            <GlisseButton
               type="button"
+              variant="glass"
               onClick={() => setIsAdding(false)}
-              className="py-2.5 px-4 rounded-xl text-xs font-semibold bg-bg border border-line text-muted hover:text-ink hover:bg-field-raised"
+              className="text-xs font-semibold"
             >
               Cancel
-            </button>
+            </GlisseButton>
           </div>
         </form>
       )}

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { CinemaCanvasPlayer } from "@/components/CinemaCanvasPlayer";
 import { GlassSurface } from "@/components/GlassSurface";
+import { Button as GlisseButton, Input as GlisseInput } from "@/components/glisse";
 import { ReportIssueModal } from "@/components/customer/ReportIssueModal";
 import { NativeMobile } from "@/lib/native-mobile";
 import { customerFetch } from "@/lib/customer-mobile-url";
@@ -428,13 +429,13 @@ export function BathroomView() {
               <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
               <span>Your break ends when the timer reaches 00:00.</span>
             </div>
-            <button
-              type="button"
+            <GlisseButton
+              variant="filled"
               onClick={handleEndBreak}
-              className="py-1.5 px-3 rounded-lg bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-[11px] transition-colors"
+              className="text-[11px] font-bold"
             >
               Return to Auditorium
-            </button>
+            </GlisseButton>
           </div>
 
           {/* Issue Reporting Link */}
@@ -501,11 +502,11 @@ export function BathroomView() {
           </div>
 
           <div className="pt-2">
-            <button
-              type="button"
+            <GlisseButton
+              variant="filled"
               disabled={activating}
               onClick={() => handleActivate(eligibleTicket.ticketNumber)}
-              className="w-full py-4 px-6 rounded-2xl font-black text-sm bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-all shadow-sm flex items-center justify-center space-x-2 disabled:opacity-50"
+              className="w-full font-black text-sm flex items-center justify-center space-x-2 disabled:opacity-50"
             >
               {activating ? (
                 <>
@@ -518,7 +519,7 @@ export function BathroomView() {
                   <Play className="w-4 h-4" />
                 </>
               )}
-            </button>
+            </GlisseButton>
             <p className="mt-3 text-[11px] text-center text-muted">
               Your verified ticket is ready. Playback follows the active cinema screening.
             </p>
@@ -547,29 +548,28 @@ export function BathroomView() {
                 <p className="text-[11px] text-muted text-center">
                   The camera is used only after you tap Scan to read a cinema ticket QR code. PottyPlay does not save the camera image.
                 </p>
-                <button
-                  type="button"
+                <GlisseButton
+                  variant="glass"
                   disabled={scanning || activating}
                   onClick={() => void handleScanTicket()}
-                  className="w-full py-3 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-300 text-xs font-bold disabled:opacity-50"
+                  className="w-full text-xs font-bold disabled:opacity-50"
                 >
                   {scanning ? "Opening camera…" : "Scan ticket QR code"}
-                </button>
+                </GlisseButton>
               </>
             )}
-            <input
-              type="text"
+            <GlisseInput
               placeholder="e.g. TK-8821-4401"
               value={manualTicket}
-              onChange={(e) => setManualTicket(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-line bg-bg text-ink placeholder-muted text-center font-mono uppercase text-sm font-bold focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
+              onValueChange={setManualTicket}
+              className="w-full font-mono uppercase text-center font-bold"
             />
 
-            <button
-              type="button"
+            <GlisseButton
+              variant="filled"
               disabled={activating || !manualTicket.trim()}
               onClick={() => handleActivate(manualTicket)}
-              className="w-full py-3.5 px-4 rounded-xl font-black text-xs bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-all shadow-sm flex items-center justify-center space-x-2 disabled:opacity-50"
+              className="w-full font-black text-xs flex items-center justify-center space-x-2 disabled:opacity-50"
             >
               {activating ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -579,7 +579,7 @@ export function BathroomView() {
                   <Play className="w-4 h-4" />
                 </>
               )}
-            </button>
+            </GlisseButton>
           </div>
 
           <div className="p-3 rounded-xl bg-bg border border-line text-[11px] text-muted text-center">

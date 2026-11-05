@@ -73,3 +73,11 @@ The commercial companion concept requires strict enforcement of the 15-minute li
 Every qualifying session activation records an idempotent billing event:
 - The `UsageBillingEvent` table maintains a `@unique` constraint on `sessionId`.
 - `BillingService.recordActivationBilling` checks for existing records before insertion and runs within the activation transaction boundary.
+
+### 3.6 Optical Glass Material System & SSR Resiliency
+To deliver an authoritative cinema console experience without breaking Next.js App Router server compilation:
+- **Glisse Optical Material**: Integrated native Apple iOS 26 liquid glass physical shaders with SDF rounded convex lenses, chromatic dispersion, Schlick Fresnel reflectivity, and dynamic specular rim highlights.
+- **Defensive SSR Guards**: All browser-only DOM primitives (`window`, `document`, `navigator`, `devicePixelRatio`, `requestIdleCallback`) are safely guarded with `typeof ... !== "undefined"` checks to ensure zero `ReferenceError` crashes during server pre-rendering.
+- **Client Dynamic Boundaries**: Heavy canvas modules (`CinemaCanvasPlayer`) and native Capacitor bridges are client-isolated (`next/dynamic` with `ssr: false`), preventing Webpack server chunk desynchronization.
+- **Native Capacitor Transpilation**: `next.config.ts` explicitly includes `transpilePackages` for all Capacitor core and plugin modules.
+

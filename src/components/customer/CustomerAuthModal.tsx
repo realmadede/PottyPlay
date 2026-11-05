@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { GlassSurface } from "@/components/GlassSurface";
+import { Button as GlisseButton } from "@/components/glisse";
 
 interface CustomerAuthModalProps {
   isOpen: boolean;
@@ -501,10 +502,11 @@ export function CustomerAuthModal({
               </label>
             </div>
 
-            <button
+            <GlisseButton
               type="submit"
+              variant="filled"
               disabled={loading}
-              className="w-full mt-4 py-3 rounded-xl font-black text-xs sm:text-sm bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-colors duration-150 shadow-sm flex items-center justify-center space-x-2 disabled:opacity-50"
+              className="w-full mt-4 font-black text-xs sm:text-sm flex items-center justify-center space-x-2 disabled:opacity-50"
             >
               {loading ? (
                 <>
@@ -517,7 +519,7 @@ export function CustomerAuthModal({
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
-            </button>
+            </GlisseButton>
 
             <div className="pt-4 border-t border-line text-center text-xs text-muted">
               Already have an account?{" "}
@@ -710,10 +712,11 @@ export function CustomerAuthModal({
               </div>
             </div>
 
-            <button
+            <GlisseButton
               type="submit"
+              variant="filled"
               disabled={loading}
-              className="w-full mt-4 py-3 rounded-xl font-black text-xs sm:text-sm bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-colors duration-150 shadow-sm flex items-center justify-center space-x-2 disabled:opacity-50"
+              className="w-full mt-4 font-black text-xs sm:text-sm flex items-center justify-center space-x-2 disabled:opacity-50"
             >
               {loading ? (
                 <>
@@ -726,7 +729,7 @@ export function CustomerAuthModal({
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
-            </button>
+            </GlisseButton>
 
             <div className="pt-4 border-t border-line text-center text-xs text-muted">
               Don&apos;t have an account yet?{" "}

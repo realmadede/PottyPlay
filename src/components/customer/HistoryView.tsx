@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { History, Clock, MapPin, CheckCircle2, XCircle, AlertCircle, Loader2 } from "lucide-react";
 import { GlassSurface } from "@/components/GlassSurface";
+import { Button as GlisseButton } from "@/components/glisse";
 import { customerFetch } from "@/lib/customer-mobile-url";
 
 interface HistoryItem {
@@ -196,14 +197,14 @@ export function HistoryView() {
           {/* Cursor pagination button */}
           {nextCursor && (
             <div className="text-center pt-2">
-              <button
-                type="button"
+              <GlisseButton
+                variant="glass"
                 disabled={loadingMore}
                 onClick={() => fetchHistory(nextCursor)}
-                className="py-2.5 px-5 rounded-xl border border-line bg-field text-xs font-semibold text-ink hover:bg-field-raised transition-colors shadow-sm disabled:opacity-50"
+                className="text-xs font-semibold shadow-sm disabled:opacity-50"
               >
                 {loadingMore ? "Loading more sessions..." : "Load Older Sessions"}
-              </button>
+              </GlisseButton>
             </div>
           )}
         </div>

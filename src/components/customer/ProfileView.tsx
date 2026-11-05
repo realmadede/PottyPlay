@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { CustomerAuthSession } from "@/features/auth/customer-auth-service";
 import { GlassSurface } from "@/components/GlassSurface";
+import { Button as GlisseButton, Input as GlisseInput } from "@/components/glisse";
 import { customerFetch } from "@/lib/customer-mobile-url";
 
 interface ProfileViewProps {
@@ -305,7 +306,7 @@ export function ProfileView({ customer, onUpdateCustomer }: ProfileViewProps) {
       </GlassSurface>
 
       {/* CARD 1: Full Name */}
-      <div className="p-6 rounded-3xl bg-field border border-line shadow-card space-y-4">
+      <GlassSurface variant="dock" className="p-6 border border-line shadow-card space-y-4">
         <div className="flex items-center space-x-2.5 pb-3 border-b border-line">
           <User className="w-5 h-5 text-amber-400" />
           <div>
@@ -342,18 +343,19 @@ export function ProfileView({ customer, onUpdateCustomer }: ProfileViewProps) {
               className="w-full px-3.5 py-2.5 rounded-xl border border-line bg-bg text-sm text-ink focus:outline-none focus:ring-1 focus:ring-amber-500"
             />
           </div>
-          <button
+          <GlisseButton
             type="submit"
+            variant="filled"
             disabled={nameLoading || name === (customer.name || "")}
-            className="py-2.5 px-4 rounded-xl text-xs font-black bg-amber-500 text-neutral-950 hover:bg-amber-400 disabled:opacity-40 transition-all shadow-sm"
+            className="text-xs font-black disabled:opacity-40"
           >
             {nameLoading ? "Saving..." : "Save Name"}
-          </button>
+          </GlisseButton>
         </form>
-      </div>
+      </GlassSurface>
 
       {/* CARD 2: Email Address (Strict Verification) */}
-      <div className="p-6 rounded-3xl bg-field border border-line shadow-card space-y-4">
+      <GlassSurface variant="dock" className="p-6 border border-line shadow-card space-y-4">
         <div className="flex items-center space-x-2.5 pb-3 border-b border-line">
           <Mail className="w-5 h-5 text-amber-400" />
           <div>
@@ -452,10 +454,10 @@ export function ProfileView({ customer, onUpdateCustomer }: ProfileViewProps) {
             </div>
           </form>
         )}
-      </div>
+      </GlassSurface>
 
       {/* CARD 3: Phone Number (Strict SMS Verification) */}
-      <div className="p-6 rounded-3xl bg-field border border-line shadow-card space-y-4">
+      <GlassSurface variant="dock" className="p-6 border border-line shadow-card space-y-4">
         <div className="flex items-center space-x-2.5 pb-3 border-b border-line">
           <Smartphone className="w-5 h-5 text-amber-400" />
           <div>
@@ -554,10 +556,10 @@ export function ProfileView({ customer, onUpdateCustomer }: ProfileViewProps) {
             </div>
           </form>
         )}
-      </div>
+      </GlassSurface>
 
       {/* CARD 4: Security & Password (Strict Verification with toggling eye buttons) */}
-      <div className="p-6 rounded-3xl bg-field border border-line shadow-card space-y-4">
+      <GlassSurface variant="dock" className="p-6 border border-line shadow-card space-y-4">
         <div className="flex items-center space-x-2.5 pb-3 border-b border-line">
           <Lock className="w-5 h-5 text-amber-400" />
           <div>
@@ -687,15 +689,16 @@ export function ProfileView({ customer, onUpdateCustomer }: ProfileViewProps) {
             </div>
           </div>
 
-          <button
+          <GlisseButton
             type="submit"
+            variant="filled"
             disabled={passwordLoading || !currentPassword || !newPassword || !confirmPassword}
-            className="py-2.5 px-4 rounded-xl text-xs font-black bg-amber-500 text-neutral-950 hover:bg-amber-400 disabled:opacity-40 transition-all shadow-sm"
+            className="text-xs font-black disabled:opacity-40"
           >
             {passwordLoading ? "Verifying & Updating..." : "Update Security Password"}
-          </button>
+          </GlisseButton>
         </form>
-      </div>
+      </GlassSurface>
     </div>
   );
 }

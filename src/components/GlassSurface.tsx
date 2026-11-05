@@ -42,7 +42,7 @@ export function GlassSurface({
     <DynamicGlassSurface
       borderRadius={radius}
       interactive={interactive}
-      className={`glass-ios26 glass-ios26-rim ${iridClass} ${glintClass} ${ambientClass} ${variantClass} ${className}`}
+      className={`lg-glass glass-ios26 glass-ios26-rim ${iridClass} ${glintClass} ${ambientClass} ${variantClass} ${className}`}
       style={style}
       {...props}
     >

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
 import { GlassSurface } from "@/components/GlassSurface";
+import { TabBar, Button as GlisseButton } from "@/components/glisse";
 import { OnboardingCarousel } from "@/components/customer/OnboardingCarousel";
 import { CustomerAuthModal } from "@/components/customer/CustomerAuthModal";
 import { DiscoveryView } from "@/components/customer/DiscoveryView";
@@ -400,109 +401,34 @@ export default function CustomerApplication() {
           <p className="mt-2 text-xs text-muted leading-relaxed">
             Sign in and verify your phone number to start a cinema break.
           </p>
-          <button
-            type="button"
+          <GlisseButton
+            variant="filled"
             onClick={() => setAuthModalOpen(true)}
-            className="mt-6 py-3 px-6 rounded-xl font-black text-xs bg-amber-500 text-neutral-950 hover:bg-amber-400 shadow-sm transition-colors"
+            className="mt-6 font-black text-xs shadow-sm"
           >
             Open Registration & Sign In
-          </button>
+          </GlisseButton>
         </main>
       )}
 
-      {/* Fixed Floating Bottom Mobile Navigation Dock with 6 Tabs */}
+      {/* Fixed Floating Bottom Mobile Navigation Dock with Glisse Liquid Glass TabBar */}
       {customer && (
-        <div className="fixed bottom-safe-dock left-2 right-2 min-[380px]:left-4 min-[380px]:right-4 sm:left-1/2 sm:-translate-x-1/2 sm:max-w-md md:max-w-lg w-auto z-40">
-          <GlassSurface
-            variant="dock"
+        <div className="fixed bottom-safe-dock left-2 right-2 min-[380px]:left-4 min-[380px]:right-4 sm:left-1/2 sm:-translate-x-1/2 sm:max-w-md md:max-w-lg w-auto z-40 flex justify-center">
+          <TabBar
             aria-label="Main customer navigation"
-            className="p-1 sm:p-1.5 flex items-center justify-around shadow-2xl border border-white/10"
-          >
-          {/* Tab 1: Cinemas */}
-          <button
-            type="button"
-            onClick={() => handleTabChange("discovery")}
-            className={`flex flex-col items-center py-1 px-1 min-[360px]:px-1.5 sm:px-2 rounded-xl transition-all cursor-pointer ${
-              activeTab === "discovery"
-                ? "text-ink font-bold"
-                : "text-muted hover:text-ink"
-            }`}
-          >
-            <Building2 className={`w-4 h-4 sm:w-5 sm:h-5 ${activeTab === "discovery" ? "text-amber-400" : ""}`} />
-            <span className="text-[8px] min-[360px]:text-[9px] sm:text-[10px] mt-0.5">Cinemas</span>
-          </button>
-
-          {/* Tab 2: Reminders */}
-          <button
-            type="button"
-            onClick={() => handleTabChange("reminders")}
-            className={`flex flex-col items-center py-1 px-1 min-[360px]:px-1.5 sm:px-2 rounded-xl transition-all cursor-pointer ${
-              activeTab === "reminders"
-                ? "text-ink font-bold"
-                : "text-muted hover:text-ink"
-            }`}
-          >
-            <Bell className={`w-4 h-4 sm:w-5 sm:h-5 ${activeTab === "reminders" ? "text-amber-400" : ""}`} />
-            <span className="text-[8px] min-[360px]:text-[9px] sm:text-[10px] mt-0.5">Reminders</span>
-          </button>
-
-          {/* Tab 3: Start or manage a break */}
-          <button
-            type="button"
-            onClick={() => handleTabChange("bathroom")}
-            className={`flex flex-col items-center py-1.5 px-2.5 min-[360px]:px-3 sm:px-4 rounded-2xl transition-all cursor-pointer ${
-              activeTab === "bathroom"
-                ? "bg-amber-500 text-neutral-950 shadow-sm font-black"
-                : "text-muted hover:text-ink"
-            }`}
-          >
-            <Film className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="text-[8px] min-[360px]:text-[9px] sm:text-[10px] mt-0.5 font-bold">Break</span>
-          </button>
-
-          {/* Tab 4: History */}
-          <button
-            type="button"
-            onClick={() => handleTabChange("history")}
-            className={`flex flex-col items-center py-1 px-1 min-[360px]:px-1.5 sm:px-2 rounded-xl transition-all cursor-pointer ${
-              activeTab === "history"
-                ? "text-ink font-bold"
-                : "text-muted hover:text-ink"
-            }`}
-          >
-            <History className={`w-4 h-4 sm:w-5 sm:h-5 ${activeTab === "history" ? "text-amber-400" : ""}`} />
-            <span className="text-[8px] min-[360px]:text-[9px] sm:text-[10px] mt-0.5">History</span>
-          </button>
-
-          {/* Tab 5: Account Profile */}
-          <button
-            type="button"
-            onClick={() => handleTabChange("profile")}
-            className={`flex flex-col items-center py-1 px-1 min-[360px]:px-1.5 sm:px-2 rounded-xl transition-all cursor-pointer ${
-              activeTab === "profile"
-                ? "text-ink font-bold"
-                : "text-muted hover:text-ink"
-            }`}
-          >
-            <User className={`w-4 h-4 sm:w-5 sm:h-5 ${activeTab === "profile" ? "text-amber-400" : ""}`} />
-            <span className="text-[8px] min-[360px]:text-[9px] sm:text-[10px] mt-0.5">Account</span>
-          </button>
-
-          {/* Tab 6: Settings */}
-          <button
-            type="button"
-            onClick={() => handleTabChange("settings")}
-            className={`flex flex-col items-center py-1 px-1 min-[360px]:px-1.5 sm:px-2 rounded-xl transition-all cursor-pointer ${
-              activeTab === "settings"
-                ? "text-ink font-bold"
-                : "text-muted hover:text-ink"
-            }`}
-          >
-            <Settings className={`w-4 h-4 sm:w-5 sm:h-5 ${activeTab === "settings" ? "text-amber-400" : ""}`} />
-            <span className="text-[8px] min-[360px]:text-[9px] sm:text-[10px] mt-0.5">Settings</span>
-          </button>
-        </GlassSurface>
-      </div>
+            items={[
+              { value: "discovery", label: "Cinemas", icon: <Building2 className="w-4 h-4 sm:w-5 sm:h-5" /> },
+              { value: "reminders", label: "Reminders", icon: <Bell className="w-4 h-4 sm:w-5 sm:h-5" /> },
+              { value: "bathroom", label: "Break", icon: <Film className="w-4 h-4 sm:w-5 sm:h-5" /> },
+              { value: "history", label: "History", icon: <History className="w-4 h-4 sm:w-5 sm:h-5" /> },
+              { value: "profile", label: "Account", icon: <User className="w-4 h-4 sm:w-5 sm:h-5" /> },
+              { value: "settings", label: "Settings", icon: <Settings className="w-4 h-4 sm:w-5 sm:h-5" /> },
+            ]}
+            value={activeTab}
+            onValueChange={(val) => handleTabChange(val as ActiveTab)}
+            className="w-full max-w-lg shadow-2xl border border-white/10"
+          />
+        </div>
       )}
     </div>
   );

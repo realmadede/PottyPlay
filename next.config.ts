@@ -4,6 +4,17 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   output: process.env.BUILD_STANDALONE === "true" ? "standalone" : undefined,
+  transpilePackages: [
+    "@capacitor/core",
+    "@capacitor/app",
+    "@capacitor/haptics",
+    "@capacitor/network",
+    "@capacitor/preferences",
+    "@capacitor/local-notifications",
+    "@capacitor-community/privacy-screen",
+    "@capacitor/barcode-scanner",
+    "@aparajita/capacitor-secure-storage",
+  ],
   images: {
     remotePatterns: [
       {

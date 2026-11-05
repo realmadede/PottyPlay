@@ -4,6 +4,7 @@ import React, { Suspense, useState, useEffect, useCallback, useRef } from "react
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import {
   Film,
   Clock,
@@ -18,10 +19,23 @@ import {
   Play,
   Wifi,
 } from "lucide-react";
-import { CinemaCanvasPlayer } from "@/components/CinemaCanvasPlayer";
 import { GlassSurface } from "@/components/GlassSurface";
+import { Button as GlisseButton } from "@/components/glisse";
 import { ReportIssueModal } from "@/components/customer/ReportIssueModal";
 import { NativeMobile } from "@/lib/native-mobile";
+
+const CinemaCanvasPlayer = dynamic(
+  () => import("@/components/CinemaCanvasPlayer").then((mod) => mod.CinemaCanvasPlayer),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full aspect-video bg-neutral-950 flex flex-col items-center justify-center space-y-2 rounded-2xl border border-line">
+        <RefreshCw className="w-6 h-6 animate-spin text-amber-400" />
+        <span className="text-xs text-muted">Loading companion stream...</span>
+      </div>
+    ),
+  }
+);
 
 interface SessionData {
   sessionToken: string;
@@ -504,13 +518,15 @@ function WatchExperience() {
                 Return to <strong>Seat {activeSession.seatNumber}</strong> when ready. Playback stays in sync.
               </p>
             </div>
-            <button
+            <GlisseButton
+              variant="glass"
+              destructive
               onClick={handleLeaveSession}
-              className="flex items-center space-x-1 text-xs font-semibold text-red-400 hover:text-red-300 hover:underline flex-shrink-0 ml-2"
+              className="text-xs font-semibold flex-shrink-0 ml-2"
+              icon={<LogOut className="w-3.5 h-3.5" />}
             >
-              <LogOut className="w-3.5 h-3.5" />
               <span>End Break</span>
-            </button>
+            </GlisseButton>
           </GlassSurface>
 
           {/* Issue Reporting Option */}

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Building2, MapPin, Film, Search, CheckCircle2, ChevronRight, AlertCircle } from "lucide-react";
 import { GlassSurface } from "@/components/GlassSurface";
+import { Input as GlisseInput, Button as GlisseButton } from "@/components/glisse";
 import { customerFetch } from "@/lib/customer-mobile-url";
 import { NativeMobile } from "@/lib/native-mobile";
 
@@ -101,14 +102,14 @@ export function DiscoveryView() {
           Find participating cinemas and check their upcoming screenings.
         </p>
 
-        <div className="mt-4 relative">
-          <Search className="w-4 h-4 text-muted absolute left-3.5 top-3.5" />
-          <input
-            type="text"
+        <div className="mt-4">
+          <GlisseInput
+            type="search"
+            icon={<Search className="w-4 h-4 text-muted" />}
             placeholder="Search cinemas by city or name..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-line bg-bg text-ink placeholder-muted text-sm focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
+            onValueChange={setSearchQuery}
+            className="w-full text-sm"
           />
         </div>
       </div>

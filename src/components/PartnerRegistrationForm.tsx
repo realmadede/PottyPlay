@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { CheckCircle2, AlertCircle, Loader2, ArrowRight, Building2, Mail, Phone, MapPin, Monitor } from "lucide-react";
+import { Glass, Button as GlisseButton } from "@/components/glisse";
 
 export function PartnerRegistrationForm() {
   const [formData, setFormData] = useState({
@@ -53,7 +54,7 @@ export function PartnerRegistrationForm() {
 
   if (submitted) {
     return (
-      <div className="bg-field border border-emerald-500/30 rounded-3xl p-8 sm:p-10 text-center shadow-card max-w-xl mx-auto">
+      <Glass className="border border-emerald-500/30 rounded-3xl p-8 sm:p-10 text-center shadow-card max-w-xl mx-auto glass-ios26 glass-ios26-rim">
         <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-5">
           <CheckCircle2 className="w-8 h-8" />
         </div>
@@ -66,8 +67,8 @@ export function PartnerRegistrationForm() {
         <div className="mt-6 p-4 rounded-xl bg-bg border border-line text-xs text-left text-muted space-y-1">
           <div><strong className="text-ink">Next Step:</strong> Our team will review your request.</div>
         </div>
-        <button
-          type="button"
+        <GlisseButton
+          variant="glass"
           onClick={() => {
             setSubmitted(false);
             setFormData({
@@ -86,16 +87,16 @@ export function PartnerRegistrationForm() {
               website: "",
             });
           }}
-          className="mt-6 py-2.5 px-5 rounded-xl text-xs font-semibold bg-field border border-line text-ink hover:bg-field-raised"
+          className="mt-6 text-xs font-semibold"
         >
           Submit Another Application
-        </button>
-      </div>
+        </GlisseButton>
+      </Glass>
     );
   }
 
   return (
-    <div className="bg-field border border-line rounded-3xl p-6 sm:p-10 shadow-elevated max-w-3xl mx-auto text-left">
+    <Glass className="border border-white/10 rounded-3xl p-6 sm:p-10 shadow-elevated max-w-3xl mx-auto text-left glass-ios26 glass-ios26-rim">
       <div className="border-b border-line pb-6 mb-6">
         <h3 className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">
           Cinema Partner Application
@@ -301,10 +302,11 @@ export function PartnerRegistrationForm() {
         </div>
 
         <div className="pt-2">
-          <button
+          <GlisseButton
             type="submit"
+            variant="filled"
             disabled={loading}
-            className="w-full py-4 px-6 rounded-xl font-black text-sm bg-amber-500 text-neutral-950 hover:bg-amber-400 transition-all shadow-sm flex items-center justify-center space-x-2 disabled:opacity-50"
+            className="w-full font-black text-sm flex items-center justify-center space-x-2 disabled:opacity-50"
           >
             {loading ? (
               <>
@@ -314,15 +316,15 @@ export function PartnerRegistrationForm() {
             ) : (
               <>
                 <span>Submit Partner Application</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 ml-1.5" />
               </>
             )}
-          </button>
+          </GlisseButton>
           <p className="mt-3 text-[11px] text-center text-muted">
             Submissions are audited by our platform administration team prior to workspace access.
           </p>
         </div>
       </form>
-    </div>
+    </Glass>
   );
 }

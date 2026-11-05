@@ -19,6 +19,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { GlassSurface } from "@/components/GlassSurface";
+import { Switch as GlisseSwitch, SegmentedControl, Button as GlisseButton } from "@/components/glisse";
 import { ReportIssueModal } from "@/components/customer/ReportIssueModal";
 import { customerFetch, customerUrl } from "@/lib/customer-mobile-url";
 import { NativeMobile } from "@/lib/native-mobile";
@@ -205,45 +206,41 @@ export function SettingsView({
         <h4 className="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider">
           Appearance & Theme
         </h4>
-        <div className="grid grid-cols-3 gap-2 pt-1">
-          <button
-            type="button"
-            onClick={() => handleThemeChange("LIGHT")}
-            className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center justify-center space-y-1.5 ${
-              theme === "LIGHT"
-                ? "bg-amber-500 text-neutral-950 font-black border-amber-500 shadow-sm"
-                : "bg-bg border-line text-muted hover:text-ink hover:bg-field-raised"
-            }`}
-          >
-            <Sun className="w-5 h-5" />
-            <span className="text-xs">Light</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleThemeChange("DARK")}
-            className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center justify-center space-y-1.5 ${
-              theme === "DARK"
-                ? "bg-amber-500 text-neutral-950 font-black border-amber-500 shadow-sm"
-                : "bg-bg border-line text-muted hover:text-ink hover:bg-field-raised"
-            }`}
-          >
-            <Moon className="w-5 h-5" />
-            <span className="text-xs">Dark</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleThemeChange("SYSTEM")}
-            className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center justify-center space-y-1.5 ${
-              theme === "SYSTEM"
-                ? "bg-amber-500 text-neutral-950 font-black border-amber-500 shadow-sm"
-                : "bg-bg border-line text-muted hover:text-ink hover:bg-field-raised"
-            }`}
-          >
-            <Laptop className="w-5 h-5" />
-            <span className="text-xs">System</span>
-          </button>
+        <div className="pt-1">
+          <SegmentedControl
+            items={[
+              {
+                value: "LIGHT",
+                label: (
+                  <span className="flex items-center justify-center gap-1.5 py-1 px-3 text-xs font-bold">
+                    <Sun className="w-3.5 h-3.5" />
+                    <span>Light</span>
+                  </span>
+                ),
+              },
+              {
+                value: "DARK",
+                label: (
+                  <span className="flex items-center justify-center gap-1.5 py-1 px-3 text-xs font-bold">
+                    <Moon className="w-3.5 h-3.5" />
+                    <span>Dark</span>
+                  </span>
+                ),
+              },
+              {
+                value: "SYSTEM",
+                label: (
+                  <span className="flex items-center justify-center gap-1.5 py-1 px-3 text-xs font-bold">
+                    <Laptop className="w-3.5 h-3.5" />
+                    <span>System</span>
+                  </span>
+                ),
+              },
+            ]}
+            value={theme}
+            onValueChange={(val) => handleThemeChange(val as "LIGHT" | "DARK" | "SYSTEM")}
+            className="w-full"
+          />
         </div>
         <div className="text-[11px] text-muted pt-1">
           Your appearance preference is saved on this device.
@@ -251,7 +248,7 @@ export function SettingsView({
       </GlassSurface>
 
       {/* 3. Notification Preferences */}
-      <div className="p-5 sm:p-6 rounded-3xl bg-field border border-line shadow-card space-y-4">
+      <GlassSurface variant="dock" className="p-5 sm:p-6 border border-line shadow-card space-y-4">
         <h4 className="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider">
           Notifications & Alerts
         </h4>
@@ -263,14 +260,13 @@ export function SettingsView({
               Allow configured ticket reminders by SMS and email before showtime.
             </div>
           </div>
-          <input
-            type="checkbox"
+          <GlisseSwitch
             checked={notificationsEnabled}
-            onChange={(e) => {
+            onCheckedChange={(checked) => {
               const previous = { showtimeRemindersEnabled: notificationsEnabled, breakAlertsEnabled };
-              void saveNotificationPreferences({ ...previous, showtimeRemindersEnabled: e.target.checked }, previous);
+              void saveNotificationPreferences({ ...previous, showtimeRemindersEnabled: checked }, previous);
             }}
-            className="h-5 w-5 rounded border-line text-amber-500 focus:ring-amber-500 bg-bg cursor-pointer"
+            aria-label="Showtime Reminders"
           />
         </div>
 
@@ -281,11 +277,10 @@ export function SettingsView({
               Get a reminder near the end of an active break.
             </div>
           </div>
-          <input
-            type="checkbox"
+          <GlisseSwitch
             checked={breakAlertsEnabled}
-            onChange={(e) => void handleBreakAlertsChange(e.target.checked)}
-            className="h-5 w-5 rounded border-line text-amber-500 focus:ring-amber-500 bg-bg cursor-pointer"
+            onCheckedChange={(checked) => void handleBreakAlertsChange(checked)}
+            aria-label="Break Return Warnings"
           />
         </div>
         <p className="border-t border-line pt-3 text-[11px] leading-relaxed text-muted">
@@ -296,10 +291,10 @@ export function SettingsView({
             : "Notifications are turned off. You can still use PottyPlay without them."}
         </p>
         {message && <p role="status" className="text-xs text-amber-300">{message}</p>}
-      </div>
+      </GlassSurface>
 
       {/* 4. Legal & Compliance */}
-      <div className="p-5 sm:p-6 rounded-3xl bg-field border border-line shadow-card space-y-2.5">
+      <GlassSurface variant="dock" className="p-5 sm:p-6 border border-line shadow-card space-y-2.5">
         <h4 className="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider mb-2">
           Legal & Privacy
         </h4>
@@ -327,10 +322,10 @@ export function SettingsView({
           </div>
           <ExternalLink className="w-3.5 h-3.5 text-muted" />
         </a>
-      </div>
+      </GlassSurface>
 
       {/* 5. Support & Feedback */}
-      <div className="p-5 sm:p-6 rounded-3xl bg-field border border-line shadow-card space-y-3">
+      <GlassSurface variant="dock" className="p-5 sm:p-6 border border-line shadow-card space-y-3">
         <h4 className="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider">
           Support & Feedback
         </h4>
@@ -367,7 +362,7 @@ export function SettingsView({
           </div>
           <span className="text-muted text-[11px]">Ask cinema floor staff</span>
         </div>
-      </div>
+      </GlassSurface>
 
       {/* Report Issue / Feedback Modal */}
       <ReportIssueModal
@@ -376,40 +371,41 @@ export function SettingsView({
       />
 
       {/* 6. Account Actions */}
-      <div className="p-5 sm:p-6 rounded-3xl bg-field border border-line shadow-card space-y-3">
+      <GlassSurface variant="dock" className="p-5 sm:p-6 border border-line shadow-card space-y-3">
         <h4 className="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider">
           Account Security
         </h4>
 
-        <button
-          type="button"
+        <GlisseButton
+          variant="glass"
           onClick={() => onLogout()}
-          className="w-full py-3 px-4 rounded-xl border border-line text-xs font-bold text-ink hover:bg-field-raised transition-colors flex items-center justify-center space-x-2"
+          className="w-full flex items-center justify-center space-x-2 text-xs font-bold"
+          icon={<LogOut className="w-4 h-4 text-muted" />}
         >
-          <LogOut className="w-4 h-4 text-muted" />
           <span>Sign Out</span>
-        </button>
+        </GlisseButton>
 
-        <button
-          type="button"
+        <GlisseButton
+          variant="glass"
+          destructive
           onClick={() => setShowDeleteModal(true)}
-          className="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-red-400 hover:bg-red-500/10 transition-colors flex items-center justify-center space-x-1.5"
+          className="w-full flex items-center justify-center space-x-1.5 text-xs font-semibold"
+          icon={<Trash2 className="w-3.5 h-3.5" />}
         >
-          <Trash2 className="w-3.5 h-3.5" />
           <span>Request Account Deletion</span>
-        </button>
+        </GlisseButton>
         <a
           href={customerUrl("/account-deletion")}
           className="block text-center text-[11px] text-muted underline underline-offset-2"
         >
           Request deletion without access to the app
         </a>
-      </div>
+      </GlassSurface>
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="rounded-3xl bg-field border border-line shadow-elevated p-6 max-w-sm w-full text-center space-y-4">
+          <GlassSurface variant="dock" className="border border-line shadow-elevated p-6 max-w-sm w-full text-center space-y-4">
             <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center mx-auto">
               <Trash2 className="w-6 h-6" />
             </div>
@@ -434,7 +430,7 @@ export function SettingsView({
                 {deleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <span>Confirm Deletion</span>}
               </button>
             </div>
-          </div>
+          </GlassSurface>
         </div>
       )}
     </div>

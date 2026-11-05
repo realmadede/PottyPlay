@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import "@/components/glisse/styles.css";
 import { GlassOpticsRuntime } from "@/components/GlassOpticsRuntime";
 
 export const metadata: Metadata = {
